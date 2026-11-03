@@ -18,21 +18,16 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenProfileDrawer,
 }) => {
   const insets = useSafeAreaInsets();
-  const { user, activePersona, switchPersona, logout } = useAuth();
+  const { user, activePersona, logout } = useAuth();
   const [isGharVoiceModalOpen, setIsGharVoiceModalOpen] = React.useState(false);
   const topPadding = Math.max(insets.top, Platform.OS === 'web' ? 12 : 16);
 
   // Dynamic active mode resolution
   const isGhar = activeMode ? activeMode === 'GHAR' : activePersona === 'HOUSEHOLD';
 
-  const handleToggleMode = (mode: 'DUKAN' | 'GHAR') => {
-    if (onSwitchMode) {
-      onSwitchMode(mode);
-    }
-    const targetPersona = mode === 'GHAR' ? 'HOUSEHOLD' : 'VENDOR';
-    if (targetPersona !== activePersona) {
-      switchPersona(targetPersona);
-    }
+  // Persona switching is permanently locked to prevent domestic/commercial accounting leakage
+  const handleToggleMode = (_mode: 'DUKAN' | 'GHAR') => {
+    // No-op: persona switching locked
   };
 
   // Dynamic Store / Home Title & Address
@@ -77,44 +72,13 @@ export const Header: React.FC<HeaderProps> = ({
           </View>
         </TouchableOpacity>
 
-        {/* Top Right Mode Switcher & Logout */}
+        {/* Top Right Locked Persona Indicator & Logout */}
         <View style={styles.rightSection}>
-          <View style={styles.modeSwitcherContainer}>
-            <TouchableOpacity
-              style={[
-                styles.modePill,
-                !isGhar ? styles.modePillActive : styles.modePillInactive,
-              ]}
-              onPress={() => handleToggleMode('DUKAN')}
-              activeOpacity={0.8}
-            >
-              <Text
-                style={[
-                  styles.modePillText,
-                  !isGhar ? styles.modePillTextActive : styles.modePillTextInactive,
-                ]}
-              >
-                🏪 Dukan
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.modePill,
-                isGhar ? styles.modePillActive : styles.modePillInactive,
-              ]}
-              onPress={() => handleToggleMode('GHAR')}
-              activeOpacity={0.8}
-            >
-              <Text
-                style={[
-                  styles.modePillText,
-                  isGhar ? styles.modePillTextActive : styles.modePillTextInactive,
-                ]}
-              >
-                🏠 Ghar
-              </Text>
-            </TouchableOpacity>
+          <View style={styles.lockedPersonaBadge}>
+            <Ionicons name="lock-closed" size={11} color={isGhar ? '#38BDF8' : '#00d49f'} />
+            <Text style={[styles.lockedPersonaText, isGhar && styles.lockedPersonaTextGhar]}>
+              {isGhar ? '🏠 Ghar (Locked)' : '🏪 Dukan (Locked)'}
+            </Text>
           </View>
 
           <TouchableOpacity style={styles.logoutBtn} onPress={logout} activeOpacity={0.8}>
@@ -240,43 +204,24 @@ const styles = StyleSheet.create({
     gap: 6,
     flexShrink: 0,
   },
-  modeSwitcherContainer: {
+  lockedPersonaBadge: {
     flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#0d1627',
     borderWidth: 1,
     borderColor: '#17233b',
     borderRadius: 12,
-    padding: 2.5,
-    gap: 3,
-  },
-  modePill: {
     paddingHorizontal: 9,
-    paddingVertical: 4.5,
-    borderRadius: 8,
+    paddingVertical: 5,
+    gap: 4,
   },
-  modePillActive: {
-    backgroundColor: '#00d49f',
-    shadowColor: '#00d49f',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 5,
-    elevation: 3,
-  },
-  modePillInactive: {
-    backgroundColor: 'rgba(15, 23, 42, 0.6)',
-    borderWidth: 1,
-    borderColor: '#1e293b',
-  },
-  modePillText: {
+  lockedPersonaText: {
     fontSize: 11,
-  },
-  modePillTextActive: {
-    color: '#022c22',
-    fontWeight: '800',
-  },
-  modePillTextInactive: {
-    color: '#94A3B8',
     fontWeight: '700',
+    color: '#00d49f',
+  },
+  lockedPersonaTextGhar: {
+    color: '#38BDF8',
   },
   logoutBtn: {
     padding: 6,

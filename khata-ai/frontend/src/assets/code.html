@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"on-error-container":"#ffdad6","secondary-fixed":"#c9e6ff","surface-container-highest":"#2f3541","primary-fixed":"#55fdc5","primary-fixed-dim":"#29e0aa","inverse-surface":"#dde2f3","error":"#ffb4ab","secondary-fixed-dim":"#89ceff","surface-container-lowest":"#080e19","tertiary-container":"#afbbda","on-secondary-fixed":"#001e2f","on-primary":"#003828","surface-tint":"#29e0aa","on-error":"#690005","on-tertiary-fixed":"#0f1b33","surface-bright":"#333946","on-primary-fixed":"#002116","on-secondary-fixed-variant":"#004c6e","surface-dim":"#0d131f","tertiary-fixed":"#d8e2ff","on-surface-variant":"#bacac1","inverse-primary":"#006c4f","on-secondary":"#00344d","on-background":"#dde2f3","primary-container":"#00d49f","secondary":"#89ceff","on-primary-container":"#00563e","inverse-on-surface":"#2a303d","surface-container-low":"#161c27","tertiary-fixed-dim":"#bac6e6","on-surface":"#dde2f3","surface-variant":"#2f3541","outline":"#85948c","outline-variant":"#3b4a43","primary":"#45f1ba","error-container":"#93000a","surface-container":"#1a202b","surface-container-high":"#242a36","on-primary-fixed-variant":"#00513b","on-secondary-container":"#00344e","on-tertiary-fixed-variant":"#3b4760","on-tertiary":"#243049","surface":"#0d131f","tertiary":"#cbd7f7","secondary-container":"#00a2e6","on-tertiary-container":"#3f4b65","background":"#0d131f"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"margin-desktop":"2.5rem","space-md":"1rem","gutter-desktop":"1.5rem","space-xl":"2.5rem","gutter":"1.25rem","space-lg":"1.5rem","space-sm":"0.5rem","margin":"1rem","space-xs":"0.25rem"},"fontFamily":{"headline-lg":["Space Grotesk"],"title-lg":["Inter"],"body-sm":["Inter"],"body-md":["Inter"],"body-lg":["Inter"],"headline-md":["Space Grotesk"],"headline-xl-mobile":["Space Grotesk"],"headline-xl":["Space Grotesk"],"headline-lg-mobile":["Space Grotesk"],"label-numeric":["JetBrains Mono"],"title-md":["Inter"],"label-badge":["JetBrains Mono"]},"fontSize":{"headline-lg":["36px",{"lineHeight":"44px","fontWeight":"600"}],"title-lg":["20px",{"lineHeight":"28px","fontWeight":"600"}],"body-sm":["12px",{"lineHeight":"18px","fontWeight":"400"}],"body-md":["14px",{"lineHeight":"22px","fontWeight":"400"}],"body-lg":["16px",{"lineHeight":"26px","fontWeight":"400"}],"headline-md":["24px",{"lineHeight":"32px","fontWeight":"600"}],"headline-xl-mobile":["32px",{"lineHeight":"40px","fontWeight":"700"}],"headline-xl":["48px",{"lineHeight":"56px","fontWeight":"700"}],"headline-lg-mobile":["26px",{"lineHeight":"34px","fontWeight":"600"}],"label-numeric":["14px",{"lineHeight":"20px","fontWeight":"500"}],"title-md":["16px",{"lineHeight":"24px","fontWeight":"600"}],"label-badge":["11px",{"lineHeight":"14px","fontWeight":"600"}]}}}}</script></head><body class="bg-background font-body-md text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container"><header class="fixed top-0 left-0 w-full z-50 bg-surface-container-lowest/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.4)]"><div class="h-20 max-w-7xl mx-auto px-margin md:px-margin-desktop flex items-center justify-between"><div class="flex items-center gap-space-lg"><a class="flex items-center gap-space-sm group" data-path="overview-and-ecosystem" href="#"><img alt="logo.png" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1UN_DH5VNOXPJKp5os73eD3c4f1fiQ_Zxqvxl_4ydzCYlDVUnq29dw1d2wuviT97p-mIG-XAiyKYsYyQpfLQLzSMKHkUjBcJU-rwwx7Pb_Y8uap9k84JV5oymJfzJMRmYi0Q-oFngF6zv7hFv03o2LezpoWGXokR7KiTwRW98NO_YETNRXf9EONwEYXlj9ScgpS1rcwejLeOp-Sm1sOqzwJlRM4HrAU-5sASlATyvg1ARxbjN0Prmvt0aG9"/><div class="flex flex-col"><span class="font-headline-md text-headline-md tracking-tight text-on-surface leading-none group-hover:text-primary transition-colors">DigiHisab</span><span class="font-label-badge text-label-badge tracking-wider uppercase text-on-surface-variant">Fintech Rails</span></div></a><div class="hidden xl:flex items-center gap-space-xs pl-space-md py-space-xs rounded-full bg-surface-container px-space-sm"><span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span><span class="font-label-badge text-label-badge text-primary uppercase">Raast &amp; 1LINK Connected</span></div></div><nav class="hidden lg:flex items-center gap-space-sm" data-active-classes="bg-surface-container-high text-primary font-bold rounded-lg"><a class="px-space-md py-space-xs rounded-lg font-body-md text-body-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-all" data-path="overview-and-ecosystem" href="#">Ecosystem</a><a aria-current="page" class="px-space-md py-space-xs transition-all bg-surface-container-high text-primary font-bold rounded-lg" data-path="subscriptions-and-pricing" href="#">Subscriptions &amp; Pricing</a><a class="px-space-md py-space-xs rounded-lg font-body-md text-body-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-all" data-path="compliance-and-policies" href="#">Compliance &amp; Policies</a><a class="px-space-md py-space-xs rounded-lg font-body-md text-body-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-all" data-path="knowledge-base-and-faq" href="#">FAQ</a></nav><div class="flex items-center gap-space-md"><a class="hidden sm:flex items-center gap-space-xs text-on-surface-variant hover:text-secondary transition-colors" href="tel:+923009663004"><span class="font-label-numeric text-label-numeric tracking-wide text-secondary">+92 300 9663004</span></a><a class="hidden sm:inline-flex items-center justify-center px-space-md py-space-xs rounded-lg bg-primary-container text-on-primary-container font-title-md text-title-md hover:bg-primary transition-all shadow-[0_0_16px_rgba(0,212,159,0.25)]" data-path="merchant-onboarding" href="#">Get Started</a><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="w-full pt-20 bg-background"><div class="flex flex-col w-full">
+<!-- Top Trust Ticker -->
+<div class="w-full bg-surface-container-lowest py-space-xs px-margin md:px-margin-desktop">
+<div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-md flex-wrap">
+<span class="inline-flex items-center gap-space-xs font-label-badge text-label-badge text-primary-container">
+<span class="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span>
+          SBP-Licensed Rails Compatible
+        </span>
+<span class="inline-flex items-center gap-space-xs font-label-badge text-label-badge text-secondary">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+          256-bit Encrypted Ledger
+        </span>
+<span class="inline-flex items-center gap-space-xs font-label-badge text-label-badge text-tertiary">
+<span class="material-symbols-outlined text-primary text-[14px]">bolt</span>
+          Instant Settlement Ready (Raast / PayFast)
+        </span>
+</div>
+<div class="flex items-center gap-space-sm font-label-badge text-label-badge text-on-surface-variant">
+<span>FBR NTN Verified</span>
+<span>•</span>
+<span class="text-primary-container">SECP Inc. # 0214892</span>
+</div>
+</div>
+</div>
+<!-- Hero Section -->
+<section class="relative w-full py-space-xl px-margin md:px-margin-desktop overflow-hidden bg-surface">
+<!-- Atmospheric glows -->
+<div class="absolute -top-32 -left-20 w-96 h-96 rounded-full bg-primary/10 blur-3xl pointer-events-none"></div>
+<div class="absolute top-1/2 -right-32 w-96 h-96 rounded-full bg-secondary/10 blur-3xl pointer-events-none"></div>
+<div class="max-w-7xl mx-auto relative z-10">
+<div class="flex flex-col lg:flex-row items-start justify-between gap-space-xl">
+<div class="flex-1 flex flex-col gap-space-md max-w-3xl">
+<!-- Institutional pill -->
+<div class="inline-flex items-center gap-space-xs px-space-md py-space-xs rounded-full bg-surface-container-low w-fit shadow-sm">
+<img alt="DigiHisab Emblem" class="w-5 h-5 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAB-QynDfCsdMYNdwWXv8GGm6uNf_SVWHyd5MvmFsch-sEKO6XmmruJXJ0Q1cF95bgzHdOVFQ102SXj-XXWOFgUsujRJPBTZaqdV9ivRNja0WqBTGyglyZFddXjeyCURV-CGTu9bvMe0kGah6WyG4eUBgkaLdsqWZkbplYdugPbz7NeYDBRLft5-_bKedL5e19tmWQyMgEAeg-d41YrvxH-1s_NZrApeJttfFraCcneScxYrkReyKSWqw"/>
+<span class="font-label-badge text-label-badge uppercase tracking-wider text-primary">Pakistan Fiscal Core OS</span>
+<span class="font-label-badge text-label-badge text-on-surface-variant">| v4.2 Aggregator Grade</span>
+</div>
+<h1 class="font-headline-xl text-headline-xl text-on-surface leading-tight tracking-tight">
+            DigiHisab — Smart Financial Management for Retailers, Households &amp; Students
+          </h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
+            Pakistan's all-in-one ledger ecosystem for dual-entry retail accounting, household budgeting, and shared hostel expenses. Fully integrated with Raast, JazzCash, EasyPaisa, and local bank cards with bank-grade tamper-proof audit trails.
+          </p>
+<!-- Primary CTA cluster -->
+<div class="flex flex-wrap items-center gap-space-md pt-space-sm">
+<a class="px-space-lg py-space-sm rounded-lg bg-primary-container text-on-primary-container font-title-md text-title-md hover:bg-primary transition-all shadow-[0_0_20px_rgba(0,212,159,0.3)] flex items-center gap-space-xs" href="#plans-matrix">
+<span>Browse 8 Registered Plans</span>
+<span class="material-symbols-outlined text-[18px]">arrow_downward</span>
+</a>
+<a class="px-space-lg py-space-sm rounded-lg bg-surface-container-high text-on-surface font-title-md text-title-md hover:bg-surface-bright transition-all flex items-center gap-space-xs" href="#compliance-tabs">
+<span class="material-symbols-outlined text-secondary text-[18px]">verified_user</span>
+<span>Compliance &amp; Refund Terms</span>
+</a>
+</div>
+<!-- Micro payment rails strip -->
+<div class="flex items-center gap-space-md pt-space-xs text-on-surface-variant font-label-badge text-label-badge flex-wrap">
+<span class="text-on-surface">Supported Clearing Rails:</span>
+<span class="px-space-xs py-0.5 rounded bg-surface-container text-secondary">RAAST P2M</span>
+<span class="px-space-xs py-0.5 rounded bg-surface-container text-secondary">JazzCash Core</span>
+<span class="px-space-xs py-0.5 rounded bg-surface-container text-secondary">EasyPaisa Hub</span>
+<span class="px-space-xs py-0.5 rounded bg-surface-container text-secondary">PayFast 3DS</span>
+<span class="px-space-xs py-0.5 rounded bg-surface-container text-primary">PayPak / 1LINK</span>
+</div>
+</div>
+<!-- Ledger Live Snapshot Module -->
+<div class="w-full lg:w-96 flex flex-col gap-space-md bg-surface-container-low p-space-lg rounded-xl shadow-xl">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="w-2.5 h-2.5 rounded-full bg-primary-container animate-ping"></span>
+<span class="font-title-md text-title-md text-on-surface">Live Ledger Status</span>
+</div>
+<span class="font-label-badge text-label-badge px-space-xs py-0.5 rounded bg-surface-container-highest text-primary">99.98% UPTIME</span>
+</div>
+<div class="p-space-md rounded-lg bg-surface-container-lowest flex flex-col gap-space-xs">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Today's Reconciled Volume (PKR)</span>
+<div class="font-headline-md text-headline-md text-primary font-label-numeric tracking-tight">₨ 48,912,450.00</div>
+<div class="flex items-center justify-between text-body-sm text-on-surface-variant pt-space-xs">
+<span>Clearing: <span class="text-on-surface">Raast Instant</span></span>
+<span class="text-primary-container">T+0 Realtime</span>
+</div>
+</div>
+<!-- Live Trust Micro Indicators -->
+<div class="grid grid-cols-2 gap-space-sm pt-space-xs">
+<div class="p-space-sm rounded-lg bg-surface-container flex flex-col">
+<span class="font-label-badge text-label-badge text-on-surface-variant">AUDIT STAMP</span>
+<span class="font-label-numeric text-label-numeric text-on-surface">SHA-256 Valid</span>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container flex flex-col">
+<span class="font-label-badge text-label-badge text-on-surface-variant">REFUND WINDOW</span>
+<span class="font-label-numeric text-label-numeric text-primary">7 Days Full</span>
+</div>
+</div>
+</div>
+</div>
+<!-- 3 Quick Value Proposition Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-lg mt-space-xl">
+<!-- Dukandar & Mandi -->
+<div class="p-space-lg rounded-xl bg-surface-container-low hover:bg-surface-container transition-all flex flex-col gap-space-sm shadow-md group">
+<div class="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center text-primary group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[28px]">storefront</span>
+</div>
+<div class="flex items-center justify-between">
+<h3 class="font-title-lg text-title-lg text-on-surface">Dukandar Retail &amp; Mandi</h3>
+<span class="font-label-badge text-label-badge text-on-surface-variant">دکان و منڈی کھاتہ</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant">
+            Full-spectrum micro-retail POS, Aarthi commission logs, rapid Udhaar tracking, and instant WhatsApp bill sharing for Pakistani bazaar merchants.
+          </p>
+<div class="flex items-center gap-space-xs text-primary font-label-badge text-label-badge mt-auto pt-space-xs">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+<span>Zero Data Loss Offline SQLite Mode</span>
+</div>
+</div>
+<!-- Ghar Ka Hisab & Staff -->
+<div class="p-space-lg rounded-xl bg-surface-container-low hover:bg-surface-container transition-all flex flex-col gap-space-sm shadow-md group">
+<div class="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center text-secondary group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[28px]">cottage</span>
+</div>
+<div class="flex items-center justify-between">
+<h3 class="font-title-lg text-title-lg text-on-surface">Ghar Ka Hisab &amp; Staff</h3>
+<span class="font-label-badge text-label-badge text-on-surface-variant">گھریلو بجٹ اور ملازمین</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant">
+            Track domestic salary advances, domestic electricity tariff tier escalations, grocery envelopes, and auto-computed Zakat on gold and cash assets.
+          </p>
+<div class="flex items-center gap-space-xs text-secondary font-label-badge text-label-badge mt-auto pt-space-xs">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+<span>Bilingual Urdu &amp; English Dashboard</span>
+</div>
+</div>
+<!-- Student & Hostel Pass -->
+<div class="p-space-lg rounded-xl bg-surface-container-low hover:bg-surface-container transition-all flex flex-col gap-space-sm shadow-md group">
+<div class="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center text-tertiary group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[28px]">school</span>
+</div>
+<div class="flex items-center justify-between">
+<h3 class="font-title-lg text-title-lg text-on-surface">Student &amp; Hostel Pass</h3>
+<span class="font-label-badge text-label-badge text-on-surface-variant">اسٹوڈنٹ و میس شیئرنگ</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant">
+            Automated roommate expense splitters, mess bill reconciliations, dhaba tabs, and monthly university pocket money runway calculators.
+          </p>
+<div class="flex items-center gap-space-xs text-tertiary font-label-badge text-label-badge mt-auto pt-space-xs">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+<span>Direct Micro-Pay via EasyPaisa / JazzCash</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Photo Banner Break Section -->
+<section class="w-full bg-surface-container-lowest py-space-lg px-margin md:px-margin-desktop">
+<div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-space-lg items-center">
+<div class="relative rounded-xl overflow-hidden h-64 shadow-xl">
+<img class="w-full h-full object-cover" data-alt="High quality overhead perspective of an energetic modern retail storefront in Lahore Pakistan, shopkeeper using a digital POS smartphone tablet with mint accents on dark interface to scan goods, shelves stocked with FMCG merchandise, warm ambient lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAOlcyXFHNMhlxAGkyvavv28xyBdf-CeeDrSlELDa8cAe38BqsYz-QEUXnBu1qZ1regTdca9PetskY26VPrplbvf5o05-ryw__8o1o7vQtbFqCdFChV0F9OF0J84D8Y8NZ0Q5cJZOe4DC4imCybNmi2NoiPe6aI3yIbLWymuAgBiXpSjfsWqVfFW8qUsTxqTkPwsTT6YevAIcIXyr3LvJ_lp45zBqJ72w6tu8tt6VVL"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-transparent to-transparent flex items-end p-space-md">
+<span class="font-title-md text-title-md text-on-surface">Digitizing 100,000+ Kiryana &amp; General Stores</span>
+</div>
+</div>
+<div class="relative rounded-xl overflow-hidden h-64 shadow-xl">
+<img class="w-full h-full object-cover" data-alt="A modern Pakistani family sitting together in a cozy contemporary living room in Islamabad reviewing monthly digital household budget and expenses on a laptop tablet, soft interior lighting, clean high tech aesthetic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVnn2IBSg5f_5p6v2YqYS4FXFo-CricCcuB86VpwMiAh6ftigeK0697fTNT-Wk0rH55Rc7HJpMI6BxwNci_A4L1kuE_OcaSo39Bfy8_k1EO-43LQzxUArxmsSsnAHTl_jjgkGdGYlc3PeJXcWOO3l9l2h-P_F1zezLCZ5pRZ_QwQk6OTDGLY5Q2wnH1-107XEPXuOtMGFYCTb9AdAFAN2g425tzaCMlY79ovRDG9XE"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-transparent to-transparent flex items-end p-space-md">
+<span class="font-title-md text-title-md text-on-surface">Household Financial Clarity Across All Provinces</span>
+</div>
+</div>
+</div>
+</section>
+<!-- 8 Subscription Products & Services Section -->
+<section class="w-full py-space-xl px-margin md:px-margin-desktop bg-surface" id="plans-matrix">
+<div class="max-w-7xl mx-auto flex flex-col gap-space-lg">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-space-md">
+<div>
+<div class="flex items-center gap-space-xs">
+<span class="font-label-badge text-label-badge text-primary uppercase tracking-widest">Pricing &amp; Subscription Catalog</span>
+<span class="px-space-xs py-0.5 rounded bg-surface-container text-on-surface-variant font-label-badge text-label-badge">Aggregator Audit Standard</span>
+</div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface mt-space-xs">
+            Official DigiHisab Service Plans &amp; Tiers
+          </h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-space-xs max-w-2xl">
+            Transparent PKR pricing. Instant digital delivery upon payment clearance. Backed by our 7-Day Complete Money-Back Escrow Guarantee.
+          </p>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container-low flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[20px]">verified</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Tax inclusive (FBR Active GST compliant invoices generated)</span>
+</div>
+</div>
+<!-- 8 Cards Grid (4 columns x 2 rows on large screens) -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-space-md">
+<!-- Plan 1: Household Starter -->
+<div class="rounded-xl bg-surface-container-low p-space-md flex flex-col justify-between hover:bg-surface-container transition-all shadow-md">
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-badge text-label-badge uppercase tracking-wider text-on-surface-variant">Household Entry</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">گھریلو بنیادی پلان</span>
+</div>
+<div>
+<h3 class="font-title-lg text-title-lg text-on-surface">Household Starter</h3>
+<div class="flex items-baseline gap-space-xs mt-space-xs">
+<span class="font-headline-md text-headline-md text-on-surface font-label-numeric">PKR 0</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">/ Forever Free</span>
+</div>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Basic budget kickoff for young couples and nuclear families.</p>
+<div class="h-px bg-surface-container-high my-space-xs"></div>
+<ul class="flex flex-col gap-space-xs font-body-sm text-body-sm text-on-surface">
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-primary text-[16px]">check</span> Monthly Rashan item checklist</li>
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-primary text-[16px]">check</span> Manual electricity/gas bill logging</li>
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-primary text-[16px]">check</span> 1 Physical cash envelope wallet</li>
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-primary text-[16px]">check</span> Zero ads or promotion interruptions</li>
+</ul>
+</div>
+<button class="w-full mt-space-md py-space-xs rounded bg-surface-container-high text-on-surface font-title-md text-title-md hover:bg-surface-bright transition-all">
+            Get Free Plan
+          </button>
+</div>
+<!-- Plan 2: Dukandar Free Khata -->
+<div class="rounded-xl bg-surface-container-low p-space-md flex flex-col justify-between hover:bg-surface-container transition-all shadow-md">
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-badge text-label-badge uppercase tracking-wider text-on-surface-variant">Retail Micro</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">دکاندار بنیادی کھاتہ</span>
+</div>
+<div>
+<h3 class="font-title-lg text-title-lg text-on-surface">Dukandar Free Khata</h3>
+<div class="flex items-baseline gap-space-xs mt-space-xs">
+<span class="font-headline-md text-headline-md text-on-surface font-label-numeric">PKR 0</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">/ Forever Free</span>
+</div>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Paper bahi-khata digital replacement for neighbourhood kiosks.</p>
+<div class="h-px bg-surface-container-high my-space-xs"></div>
+<ul class="flex flex-col gap-space-xs font-body-sm text-body-sm text-on-surface">
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-primary text-[16px]">check</span> Up to 20 customer credit khatas</li>
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-primary text-[16px]">check</span> Daily milk &amp; bread recurring tabs</li>
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-primary text-[16px]">check</span> Basic balance SMS confirmation</li>
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-primary text-[16px]">check</span> Daily cash balance verification</li>
+</ul>
+</div>
+<button class="w-full mt-space-md py-space-xs rounded bg-surface-container-high text-on-surface font-title-md text-title-md hover:bg-surface-bright transition-all">
+            Start Free Khata
+          </button>
+</div>
+<!-- Plan 3: Student & Hostel Life Pass -->
+<div class="rounded-xl bg-surface-container-low p-space-md flex flex-col justify-between hover:bg-surface-container transition-all shadow-md">
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-badge text-label-badge uppercase tracking-wider text-secondary">Student Pack</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">اسٹوڈنٹ ہاسٹل پیک</span>
+</div>
+<div>
+<h3 class="font-title-lg text-title-lg text-on-surface">Student &amp; Hostel Pass</h3>
+<div class="flex items-baseline gap-space-xs mt-space-xs">
+<span class="font-headline-md text-headline-md text-secondary font-label-numeric">PKR 150</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">/ Month</span>
+</div>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Fair, transparent expense splitting for dorms and university groups.</p>
+<div class="h-px bg-surface-container-high my-space-xs"></div>
+<ul class="flex flex-col gap-space-xs font-body-sm text-body-sm text-on-surface">
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary text-[16px]">check</span> Roommate flat rent/utility splitter</li>
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary text-[16px]">check</span> Dhaba chai &amp; hostel mess tracker</li>
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary text-[16px]">check</span> Safe-spend allowance runway meter</li>
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary text-[16px]">check</span> 1-Click JazzCash / EasyPaisa settlement</li>
+</ul>
+</div>
+<button class="w-full mt-space-md py-space-xs rounded bg-surface-container-high text-secondary font-title-md text-title-md hover:bg-surface-bright transition-all">
+            Subscribe • ₨150/mo
+          </button>
+</div>
+<!-- Plan 4: Ghar Ka Hisab Pro Hub [Recommended] -->
+<div class="rounded-xl bg-surface-container-high p-space-md flex flex-col justify-between hover:bg-surface-bright transition-all shadow-xl relative ring-2 ring-primary-container">
+<div class="absolute -top-3 right-3 px-space-sm py-0.5 rounded-full bg-primary-container text-on-primary-container font-label-badge text-label-badge uppercase font-bold tracking-wide">
+            Recommended
+          </div>
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-badge text-label-badge uppercase tracking-wider text-primary">Domestic Master</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">گھر کا مکمل حساب</span>
+</div>
+<div>
+<h3 class="font-title-lg text-title-lg text-on-surface">Ghar Ka Hisab Pro Hub</h3>
+<div class="flex items-baseline gap-space-xs mt-space-xs">
+<span class="font-headline-md text-headline-md text-primary font-label-numeric">PKR 150</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">/ Month</span>
+</div>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Holistic family finance, maid staff advances, and religious endowments.</p>
+<div class="h-px bg-surface-container-highest my-space-xs"></div>
+<ul class="flex flex-col gap-space-xs font-body-sm text-body-sm text-on-surface">
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-primary text-[16px]">check</span> Unlimited digital savings envelopes</li>
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-primary text-[16px]">check</span> Elderly prescription &amp; refill tracking</li>
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-primary text-[16px]">check</span> Maid payroll, leaves &amp; advance logs</li>
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-primary text-[16px]">check</span> Zakat &amp; Nisab automated calculator</li>
+</ul>
+</div>
+<button class="w-full mt-space-md py-space-xs rounded bg-primary-container text-on-primary-container font-title-md text-title-md hover:bg-primary transition-all shadow-[0_0_12px_rgba(0,212,159,0.3)]">
+            Activate Hub • ₨150/mo
+          </button>
+</div>
+<!-- Plan 5: Dukandar Retail POS & Khata [Popular] -->
+<div class="rounded-xl bg-surface-container-high p-space-md flex flex-col justify-between hover:bg-surface-bright transition-all shadow-xl relative ring-2 ring-secondary">
+<div class="absolute -top-3 right-3 px-space-sm py-0.5 rounded-full bg-secondary text-on-secondary font-label-badge text-label-badge uppercase font-bold tracking-wide">
+            Popular
+          </div>
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-badge text-label-badge uppercase tracking-wider text-secondary">Retail POS</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">دکاندار ریٹیل رجسٹر</span>
+</div>
+<div>
+<h3 class="font-title-lg text-title-lg text-on-surface">Dukandar Retail POS</h3>
+<div class="flex items-baseline gap-space-xs mt-space-xs">
+<span class="font-headline-md text-headline-md text-secondary font-label-numeric">PKR 200</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">/ Month</span>
+</div>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">High-speed checkout and Udhaar automation for mart counters.</p>
+<div class="h-px bg-surface-container-highest my-space-xs"></div>
+<ul class="flex flex-col gap-space-xs font-body-sm text-body-sm text-on-surface">
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary text-[16px]">check</span> Fast mobile camera barcode checkout</li>
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary text-[16px]">check</span> Customer Udhaar credit limits with alerts</li>
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary text-[16px]">check</span> 1-Click WhatsApp payment reminders</li>
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary text-[16px]">check</span> Stock shortage warnings &amp; supplier logs</li>
+</ul>
+</div>
+<button class="w-full mt-space-md py-space-xs rounded bg-secondary text-on-secondary font-title-md text-title-md hover:bg-secondary-fixed transition-all">
+            Get POS • ₨200/mo
+          </button>
+</div>
+<!-- Plan 6: Pro Malik Sentinel & Till Audit -->
+<div class="rounded-xl bg-surface-container-low p-space-md flex flex-col justify-between hover:bg-surface-container transition-all shadow-md">
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-badge text-label-badge uppercase tracking-wider text-primary">Loss Prevention</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">پرو مالک و چور نظر پیک</span>
+</div>
+<div>
+<h3 class="font-title-lg text-title-lg text-on-surface">Pro Malik Sentinel</h3>
+<div class="flex items-baseline gap-space-xs mt-space-xs">
+<span class="font-headline-md text-headline-md text-primary font-label-numeric">PKR 250</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">/ Month</span>
+</div>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Theft-prevention security layer for absent store owners.</p>
+<div class="h-px bg-surface-container-high my-space-xs"></div>
+<ul class="flex flex-col gap-space-xs font-body-sm text-body-sm text-on-surface">
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-primary text-[16px]">check</span> Real-time cash drawer discrepancy flags</li>
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-primary text-[16px]">check</span> Shift-closing blind cash counts</li>
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-primary text-[16px]">check</span> Manager PIN override for refunds/voids</li>
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-primary text-[16px]">check</span> Forensic transaction alteration ledger</li>
+</ul>
+</div>
+<button class="w-full mt-space-md py-space-xs rounded bg-surface-container-high text-primary font-title-md text-title-md hover:bg-surface-bright transition-all">
+            Enable Malik Pro • ₨250/mo
+          </button>
+</div>
+<!-- Plan 7: Annual Dukandar Pro Savings -->
+<div class="rounded-xl bg-surface-container-low p-space-md flex flex-col justify-between hover:bg-surface-container transition-all shadow-md">
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-badge text-label-badge uppercase tracking-wider text-primary-container">Annual Saver</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">سالانہ دکاندار بچت پیک</span>
+</div>
+<div>
+<h3 class="font-title-lg text-title-lg text-on-surface">Annual Dukandar Pro</h3>
+<div class="flex items-baseline gap-space-xs mt-space-xs">
+<span class="font-headline-md text-headline-md text-primary-container font-label-numeric">PKR 2,500</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">/ Year</span>
+</div>
+<span class="inline-block mt-0.5 px-space-xs py-0.5 rounded bg-surface-container text-primary font-label-badge text-label-badge">2 Months Free Included</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Full suite lock-in with zero recurring monthly hassle.</p>
+<div class="h-px bg-surface-container-high my-space-xs"></div>
+<ul class="flex flex-col gap-space-xs font-body-sm text-body-sm text-on-surface">
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-primary text-[16px]">check</span> Full Pro Malik &amp; Retail Register suite</li>
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-primary text-[16px]">check</span> Priority VIP WhatsApp onboarding line</li>
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-primary text-[16px]">check</span> Local encrypted SQLite daily backup</li>
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-primary text-[16px]">check</span> Free replacement thermal roll templates</li>
+</ul>
+</div>
+<button class="w-full mt-space-md py-space-xs rounded bg-surface-container-high text-primary-container font-title-md text-title-md hover:bg-surface-bright transition-all">
+            Subscribe Annual • ₨2,500
+          </button>
+</div>
+<!-- Plan 8: Enterprise Mandi Multi-Counter Mart -->
+<div class="rounded-xl bg-surface-container-low p-space-md flex flex-col justify-between hover:bg-surface-container transition-all shadow-md">
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-badge text-label-badge uppercase tracking-wider text-secondary">Enterprise Wholesaler</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">منڈی و ہول سیل</span>
+</div>
+<div>
+<h3 class="font-title-lg text-title-lg text-on-surface">Enterprise Mandi Mart</h3>
+<div class="flex items-baseline gap-space-xs mt-space-xs">
+<span class="font-headline-md text-headline-md text-secondary font-label-numeric">PKR 4,500</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">/ Month</span>
+</div>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">High-volume Sabzi Mandi, Grain &amp; Fabric wholesale ledger.</p>
+<div class="h-px bg-surface-container-high my-space-xs"></div>
+<ul class="flex flex-col gap-space-xs font-body-sm text-body-sm text-on-surface">
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary text-[16px]">check</span> Up to 8 multi-terminal synchronous counters</li>
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary text-[16px]">check</span> Wholesale commission (Aarthi) ledger</li>
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary text-[16px]">check</span> Bulk truck freight &amp; supplier reconciliation</li>
+<li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary text-[16px]">check</span> Dedicated account manager &amp; on-site visit</li>
+</ul>
+</div>
+<button class="w-full mt-space-md py-space-xs rounded bg-surface-container-high text-secondary font-title-md text-title-md hover:bg-surface-bright transition-all">
+            Deploy Enterprise • ₨4,500
+          </button>
+</div>
+</div>
+</div>
+</section>
+<!-- Interactive Legal Policy Section (Tabbed Viewer) -->
+<section class="w-full py-space-xl px-margin md:px-margin-desktop bg-surface-container-lowest" id="compliance-tabs">
+<div class="max-w-7xl mx-auto flex flex-col gap-space-lg">
+<div class="flex flex-col gap-space-xs">
+<span class="font-label-badge text-label-badge text-primary uppercase tracking-widest">Regulatory Governance &amp; Terms</span>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">
+          Institutional Compliance &amp; Merchant Policies
+        </h2>
+<p class="font-body-md text-body-md text-on-surface-variant">
+          Published under the sovereign digital commerce statutes of Pakistan, SECP licensing, and SBP digital onboarding frameworks.
+        </p>
+</div>
+<!-- 7-Day 100% Escrow Refund Policy Callout Box -->
+<div class="p-space-lg rounded-xl bg-surface-container flex flex-col md:flex-row items-start md:items-center justify-between gap-space-md shadow-xl border-l-4 border-l-primary">
+<div class="flex items-start gap-space-md">
+<div class="w-12 h-12 rounded-full bg-primary-container/20 flex items-center justify-center text-primary-container shrink-0 mt-1">
+<span class="material-symbols-outlined text-[28px]">shield</span>
+</div>
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="font-title-lg text-title-lg text-primary">7-Day 100% Return &amp; Refund Policy</span>
+<span class="px-space-xs py-0.5 rounded bg-surface-container-high text-primary font-label-badge text-label-badge uppercase">Guaranteed</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface">
+              DigiHisab offers a 7-day no-questions-asked refund policy for all digital subscriptions. If not completely satisfied within 7 days of payment, subscribers can submit a refund request to receive a 100% reimbursement to their original payment source (Raast, JazzCash, or Debit Card).
+            </p>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Processing turnaround: 24 to 48 banking hours. Direct bank reference number issued upon initiation.</span>
+</div>
+</div>
+<a class="px-space-md py-space-sm rounded-lg bg-surface-container-high text-primary hover:bg-surface-bright font-title-md text-title-md transition-all shrink-0" href="mailto:payments@digihisab.pk?subject=Subscription%20Refund%20Claim">
+          Initiate Escrow Refund
+        </a>
+</div>
+<!-- Interactive Tabbed Container -->
+<div class="rounded-xl bg-surface-container-low overflow-hidden shadow-lg" id="legal-tab-system">
+<!-- Tab Bar -->
+<div class="flex flex-wrap border-b border-surface-container bg-surface-container-high">
+<button class="tab-trigger px-space-lg py-space-md font-title-md text-title-md text-primary border-b-2 border-primary transition-all flex items-center gap-space-xs" data-tab="tab-refund">
+<span class="material-symbols-outlined text-[18px]">currency_exchange</span>
+<span>Refund &amp; Dispute Policy</span>
+</button>
+<button class="tab-trigger px-space-lg py-space-md font-title-md text-title-md text-on-surface-variant hover:text-on-surface transition-all flex items-center gap-space-xs" data-tab="tab-delivery">
+<span class="material-symbols-outlined text-[18px]">cloud_done</span>
+<span>Service &amp; Digital Delivery</span>
+</button>
+<button class="tab-trigger px-space-lg py-space-md font-title-md text-title-md text-on-surface-variant hover:text-on-surface transition-all flex items-center gap-space-xs" data-tab="tab-terms">
+<span class="material-symbols-outlined text-[18px]">gavel</span>
+<span>Terms &amp; Conditions</span>
+</button>
+<button class="tab-trigger px-space-lg py-space-md font-title-md text-title-md text-on-surface-variant hover:text-on-surface transition-all flex items-center gap-space-xs" data-tab="tab-privacy">
+<span class="material-symbols-outlined text-[18px]">lock</span>
+<span>Privacy &amp; Data Sovereignty</span>
+</button>
+</div>
+<!-- Tab 1: Refund -->
+<div class="tab-content p-space-xl flex flex-col gap-space-md" id="tab-refund">
+<h3 class="font-title-lg text-title-lg text-on-surface">Comprehensive Escrow Reimbursement Protocol</h3>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+            All subscriptions initiated via DigiHisab Technologies (Private) Limited carry unconditional customer protection rights. Subscribers who determine our cloud bookkeeping or POS software does not fit their shop or household operational requirements are entitled to full fee restitution.
+          </p>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md">
+<div class="p-space-md rounded bg-surface-container flex flex-col gap-space-xs">
+<span class="font-label-badge text-label-badge text-primary uppercase">Step 1: Submission</span>
+<span class="font-title-md text-title-md text-on-surface">Submit Claim</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Send invoice receipt or registered WhatsApp/phone number to refunds@digihisab.pk or text +92 300 9663004.</p>
+</div>
+<div class="p-space-md rounded bg-surface-container flex flex-col gap-space-xs">
+<span class="font-label-badge text-label-badge text-secondary uppercase">Step 2: Reconciliation</span>
+<span class="font-title-md text-title-md text-on-surface">Zero-Fee Reversal</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Gateway interchange fees are absorbed by DigiHisab. Exactly 100% of the invoiced PKR amount is approved.</p>
+</div>
+<div class="p-space-md rounded bg-surface-container flex flex-col gap-space-xs">
+<span class="font-label-badge text-label-badge text-tertiary uppercase">Step 3: Direct Credit</span>
+<span class="font-title-md text-title-md text-on-surface">Immediate Rail Credit</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Funds clear to your originating Raast IBAN, JazzCash wallet, EasyPaisa account, or credit/debit card.</p>
+</div>
+</div>
+</div>
+<!-- Tab 2: Delivery -->
+<div class="tab-content hidden p-space-xl flex flex-col gap-space-md" id="tab-delivery">
+<h3 class="font-title-lg text-title-lg text-on-surface">Service &amp; Digital SaaS Delivery Policy</h3>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+            DigiHisab delivers purely intangible digital software services (Software-as-a-Service). No physical media or shrink-wrap hardware discs are dispatched.
+          </p>
+<ul class="flex flex-col gap-space-sm font-body-md text-body-md text-on-surface-variant">
+<li class="flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[20px] mt-0.5">bolt</span>
+<div>
+<strong class="text-on-surface">Instant Webhook Provisioning:</strong> Upon successful transaction confirmation from the aggregator (1LINK / PayFast / JazzCash), your DigiHisab tenant ID and Pro features unlock instantly (typically &lt; 3 seconds).
+              </div>
+</li>
+<li class="flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[20px] mt-0.5">receipt_long</span>
+<div>
+<strong class="text-on-surface">Digital Tax Invoices:</strong> An official FBR NTN-certified digital receipt is delivered via SMS and registered email address within 2 minutes of payment.
+              </div>
+</li>
+<li class="flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[20px] mt-0.5">backup</span>
+<div>
+<strong class="text-on-surface">Ledger Continuity:</strong> Account subscription upgrades immediately persist your existing free khata data into the enterprise schema without re-indexing delays.
+              </div>
+</li>
+</ul>
+</div>
+<!-- Tab 3: Terms -->
+<div class="tab-content hidden p-space-xl flex flex-col gap-space-md" id="tab-terms">
+<h3 class="font-title-lg text-title-lg text-on-surface">Terms &amp; Conditions of Merchant Service</h3>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+            By provisioning an account with DigiHisab Technologies (Private) Limited, user entities agree to adhere to standard Pakistani commercial record-keeping ethics and legitimate retail accounting standards.
+          </p>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md text-body-sm text-body-sm text-on-surface-variant">
+<div class="p-space-md rounded bg-surface-container flex flex-col gap-space-xs">
+<strong class="text-on-surface font-title-md text-title-md">Permissible Ledger Operations</strong>
+<p>Users may record commercial trade balances, customer debt commitments (Udhaar), household budgets, and wholesale receipts. Fraudulent balance fabrication or Ponzi multi-tier schemes are strictly prohibited and result in immediate tenant revocation.</p>
+</div>
+<div class="p-space-md rounded bg-surface-container flex flex-col gap-space-xs">
+<strong class="text-on-surface font-title-md text-title-md">Service Level Commitment (SLA)</strong>
+<p>We maintain an institutional uptime tier of 99.9% across our multi-region cloud deployment. In the event of scheduled gateway maintenance, local SQLite offline mode continues recording entries without interruption.</p>
+</div>
+</div>
+</div>
+<!-- Tab 4: Privacy -->
+<div class="tab-content hidden p-space-xl flex flex-col gap-space-md" id="tab-privacy">
+<h3 class="font-title-lg text-title-lg text-on-surface">Pakistani Data Sovereignty &amp; Consumer Privacy Standard</h3>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+            Customer financial data is the sole property of the subscriber. DigiHisab maintains zero data monetization partnerships and guarantees complete privacy under 256-bit encryption safeguards.
+          </p>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md text-body-sm text-body-sm">
+<div class="p-space-md rounded bg-surface-container flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-xs text-primary">
+<span class="material-symbols-outlined text-[18px]">verified_user</span>
+<span class="font-title-md text-title-md text-on-surface">Zero Data Resale Guarantee</span>
+</div>
+<p class="text-on-surface-variant">We never sell, rent, or lease merchant client directories, consumer mobile numbers, or transaction values to third-party telemarketers or advertising algorithms.</p>
+</div>
+<div class="p-space-md rounded bg-surface-container flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-xs text-secondary">
+<span class="material-symbols-outlined text-[18px]">download_for_offline</span>
+<span class="font-title-md text-title-md text-on-surface">Complete Data Portability</span>
+</div>
+<p class="text-on-surface-variant">Subscribers may export their entire historical ledger in standard CSV, Excel, or PDF formats anytime at zero cost, ensuring no proprietary platform lock-in.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Interactive FAQ Section -->
+<section class="w-full py-space-xl px-margin md:px-margin-desktop bg-surface">
+<div class="max-w-4xl mx-auto flex flex-col gap-space-lg">
+<div class="text-center flex flex-col items-center gap-space-xs">
+<span class="font-label-badge text-label-badge text-primary uppercase tracking-widest">Questions &amp; Answers</span>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Frequently Asked Questions</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Everything you need to know about our billing, local payment clearing, and refund commitments.</p>
+</div>
+<div class="flex flex-col gap-space-sm" id="faq-accordion">
+<!-- FAQ 1 -->
+<div class="rounded-xl bg-surface-container-low overflow-hidden shadow-sm">
+<button class="faq-toggle w-full p-space-md text-left flex items-center justify-between text-on-surface hover:bg-surface-container transition-colors">
+<span class="font-title-md text-title-md flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">help_outline</span>
+              How does the 7-day 100% money-back refund process work?
+            </span>
+<span class="material-symbols-outlined text-on-surface-variant transition-transform faq-icon">expand_more</span>
+</button>
+<div class="faq-body hidden p-space-md pt-0 text-on-surface-variant font-body-md text-body-md bg-surface-container-low">
+<div class="pt-space-xs border-t border-surface-container">
+              DigiHisab offers a 7-day no-questions-asked refund policy for all digital subscriptions. If not completely satisfied within 7 days of payment, subscribers can submit a refund request to receive a 100% reimbursement to their original payment source (Raast, JazzCash, or Debit Card). Simply contact our billing team at payments@digihisab.pk or WhatsApp +92 300 9663004. Reversals are executed within 24 to 48 business hours with zero deduction of processing surcharges.
+            </div>
+</div>
+</div>
+<!-- FAQ 2 -->
+<div class="rounded-xl bg-surface-container-low overflow-hidden shadow-sm">
+<button class="faq-toggle w-full p-space-md text-left flex items-center justify-between text-on-surface hover:bg-surface-container transition-colors">
+<span class="font-title-md text-title-md flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary text-[20px]">wifi_off</span>
+              Can I still record Udhaar and store sales if my shop loses internet connection?
+            </span>
+<span class="material-symbols-outlined text-on-surface-variant transition-transform faq-icon">expand_more</span>
+</button>
+<div class="faq-body hidden p-space-md pt-0 text-on-surface-variant font-body-md text-body-md bg-surface-container-low">
+<div class="pt-space-xs border-t border-surface-container">
+              Yes, absolutely. The DigiHisab mobile and desktop client utilizes an encrypted local SQLite engine. You can conduct barcodes scans, record new customer debits, and print thermal chits completely offline. The moment your device reconnects to mobile data or Wi-Fi, changes reconcile seamlessly to the secure cloud ledger.
+            </div>
+</div>
+</div>
+<!-- FAQ 3 -->
+<div class="rounded-xl bg-surface-container-low overflow-hidden shadow-sm">
+<button class="faq-toggle w-full p-space-md text-left flex items-center justify-between text-on-surface hover:bg-surface-container transition-colors">
+<span class="font-title-md text-title-md flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-tertiary text-[20px]">account_balance_wallet</span>
+              What Pakistani payment methods are supported for subscription billing?
+            </span>
+<span class="material-symbols-outlined text-on-surface-variant transition-transform faq-icon">expand_more</span>
+</button>
+<div class="faq-body hidden p-space-md pt-0 text-on-surface-variant font-body-md text-body-md bg-surface-container-low">
+<div class="pt-space-xs border-t border-surface-container">
+              We support all mainstream Pakistani digital payment rails including Raast Instant P2M QR, JazzCash Mobile Wallets, EasyPaisa Wallets, Kuickpay 1LINK Bill Invoicing (payable from any banking app like HBL, Meezan, Alfalah, Allied), and Visa/Mastercard Debit and Credit Cards through our verified SBP-licensed aggregator partners.
+            </div>
+</div>
+</div>
+<!-- FAQ 4 -->
+<div class="rounded-xl bg-surface-container-low overflow-hidden shadow-sm">
+<button class="faq-toggle w-full p-space-md text-left flex items-center justify-between text-on-surface hover:bg-surface-container transition-colors">
+<span class="font-title-md text-title-md flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">sms</span>
+              Are there hidden charges or per-SMS fees when sending customer balance alerts?
+            </span>
+<span class="material-symbols-outlined text-on-surface-variant transition-transform faq-icon">expand_more</span>
+</button>
+<div class="faq-body hidden p-space-md pt-0 text-on-surface-variant font-body-md text-body-md bg-surface-container-low">
+<div class="pt-space-xs border-t border-surface-container">
+              No hidden fees. Free and Pro plans include standard system SMS balance confirmations. WhatsApp payment reminders and automated invoice PDFs utilize your phone's direct native WhatsApp client at zero platform surcharge.
+            </div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Verified Merchant Footprint & Physical Presence Section -->
+<section class="w-full py-space-xl px-margin md:px-margin-desktop bg-surface-container-lowest">
+<div class="max-w-7xl mx-auto flex flex-col gap-space-lg">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-badge text-label-badge text-primary uppercase tracking-widest">Institutional Merchant Verification</span>
+<span class="px-space-xs py-0.5 rounded bg-surface-container text-on-surface-variant font-label-badge text-label-badge">Audit Verification Dossier</span>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-space-lg">
+<!-- Column 1: Registered Identity -->
+<div class="p-space-lg rounded-xl bg-surface-container-low flex flex-col gap-space-md shadow-md">
+<div class="flex items-center gap-space-sm">
+<img alt="DigiHisab Logo" class="h-10 w-10 object-contain rounded-lg" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAB-QynDfCsdMYNdwWXv8GGm6uNf_SVWHyd5MvmFsch-sEKO6XmmruJXJ0Q1cF95bgzHdOVFQ102SXj-XXWOFgUsujRJPBTZaqdV9ivRNja0WqBTGyglyZFddXjeyCURV-CGTu9bvMe0kGah6WyG4eUBgkaLdsqWZkbplYdugPbz7NeYDBRLft5-_bKedL5e19tmWQyMgEAeg-d41YrvxH-1s_NZrApeJttfFraCcneScxYrkReyKSWqw"/>
+<div>
+<h3 class="font-title-lg text-title-lg text-on-surface">Registered Entity</h3>
+<span class="font-label-badge text-label-badge text-primary">SECP Reg: Private Limited</span>
+</div>
+</div>
+<div class="flex flex-col gap-space-xs text-body-md text-body-md">
+<span class="font-title-md text-title-md text-on-surface">Legal Incorporation Name:</span>
+<p class="text-on-surface-variant">DigiHisab Technologies (Private) Limited</p>
+<span class="font-title-md text-title-md text-on-surface pt-space-xs">Federal Board of Revenue (FBR):</span>
+<p class="text-on-surface-variant font-label-numeric">Active Taxpayer NTN: 9283011-4</p>
+<span class="font-title-md text-title-md text-on-surface pt-space-xs">Corporate Governance:</span>
+<p class="text-on-surface-variant">Compliant with SBP circulars on Payment Intermediary Software and Open Ledger Frameworks.</p>
+</div>
+</div>
+<!-- Column 2: Physical Headquarters & Map Visual -->
+<div class="p-space-lg rounded-xl bg-surface-container-low flex flex-col gap-space-md shadow-md">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary text-[24px]">location_on</span>
+<h3 class="font-title-lg text-title-lg text-on-surface">Physical Office Hubs</h3>
+</div>
+<div class="flex flex-col gap-space-xs text-body-sm text-body-sm text-on-surface-variant">
+<p class="text-on-surface font-title-md text-title-md">Faisalabad Headquarters:</p>
+<p>Commercial Executive Suites, Main Susan Road, Madina Town, Faisalabad, Punjab, Pakistan</p>
+<p class="text-on-surface font-title-md text-title-md pt-space-xs">Lahore Liaison Office:</p>
+<p>Tech Hub Floor, Main Boulevard, Gulberg III, Lahore, Punjab, Pakistan</p>
+</div>
+<!-- Verified Map Widget -->
+<div class="w-full h-32 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant font-label-badge text-label-badge shadow-inner" data-location="Susan Road, Faisalabad, Pakistan" style="">
+<span class="flex items-center gap-space-xs text-secondary">
+<span class="material-symbols-outlined text-[18px]">pin_drop</span>
+              Verified Sovereign Location: Faisalabad Tech Campus
+            </span>
+</div>
+</div>
+<!-- Column 3: Direct Support & Clearing Rails -->
+<div class="p-space-lg rounded-xl bg-surface-container-low flex flex-col gap-space-md justify-between shadow-md">
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[24px]">support_agent</span>
+<h3 class="font-title-lg text-title-lg text-on-surface">Merchant Support &amp; Billing</h3>
+</div>
+<div class="flex flex-col gap-space-xs text-body-sm text-body-sm">
+<span class="font-title-md text-title-md text-on-surface">Helpline &amp; Direct WhatsApp:</span>
+<a class="font-label-numeric text-label-numeric text-primary hover:underline flex items-center gap-space-xs" href="https://wa.me/923009663004" target="_blank">
+<span class="material-symbols-outlined text-[16px]">chat</span>
+                +92 300 9663004
+              </a>
+<span class="font-title-md text-title-md text-on-surface pt-space-xs">Official Support Inquiries:</span>
+<a class="text-on-surface-variant hover:text-on-surface font-label-numeric" href="mailto:support@digihisab.pk">support@digihisab.pk</a>
+<span class="font-title-md text-title-md text-on-surface pt-space-xs">Escrow &amp; Refund Requests:</span>
+<a class="text-on-surface-variant hover:text-on-surface font-label-numeric" href="mailto:payments@digihisab.pk">payments@digihisab.pk</a>
+</div>
+</div>
+<div class="flex flex-col gap-space-xs pt-space-sm border-t border-surface-container">
+<span class="font-label-badge text-label-badge text-on-surface-variant uppercase">Certified Clearing Badges:</span>
+<div class="flex flex-wrap gap-space-xs">
+<span class="px-space-xs py-0.5 rounded bg-surface-container-high font-label-badge text-label-badge text-primary">Raast P2M</span>
+<span class="px-space-xs py-0.5 rounded bg-surface-container-high font-label-badge text-label-badge text-secondary">JazzCash</span>
+<span class="px-space-xs py-0.5 rounded bg-surface-container-high font-label-badge text-label-badge text-secondary">EasyPaisa</span>
+<span class="px-space-xs py-0.5 rounded bg-surface-container-high font-label-badge text-label-badge text-tertiary">PayFast 3DS</span>
+<span class="px-space-xs py-0.5 rounded bg-surface-container-high font-label-badge text-label-badge text-on-surface">Visa / Mastercard</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Interactive JavaScript -->
+<script>
+    // Tab switching for Legal Policy section
+    document.querySelectorAll('.tab-trigger').forEach(button => {
+      button.addEventListener('click', () => {
+        const tabId = button.getAttribute('data-tab');
+        
+        // Reset triggers
+        document.querySelectorAll('.tab-trigger').forEach(b => {
+          b.classList.remove('text-primary', 'border-b-2', 'border-primary');
+          b.classList.add('text-on-surface-variant');
+        });
+        
+        // Activate clicked trigger
+        button.classList.add('text-primary', 'border-b-2', 'border-primary');
+        button.classList.remove('text-on-surface-variant');
+
+        // Hide all tabs
+        document.querySelectorAll('.tab-content').forEach(content => {
+          content.classList.add('hidden');
+        });
+
+        // Show active tab
+        const activeTab = document.getElementById(tabId);
+        if (activeTab) {
+          activeTab.classList.remove('hidden');
+        }
+      });
+    });
+
+    // FAQ Accordion Toggle
+    document.querySelectorAll('.faq-toggle').forEach(button => {
+      button.addEventListener('click', () => {
+        const body = button.nextElementSibling;
+        const icon = button.querySelector('.faq-icon');
+        const isHidden = body.classList.contains('hidden');
+
+        // Close other FAQs
+        document.querySelectorAll('.faq-body').forEach(b => b.classList.add('hidden'));
+        document.querySelectorAll('.faq-icon').forEach(i => i.classList.remove('rotate-180'));
+
+        if (isHidden) {
+          body.classList.remove('hidden');
+          icon.classList.add('rotate-180');
+        } else {
+          body.classList.add('hidden');
+          icon.classList.remove('rotate-180');
+        }
+      });
+    });
+  </script>
+</div></main><footer class="w-full bg-surface-container-lowest mt-space-xl"><div class="max-w-7xl mx-auto px-margin md:px-margin-desktop py-space-xl flex flex-col gap-space-xl"><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-space-lg"><div class="flex flex-col gap-space-sm"><div class="flex items-center gap-space-xs"><img alt="logo.png" class="h-6 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1UN_DH5VNOXPJKp5os73eD3c4f1fiQ_Zxqvxl_4ydzCYlDVUnq29dw1d2wuviT97p-mIG-XAiyKYsYyQpfLQLzSMKHkUjBcJU-rwwx7Pb_Y8uap9k84JV5oymJfzJMRmYi0Q-oFngF6zv7hFv03o2LezpoWGXokR7KiTwRW98NO_YETNRXf9EONwEYXlj9ScgpS1rcwejLeOp-Sm1sOqzwJlRM4HrAU-5sASlATyvg1ARxbjN0Prmvt0aG9"/><span class="font-headline-md text-headline-md text-on-surface">DigiHisab</span></div><p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">Institutional-grade ledger orchestration, SBP-aligned settlement compliance, and high-velocity reconciliation infrastructure for Pakistani enterprises.</p><div class="flex items-center gap-space-xs pt-space-xs"><span class="px-space-xs py-0.5 rounded bg-surface-container text-primary font-label-badge text-label-badge">FBR Active NTN</span><span class="px-space-xs py-0.5 rounded bg-surface-container text-secondary font-label-badge text-label-badge">SECP Registered</span></div></div><div class="flex flex-col gap-space-sm"><span class="font-title-md text-title-md text-on-surface">Corporate Headquarters</span><div class="flex flex-col gap-space-xs text-on-surface-variant font-body-sm text-body-sm"><p class="text-on-surface font-title-md text-body-sm">Faisalabad Tech Campus:</p><p>Executive Suites, Main Susan Road, Madina Town, Faisalabad, Punjab, Pakistan</p><p class="text-on-surface font-title-md text-body-sm pt-space-xs">Lahore Liaison Office:</p><p>Gulberg III, Main Boulevard, Lahore, Pakistan</p></div></div><div class="flex flex-col gap-space-sm"><span class="font-title-md text-title-md text-on-surface">Assurance &amp; Guarantees</span><div class="p-space-md rounded-lg bg-surface-container-low flex flex-col gap-space-xs"><span class="font-title-md text-title-md text-primary">30-Day Escrow Refund</span><p class="font-body-sm text-body-sm text-on-surface-variant">Zero-lockin SLA guarantee for pilot deployments. 100% cloud ledger audit exportability upon offboarding.</p><span class="font-label-numeric text-label-numeric text-secondary">Helpline: +92 300 9663004</span></div></div><div class="flex flex-col gap-space-sm"><span class="font-title-md text-title-md text-on-surface">National Payment Rails</span><p class="font-body-sm text-body-sm text-on-surface-variant">Interoperable multi-rail transaction clearance supported across Pakistan.</p><div class="flex flex-wrap gap-space-xs"><span class="px-space-sm py-space-xs rounded bg-surface-container font-label-numeric text-body-sm text-on-surface">RAAST P2M</span><span class="px-space-sm py-space-xs rounded bg-surface-container font-label-numeric text-body-sm text-on-surface">1LINK PayPak</span><span class="px-space-sm py-space-xs rounded bg-surface-container font-label-numeric text-body-sm text-on-surface">Visa / MC</span><span class="px-space-sm py-space-xs rounded bg-surface-container font-label-numeric text-body-sm text-on-surface">Kuickpay API</span></div></div></div><div class="flex flex-col md:flex-row items-center justify-between gap-space-md pt-space-lg text-on-surface-variant font-body-sm text-body-sm"><p>© 2025 DigiHisab Technologies (Pvt) Ltd. All sovereign and fiscal rights reserved.</p><div class="flex items-center gap-space-md"><a class="hover:text-on-surface transition-colors" data-path="compliance-and-policies" href="#">Privacy Policy</a><a class="hover:text-on-surface transition-colors" data-path="compliance-and-policies" href="#">Terms of Merchant Service</a><a class="hover:text-on-surface transition-colors" data-path="compliance-and-policies" href="#">SBP Regulatory Disclosures</a></div></div></div></footer></body></html>

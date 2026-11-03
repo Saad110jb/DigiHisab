@@ -1,0 +1,224 @@
+import { Schema, model, Document, Types } from 'mongoose';
+
+export type PersonaType = 'HOUSEHOLD' | 'VENDOR' | 'HYBRID';
+export type SubscriptionTier = 'FREE' | 'PRO';
+export type SubAccountRole = 'CASHIER' | 'FAMILY_MEMBER' | 'MANAGER';
+
+export interface ISubAccount {
+  _id?: Types.ObjectId;
+  name: string;
+  phone: string;
+  pinHash: string;
+  role: SubAccountRole;
+  permissions: string[];
+  isActive: boolean;
+  resetOtpCode?: string;
+  resetOtpExpiresAt?: Date;
+}
+
+export interface IShopAddress {
+  street?: string;
+  areaOrChak?: string;
+  city?: string;
+  formattedAddress?: string;
+}
+
+export interface IPaymentAccountDetails {
+  accountNumber?: string;
+  accountTitle?: string;
+}
+
+export interface IRaastPaymentDetails {
+  idOrIban?: string;
+  bankName?: string;
+  accountTitle?: string;
+}
+
+export interface IPaymentDetails {
+  jazzcash?: IPaymentAccountDetails;
+  easypaisa?: IPaymentAccountDetails;
+  raast?: IRaastPaymentDetails;
+}
+
+export interface IMerchantPaymentSettings {
+  jazzCashNumber?: string;
+  jazzCashTitle?: string;
+  easypaisaNumber?: string;
+  easypaisaTitle?: string;
+  raastId?: string;
+  bankName?: string;
+  bankTitle?: string;
+  iban?: string;
+  jazzCashQrUrl?: string;
+  easypaisaQrUrl?: string;
+  raastQrUrl?: string;
+}
+
+export interface IPaymentChannels {
+  cashDrawer: number;
+  bankAccount: number;
+  digitalWallet: number;
+}
+
+export interface IProfile extends Document {
+  fullName: string;
+  phone: string; // Normalized E.164: +923001234567
+  email?: string;
+  passwordHash?: string;
+  pinHash: string; // Master 4-6 digit security PIN
+  managerPinHash?: string; // 4-digit override PIN
+  managerOverridePin?: string; // 4-digit override PIN alias
+  lastLoginAt?: Date;
+  registeredAccountType?: PersonaType;
+  activePersona: PersonaType;
+
+  baseCurrency: string;
+  businessName?: string;
+  businessCategory?: string;
+  businessAddress?: string;
+  shopAddress?: IShopAddress;
+  cnic?: string;
+  ownerCnic?: string;
+  cashierPinRequired?: boolean;
+  paymentDetails?: IPaymentDetails;
+  paymentSettings?: IMerchantPaymentSettings;
+  paymentChannels?: IPaymentChannels;
+  resetOtpCode?: string;
+  resetOtpExpiresAt?: Date;
+  subscription: {
+    tier: SubscriptionTier;
+    startDate: Date;
+    expiresAt?: Date;
+    paymentMethod?: 'JAZZCASH' | 'EASYPAISA' | 'STRIPE' | 'MANUAL';
+    autoRenew: boolean;
+  };
+  subAccounts: Types.DocumentArray<ISubAccount & Document>;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const SubAccountSchema = new Schema<ISubAccount>(
+  {
+    name: { type: String, required: true, trim: true },
+    phone: { type: String, required: true, trim: true },
+    pinHash: { type: String, required: true },
+    role: {
+      type: String,
+      enum: ['CASHIER', 'FAMILY_MEMBER', 'MANAGER'],
+      default: 'CASHIER',
+    },
+    permissions: [{ type: String }],
+    isActive: { type: Boolean, default: true },
+    resetOtpCode: { type: String },
+    resetOtpExpiresAt: { type: Date },
+  },
+  { _id: true }
+);
+
+const ProfileSchema = new Schema<IProfile>(
+  {
+    fullName: { type: String, required: true, trim: true },
+    phone: {
+      type: String,
+      required: true,
+      unique: true,
+      index: true,
+      trim: true,
+    },
+    email: { type: String, trim: true, lowercase: true },
+    passwordHash: { type: String },
+    pinHash: { type: String, required: true },
+    managerPinHash: { type: String },
+    managerOverridePin: { type: String },
+    lastLoginAt: { type: Date },
+    registeredAccountType: {
+      type: String,
+      enum: ['HOUSEHOLD', 'VENDOR', 'HYBRID'],
+      default: 'VENDOR',
+      required: false,
+    },
+    activePersona: {
+      type: String,
+      enum: ['HOUSEHOLD', 'VENDOR', 'HYBRID'],
+      default: 'VENDOR',
+      required: true,
+    },
+
+    baseCurrency: { type: String, default: 'PKR' },
+    businessName: { type: String, trim: true },
+    businessCategory: { type: String, trim: true },
+    businessAddress: { type: String, trim: true },
+    shopAddress: {
+      street: { type: String, trim: true },
+      areaOrChak: { type: String, trim: true },
+      city: { type: String, trim: true },
+      formattedAddress: { type: String, trim: true },
+    },
+    cnic: { type: String, trim: true },
+    ownerCnic: { type: String, trim: true },
+    cashierPinRequired: { type: Boolean, default: true },
+    paymentDetails: {
+      jazzcash: {
+        accountNumber: { type: String, trim: true },
+        accountTitle: { type: String, trim: true },
+      },
+      easypaisa: {
+        accountNumber: { type: String, trim: true },
+        accountTitle: { type: String, trim: true },
+      },
+      raast: {
+        idOrIban: { type: String, trim: true },
+        bankName: { type: String, trim: true },
+        accountTitle: { type: String, trim: true },
+      },
+    },
+    paymentSettings: {
+      jazzCashNumber: { type: String, trim: true },
+      jazzCashTitle: { type: String, trim: true },
+      easypaisaNumber: { type: String, trim: true },
+      easypaisaTitle: { type: String, trim: true },
+      raastId: { type: String, trim: true },
+      bankName: { type: String, trim: true },
+      bankTitle: { type: String, trim: true },
+      iban: { type: String, trim: true },
+      jazzCashQrUrl: { type: String, trim: true },
+      easypaisaQrUrl: { type: String, trim: true },
+      raastQrUrl: { type: String, trim: true },
+    },
+    paymentChannels: {
+      cashDrawer: { type: Number, default: 45000 },
+      bankAccount: { type: Number, default: 125000 },
+      digitalWallet: { type: Number, default: 32000 },
+    },
+    resetOtpCode: { type: String },
+    resetOtpExpiresAt: { type: Date },
+    subscription: {
+      tier: { type: String, enum: ['FREE', 'PRO'], default: 'FREE' },
+      startDate: { type: Date, default: Date.now },
+      expiresAt: { type: Date },
+      paymentMethod: {
+        type: String,
+        enum: ['JAZZCASH', 'EASYPAISA', 'STRIPE', 'MANUAL'],
+      },
+      autoRenew: { type: Boolean, default: false },
+    },
+    subAccounts: [SubAccountSchema],
+  },
+  { timestamps: true }
+);
+
+ProfileSchema.pre('validate', function (next) {
+  if (!this.registeredAccountType) {
+    this.registeredAccountType = this.activePersona || 'VENDOR';
+  }
+  next();
+});
+
+ProfileSchema.pre('save', function (next) {
+  if (!this.registeredAccountType) {
+    this.registeredAccountType = this.activePersona || 'VENDOR';
+  }
+  next();
+});
+
+export const Profile = model<IProfile>('Profile', ProfileSchema);

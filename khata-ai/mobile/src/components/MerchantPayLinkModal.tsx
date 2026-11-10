@@ -16,6 +16,7 @@ import { useAuth } from '../store/auth.store';
 import { COLORS } from '../theme/colors';
 import { paymentLinkApi, PaymentGateway, IDynamicPaymentLink } from '../api/paymentLink.api';
 import { profileApi } from '../api/profile.api';
+import { useAppVersion } from '../context/AppVersionContext';
 
 interface Props {
   visible: boolean;
@@ -33,6 +34,15 @@ export const MerchantPayLinkModal: React.FC<Props> = ({
   counterpartyName,
 }) => {
   const { user } = useAuth();
+  const { isFeatureEnabled } = useAppVersion();
+
+  const isGatewayAvailable = (g: PaymentGateway) => {
+    if (g === 'JAZZCASH') return isFeatureEnabled('jazzcash_qr_scanner');
+    if (g === 'EASYPAISA') return isFeatureEnabled('easypaisa_merchant_gateway');
+    if (g === 'RAAST') return isFeatureEnabled('raast_p2m_instant_rail');
+    return true;
+  };
+
   const [amount, setAmount] = useState<string>(defaultAmount.toString());
   const [gateway, setGateway] = useState<PaymentGateway>('JAZZCASH');
   const [generatedLink, setGeneratedLink] = useState<IDynamicPaymentLink | null>(null);
@@ -229,22 +239,36 @@ export const MerchantPayLinkModal: React.FC<Props> = ({
 
                 <Text style={styles.fieldLabel}>Select Payment Method *</Text>
                 <View style={styles.gatewayGrid}>
-                  {(['JAZZCASH', 'EASYPAISA', 'RAAST'] as PaymentGateway[]).map((g) => (
-                    <TouchableOpacity
-                      key={g}
-                      style={[styles.gatewayChip, gateway === g && styles.gatewayChipActive]}
-                      onPress={() => setGateway(g)}
-                    >
-                      <Ionicons
-                        name="qr-code-outline"
-                        size={16}
-                        color={gateway === g ? '#FFF' : '#334155'}
-                      />
-                      <Text style={[styles.gatewayChipText, gateway === g && styles.gatewayChipTextActive]}>
-                        {g}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
+                  {(['JAZZCASH', 'EASYPAISA', 'RAAST'] as PaymentGateway[]).map((g) => {
+                    const available = isGatewayAvailable(g);
+                    return (
+                      <TouchableOpacity
+                        key={g}
+                        disabled={!available}
+                        style={[
+                          styles.gatewayChip,
+                          gateway === g && styles.gatewayChipActive,
+                          !available && { opacity: 0.45, backgroundColor: '#F1F5F9', borderColor: '#CBD5E1' },
+                        ]}
+                        onPress={() => setGateway(g)}
+                      >
+                        <Ionicons
+                          name="qr-code-outline"
+                          size={16}
+                          color={!available ? '#94A3B8' : gateway === g ? '#FFF' : '#334155'}
+                        />
+                        <Text
+                          style={[
+                            styles.gatewayChipText,
+                            gateway === g && styles.gatewayChipTextActive,
+                            !available && { color: '#94A3B8' },
+                          ]}
+                        >
+                          {g} {!available ? '⚠️ بند' : ''}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
                 </View>
 
                 {/* Dynamic Account Display Card below selected gateway */}

@@ -1,4 +1,4 @@
-export type NotificationPriority = 'CRITICAL' | 'WARNING' | 'SUCCESS' | 'INFO';
+export type NotificationPriority = 'CRITICAL' | 'WARNING' | 'SUCCESS' | 'INFO' | 'NORMAL' | 'LOW';
 
 export type NotificationCategory =
   | 'STOCK_ALERT'         // Stock reached or breached minimum threshold
@@ -7,7 +7,10 @@ export type NotificationCategory =
   | 'PAYMENT_RECEIVED'    // Incoming settlement (Raast, JazzCash, Easypaisa, Cash)
   | 'BILL_DUE'            // Supplier purchase bill payment due date approaching
   | 'STAFF_TANKHWA_DUE'   // Staff wage/salary payout due date
-  | 'FINANCIAL_METRICS_SYNC'; // Real-time store metrics invalidation
+  | 'FINANCIAL_METRICS_SYNC' // Real-time store metrics invalidation
+  | 'ANNOUNCEMENT'
+  | 'SYSTEM_BROADCAST'
+  | string;
 
 export interface IPushNotification {
   id: string;

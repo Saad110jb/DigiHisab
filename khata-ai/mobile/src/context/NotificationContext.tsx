@@ -53,10 +53,20 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
           enableVibrate: true,
           showBadge: true,
           sound: 'default',
+          lockscreenVisibility: (Notifications as any).AndroidNotificationVisibility
+            ? (Notifications as any).AndroidNotificationVisibility.PUBLIC
+            : 1,
         }).catch(() => {});
 
         Notifications.requestPermissionsAsync().catch(() => {});
       } catch (e) {}
+    }
+
+    // Auto-request browser Notification permission on Web
+    if (Platform.OS === 'web' && typeof window !== 'undefined' && 'Notification' in window) {
+      if (Notification.permission === 'default') {
+        Notification.requestPermission().catch(() => {});
+      }
     }
   }, []);
 
@@ -86,6 +96,22 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
             channelId: 'digihisab-default',
           },
         }).catch(() => {});
+      } catch (e) {}
+    }
+
+    // Fire Web Browser Native OS Notification (Windows Notification Center / Mobile Chrome)
+    if (Platform.OS === 'web' && typeof window !== 'undefined' && 'Notification' in window) {
+      try {
+        if (Notification.permission === 'granted') {
+          new Notification(
+            notification.titleUrdu
+              ? `${notification.titleEnglish} • ${notification.titleUrdu}`
+              : notification.titleEnglish,
+            {
+              body: notification.messageUrdu || notification.messageEnglish,
+            }
+          );
+        }
       } catch (e) {}
     }
   }, []);

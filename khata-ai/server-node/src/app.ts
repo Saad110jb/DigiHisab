@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import { env } from './config/env';
 import { connectDB } from './config/db';
 import { errorHandler } from './middleware/error.middleware';
+import { geoFenceSentinel } from './middleware/geoFence.middleware';
 import apiV1Router from './routes';
 
 import path from 'path';
@@ -22,12 +23,17 @@ app.use(morgan('dev'));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Master API V1 Router (Strictly Fresh Data - No Stale 304 Caching for Financial Routes)
-app.use('/api/v1', (req: Request, res: Response, next) => {
-  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-  res.setHeader('Pragma', 'no-cache');
-  res.setHeader('Expires', '0');
-  next();
-}, apiV1Router);
+app.use(
+  '/api/v1',
+  geoFenceSentinel,
+  (req: Request, res: Response, next) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    next();
+  },
+  apiV1Router
+);
 
 // Health Check Endpoint
 app.get('/health', (req: Request, res: Response) => {

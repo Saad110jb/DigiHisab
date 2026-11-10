@@ -44,6 +44,7 @@ export const ProfileManagementScreen: React.FC<Props> = ({ navigation, route }) 
 
   // Business Profile Form State
   const [fullName, setFullName] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
   const [businessName, setBusinessName] = useState<string>('');
   const [businessCategory, setBusinessCategory] = useState<string>('');
   const [address, setAddress] = useState<string>('');
@@ -93,6 +94,7 @@ export const ProfileManagementScreen: React.FC<Props> = ({ navigation, route }) 
       const res = await profileApi.getProfile();
       setProfile(res);
       setFullName(res.fullName || '');
+      setEmail(res.email || '');
       setBusinessName(res.businessName || '');
       setBusinessCategory(res.businessCategory || 'General Store');
       setAddress(res.businessAddress || res.address || '');
@@ -159,6 +161,7 @@ export const ProfileManagementScreen: React.FC<Props> = ({ navigation, route }) 
       setSaving(true);
       const res = await profileApi.updateBusinessProfile({
         fullName,
+        email: email ? email.trim().toLowerCase() : undefined,
         businessName,
         businessCategory,
         address,
@@ -403,6 +406,19 @@ export const ProfileManagementScreen: React.FC<Props> = ({ navigation, route }) 
               value={businessCategory}
               onChangeText={setBusinessCategory}
               placeholder={isHousehold ? 'e.g. ذاتی رہائش / جوائنٹ فیملی / ہاسٹل' : 'e.g. General Store / Wholesaler'}
+            />
+
+            <Text style={styles.inputLabel}>
+              {isHousehold ? 'ای میل ایڈریس (Email Address - For Monthly Budget Reports & OTP)' : 'سرکاری ای میل ایڈریس (Official Email - For Daily Till Closing Slips & OTP)'}
+            </Text>
+            <TextInput
+              style={styles.textInput}
+              value={email}
+              onChangeText={setEmail}
+              placeholder={isHousehold ? 'e.g. household.head@gmail.com' : 'e.g. store.retail@gmail.com'}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
             />
 
             <Text style={styles.inputLabel}>

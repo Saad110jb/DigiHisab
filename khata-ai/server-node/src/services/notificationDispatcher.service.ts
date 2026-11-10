@@ -63,6 +63,25 @@ export function dispatchPushNotification(profileId: string, notification: IPushN
 }
 
 /**
+ * Dispatch notification to ALL currently active SSE clients across the entire platform
+ */
+export function broadcastToAllActiveSseClients(notification: IPushNotification): number {
+  let count = 0;
+  const sseData = `event: notification\ndata: ${JSON.stringify(notification)}\n\n`;
+  activeSseClients.forEach((clients, profileId) => {
+    clients.forEach((client) => {
+      try {
+        client.write(sseData);
+        count++;
+      } catch (err) {
+        removeSseClient(profileId, client);
+      }
+    });
+  });
+  return count;
+}
+
+/**
  * Dispatch real-time financial metrics sync to all active SSE clients for a profile
  */
 export function dispatchMetricsSync(profileId: string, metrics: any): void {

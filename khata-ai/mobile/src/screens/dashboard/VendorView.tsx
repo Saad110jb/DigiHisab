@@ -55,6 +55,8 @@ import { DeadStockLiquidatorModal } from '../../components/DeadStockLiquidatorMo
 import { CustomerTieringMarketingModal } from '../../components/CustomerTieringMarketingModal';
 import { IHighMarginBundle } from '../../api/deadStockLiquidator.api';
 import { useFinancialMetrics } from '../../context/FinancialMetricsContext';
+import { SubscriptionModal } from '../../components/SubscriptionModal';
+import { subscriptionService } from '../../services/subscription.service';
 
 type DeckTab = 'khata' | 'suppliers';
 
@@ -346,6 +348,18 @@ export const VendorView: React.FC = () => {
   const [supplierLedgerModalVisible, setSupplierLedgerModalVisible] = useState(false);
   const [munafaModalVisible, setMunafaModalVisible] = useState(false);
   const [chorNazarModalVisible, setChorNazarModalVisible] = useState(false);
+  const [vendorSubModalOpen, setVendorSubModalOpen] = useState(false);
+  const [vendorSubTrigger, setVendorSubTrigger] = useState<{ key?: string; title?: string }>({});
+
+  const enforceFeatureAccess = async (featureKey: string): Promise<boolean> => {
+    const result = await subscriptionService.checkFeatureAccess(featureKey, 'VENDOR');
+    if (!result.allowed) {
+      setVendorSubTrigger({ key: result.featureKey, title: result.featureTitleUrdu });
+      setVendorSubModalOpen(true);
+      return false;
+    }
+    return true;
+  };
   const [tagazaModalVisible, setTagazaModalVisible] = useState(false);
   const [selectedTagazaCustomer, setSelectedTagazaCustomer] = useState<TagazaCustomer | null>(null);
 
@@ -843,7 +857,11 @@ export const VendorView: React.FC = () => {
       iconColor: '#D97706',
       iconBg: '#FEF3C7',
       roleRequired: 'OWNER',
-      onPress: () => enforceRoleAccess('OWNER', 'چور نظر سینٹینل') && setChorNazarModalVisible(true),
+      onPress: async () => {
+        if (!enforceRoleAccess('OWNER', 'چور نظر سینٹینل')) return;
+        const ok = await enforceFeatureAccess('FEATURE_CHOR_NAZAR_AUDIT');
+        if (ok) setChorNazarModalVisible(true);
+      },
     },
     {
       id: 'mandi_radar',
@@ -855,7 +873,11 @@ export const VendorView: React.FC = () => {
       badge: 'Arbitrage',
       badgeType: 'orange',
       roleRequired: 'MANAGER',
-      onPress: () => enforceRoleAccess('MANAGER', 'منڈی ریٹ ریڈار') && setMandiRadarModalVisible(true),
+      onPress: async () => {
+        if (!enforceRoleAccess('MANAGER', 'منڈی ریٹ ریڈار')) return;
+        const ok = await enforceFeatureAccess('FEATURE_AI_STOCK_PREDICTOR');
+        if (ok) setMandiRadarModalVisible(true);
+      },
     },
     {
       id: 'dead_stock_liquidator',
@@ -867,7 +889,11 @@ export const VendorView: React.FC = () => {
       badge: 'AI Bundles',
       badgeType: 'red',
       roleRequired: 'MANAGER',
-      onPress: () => enforceRoleAccess('MANAGER', 'اسٹاک لیکویڈیٹر') && setDeadStockModalVisible(true),
+      onPress: async () => {
+        if (!enforceRoleAccess('MANAGER', 'اسٹاک لیکویڈیٹر')) return;
+        const ok = await enforceFeatureAccess('FEATURE_AI_STOCK_PREDICTOR');
+        if (ok) setDeadStockModalVisible(true);
+      },
     },
     {
       id: 'customer_marketing',
@@ -878,7 +904,10 @@ export const VendorView: React.FC = () => {
       iconBg: '#E8F5EE',
       badge: '⭐ PRO / RFM',
       badgeType: 'orange',
-      onPress: () => setCustomerMarketingModalVisible(true),
+      onPress: async () => {
+        const ok = await enforceFeatureAccess('FEATURE_AI_TAGAZA_TONES');
+        if (ok) setCustomerMarketingModalVisible(true);
+      },
     },
     {
       id: 'madad_help',
@@ -2207,6 +2236,21 @@ export const VendorView: React.FC = () => {
         onTogglePin={handleTogglePinTool}
         onSelectTool={(tool) => tool.onPress()}
         userRole={userRole}
+      />
+
+      {/* Dynamic Subscription & Feature-Gate Paywall Modal */}
+      <SubscriptionModal
+        visible={vendorSubModalOpen}
+        onClose={() => {
+          setVendorSubModalOpen(false);
+          setVendorSubTrigger({});
+        }}
+        featureKeyRequired={vendorSubTrigger.key}
+        featureTitleUrdu={vendorSubTrigger.title}
+        onPlanSelected={async (plan) => {
+          setVendorSubModalOpen(false);
+          setVendorSubTrigger({});
+        }}
       />
 
       {/* Quick Status Filter Dropdown Modal */}

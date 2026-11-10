@@ -166,3 +166,49 @@ export const revokeVoidPermission = async (req: Request, res: Response): Promise
     });
   }
 };
+
+/**
+ * 6. ML Anomaly Scoring for Cash Drawer & Floor Events (Isolation Forest)
+ * POST /api/v1/sentinel/evaluate-anomaly
+ */
+export const evaluateTillAnomaly = async (req: Request, res: Response): Promise<Response> => {
+  try {
+    const profileId = req.user?.id || req.user?.profileId;
+    if (!profileId) {
+      return res.status(401).json({ success: false, message: 'Not authorized.' });
+    }
+
+    const {
+      subAccountId,
+      cashierName,
+      amountInvolved,
+      drawerVariance,
+      voidRatio,
+      velocity,
+      timeSkewMinutes,
+    } = req.body;
+
+    const result = await ChorNazarSentinelEngine.evaluateTillAnomalyWithML({
+      profileId,
+      subAccountId,
+      cashierName,
+      amountInvolved,
+      drawerVariance,
+      voidRatio,
+      velocity,
+      timeSkewMinutes,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (error: any) {
+    console.error('[evaluateTillAnomaly Error]:', error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || 'Error scoring till anomaly.',
+    });
+  }
+};
+

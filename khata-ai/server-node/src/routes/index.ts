@@ -48,10 +48,12 @@ import jevDomesticGuardianRoutes from './jevDomesticGuardian.routes';
 import jevDomesticRunwayRoutes from './jevDomesticRunway.routes';
 import domesticVoiceDispatchRoutes from './domesticVoiceDispatch.routes';
 import domesticAuditUpdateRoutes from './domesticAuditUpdate.routes';
+import configRoutes from './config.routes';
 
 const router = Router();
 
 // Combined API V1 Master Router
+router.use('/config', configRoutes);
 router.use('/domestic/audit', domesticAuditUpdateRoutes);
 router.use('/domestic-audit', domesticAuditUpdateRoutes);
 router.use('/domestic/voice', domesticVoiceDispatchRoutes);

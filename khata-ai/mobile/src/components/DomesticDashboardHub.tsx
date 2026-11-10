@@ -25,6 +25,8 @@ import { DomesticJevGuardianModal } from './DomesticJevGuardianModal';
 import { DomesticKitchenRunwayModal } from './DomesticKitchenRunwayModal';
 import { DomesticVoiceAssistantModal } from './DomesticVoiceAssistantModal';
 import { DomesticAuditAndCorrectionModal } from './DomesticAuditAndCorrectionModal';
+import { SubscriptionModal } from './SubscriptionModal';
+import { subscriptionService } from '../services/subscription.service';
 
 export type DomesticCategory = 'HOUSEHOLD';
 
@@ -49,6 +51,34 @@ export const DomesticDashboardHub: React.FC = () => {
 
   const [balanceVisible, setBalanceVisible] = useState<boolean>(true);
   const [activeModal, setActiveModal] = useState<string | null>(null);
+  const [subModalVisible, setSubModalVisible] = useState<boolean>(false);
+  const [subTrigger, setSubTrigger] = useState<{ key?: string; title?: string }>({});
+
+  const handleProtectedModal = async (modalKey: string) => {
+    if (modalKey === 'voice_assistant') {
+      const res = await subscriptionService.checkFeatureAccess('FEATURE_DOMESTIC_VOICE_AI', 'HOUSEHOLD');
+      if (!res.allowed) {
+        setSubTrigger({ key: res.featureKey, title: res.featureTitleUrdu });
+        setSubModalVisible(true);
+        return;
+      }
+    } else if (modalKey === 'kameti') {
+      const res = await subscriptionService.checkFeatureAccess('FEATURE_KAMETI_TRACKER', 'HOUSEHOLD');
+      if (!res.allowed) {
+        setSubTrigger({ key: res.featureKey, title: res.featureTitleUrdu });
+        setSubModalVisible(true);
+        return;
+      }
+    } else if (modalKey === 'rashan') {
+      const res = await subscriptionService.checkFeatureAccess('FEATURE_RASHAN_FORECASTER', 'HOUSEHOLD');
+      if (!res.allowed) {
+        setSubTrigger({ key: res.featureKey, title: res.featureTitleUrdu });
+        setSubModalVisible(true);
+        return;
+      }
+    }
+    setActiveModal(modalKey);
+  };
 
   // Household 3x3 Grid Services (9 Core Items)
   const householdTiles: DomesticServiceTile[] = [
@@ -289,7 +319,7 @@ export const DomesticDashboardHub: React.FC = () => {
                   }}
                   onPress={(e) => {
                     e.stopPropagation?.();
-                    setActiveModal('voice_assistant');
+                    handleProtectedModal('voice_assistant');
                   }}
                   activeOpacity={0.8}
                 >
@@ -362,7 +392,7 @@ export const DomesticDashboardHub: React.FC = () => {
                   styles.tileCard,
                   isDesktop && styles.tileCardDesktop,
                 ]}
-                onPress={() => setActiveModal(tile.id)}
+                onPress={() => handleProtectedModal(tile.id)}
                 activeOpacity={0.8}
               >
                 {/* Status Pill Badge at Top-Right */}
@@ -424,7 +454,7 @@ export const DomesticDashboardHub: React.FC = () => {
       {/* Floating Urdu Household Voice Assistant Action Button */}
       <TouchableOpacity
         style={styles.floatingVoiceFab}
-        onPress={() => setActiveModal('voice_assistant')}
+        onPress={() => handleProtectedModal('voice_assistant')}
         activeOpacity={0.85}
       >
         <View style={styles.fabPulseGlow}>
@@ -697,6 +727,21 @@ export const DomesticDashboardHub: React.FC = () => {
           onClose={() => setActiveModal(null)}
         />
       )}
+
+      {/* 15. Dynamic Domestic Subscription & Feature Paywall Modal */}
+      <SubscriptionModal
+        visible={subModalVisible}
+        onClose={() => {
+          setSubModalVisible(false);
+          setSubTrigger({});
+        }}
+        featureKeyRequired={subTrigger.key}
+        featureTitleUrdu={subTrigger.title}
+        onPlanSelected={async (plan) => {
+          setSubModalVisible(false);
+          setSubTrigger({});
+        }}
+      />
     </View>
   );
 };

@@ -79,4 +79,38 @@ export const chorNazarApi = {
       throw error;
     }
   },
+
+  /**
+   * Evaluate Till Transaction / Shift with Chor Nazar ML Anomaly Detection (IsolationForest)
+   */
+  evaluateTillAnomaly: async (payload: {
+    subAccountId?: string;
+    cashierName?: string;
+    amountInvolved?: number;
+    drawerVariance?: number;
+    voidRatio?: number;
+    velocity?: number;
+    timeSkewMinutes?: number;
+  }): Promise<{
+    success: boolean;
+    data?: {
+      is_anomaly: boolean;
+      anomaly_score: number;
+      risk_score: number;
+      severity: string;
+      requires_biometric: boolean;
+      alert_title_ur: string;
+      alert_title_en: string;
+      factors: Array<{ factor: string; description_ur: string; description_en: string; contribution: number }>;
+    };
+    error?: string;
+  }> => {
+    try {
+      const response = await apiClient.post('/sentinel/evaluate-anomaly', payload);
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.data) return error.response.data;
+      throw error;
+    }
+  },
 };

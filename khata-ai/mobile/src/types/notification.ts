@@ -7,7 +7,9 @@ export type NotificationCategory =
   | 'PAYMENT_RECEIVED'    // Incoming settlement (Raast, JazzCash, Easypaisa, Cash)
   | 'BILL_DUE'            // Supplier purchase bill payment due date approaching
   | 'STAFF_TANKHWA_DUE'   // Staff wage/salary payout due date
-  | 'FINANCIAL_METRICS_SYNC'; // Real-time store metrics invalidation
+  | 'FINANCIAL_METRICS_SYNC' // Real-time store metrics invalidation
+  | 'SYSTEM_BROADCAST'    // System maintenance, feature flags, app deprecation
+  | 'ANNOUNCEMENT';       // Admin broadcast announcements
 
 export interface IPushNotification {
   id: string;

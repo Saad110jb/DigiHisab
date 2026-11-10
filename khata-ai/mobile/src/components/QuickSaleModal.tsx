@@ -18,6 +18,7 @@ import { inventoryApi, IInventoryItem } from '../api/inventory.api';
 import { ledgerApi } from '../api/ledger.api';
 import { deadStockLiquidatorApi, IHighMarginBundle } from '../api/deadStockLiquidator.api';
 import { counterpartyApi, ICounterparty } from '../api/counterparty.api';
+import { thermalPrinterService } from '../services/thermalPrinter.service';
 
 export interface QuickSaleModalProps {
   visible: boolean;
@@ -198,7 +199,7 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({
     setActivePickerIndex(null);
   };
 
-  const handleSave = async () => {
+  const handleSave = async (shouldPrint: boolean = false) => {
     const numericAmount = parseFloat(amount);
     if (isNaN(numericAmount) || numericAmount <= 0) {
       setErrorMsg('Baraye meherbani sahi rakam darj karein (Valid amount required).');
@@ -243,9 +244,44 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({
       customerPhone: finalCustomerPhone,
     };
 
+    const attachedItemsList =
+      showItemsSection && selectedItems.length > 0
+        ? selectedItems.map((s) => {
+            const inv = inventoryList.find((i) => i._id === s.itemId);
+            return {
+              name: inv ? inv.itemName : 'Item',
+              quantity: s.quantity,
+              unitPrice: inv ? inv.retailPrice : numericAmount / s.quantity,
+              total: (inv ? inv.retailPrice : 0) * s.quantity || numericAmount,
+            };
+          })
+        : [{ name: note.trim() || 'Counter Cash Sale', quantity: 1, total: numericAmount }];
+
     try {
       const res = await counterSaleApi.quickSale(payload);
       if (res.success) {
+        if (shouldPrint) {
+          try {
+            await thermalPrinterService.printReceipt(
+              {
+                storeName: 'DIGI HISAB KAROBAR',
+                receiptNo: `SALE-${Date.now().toString().slice(-6)}`,
+                customerName:
+                  finalCustomerName ||
+                  (finalCustomerId ? customerList.find((c) => c._id === finalCustomerId)?.name : undefined),
+                customerPhone: finalCustomerPhone,
+                paymentMode: paymentDestinationMap[targetAccount],
+                items: attachedItemsList,
+                grandTotal: numericAmount,
+                amountPaid: numericAmount,
+                footerNoteUrdu: '*** شُکریہ تشریف آوری کا ***',
+              },
+              { paperWidth: '58mm', openDrawer: targetAccount === 'PHYSICAL_CASH' }
+            );
+          } catch (printErr) {
+            console.warn('Print error during quick sale:', printErr);
+          }
+        }
         onSuccess(numericAmount, targetAccount, note.trim() || undefined);
         onClose();
       } else {
@@ -301,6 +337,28 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({
           });
         } catch (err2) {
           // ignore
+        }
+      }
+      if (shouldPrint) {
+        try {
+          await thermalPrinterService.printReceipt(
+            {
+              storeName: 'DIGI HISAB KAROBAR',
+              receiptNo: `SALE-${Date.now().toString().slice(-6)}`,
+              customerName:
+                finalCustomerName ||
+                (finalCustomerId ? customerList.find((c) => c._id === finalCustomerId)?.name : undefined),
+              customerPhone: finalCustomerPhone,
+              paymentMode: paymentDestinationMap[targetAccount],
+              items: attachedItemsList || [{ name: 'Counter Cash Sale', quantity: 1, total: numericAmount }],
+              grandTotal: numericAmount,
+              amountPaid: numericAmount,
+              footerNoteUrdu: '*** شُکریہ تشریف آوری کا ***',
+            },
+            { paperWidth: '58mm', openDrawer: targetAccount === 'PHYSICAL_CASH' }
+          );
+        } catch (printErr) {
+          console.warn('Print error during quick sale offline fallback:', printErr);
         }
       }
       onSuccess(numericAmount, targetAccount, note.trim() || undefined);
@@ -855,7 +913,7 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({
             {/* Save & Add to Till Primary Button */}
             <TouchableOpacity
               style={[styles.saveBtn, submitting && styles.btnDisabled]}
-              onPress={handleSave}
+              onPress={() => handleSave(false)}
               disabled={submitting}
               activeOpacity={0.85}
             >
@@ -865,6 +923,23 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({
                 <>
                   <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
                   <Text style={styles.saveBtnText}>Save & Add to Till (سیو کریں)</Text>
+                </>
+              )}
+            </TouchableOpacity>
+
+            {/* One-Touch Print Kacha Parcha (58mm) & Save Action */}
+            <TouchableOpacity
+              style={[styles.printKachaParchaBtn, submitting && styles.btnDisabled]}
+              onPress={() => handleSave(true)}
+              disabled={submitting}
+              activeOpacity={0.85}
+            >
+              {submitting ? (
+                <ActivityIndicator color="#0B2239" size="small" />
+              ) : (
+                <>
+                  <Ionicons name="print" size={20} color="#0B2239" style={{ marginRight: 8 }} />
+                  <Text style={styles.printKachaParchaBtnText}>🖨️ Print Kacha Parcha (58mm)</Text>
                 </>
               )}
             </TouchableOpacity>
@@ -1304,6 +1379,26 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '800',
+  },
+  printKachaParchaBtn: {
+    backgroundColor: '#00D2B4',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 13,
+    borderRadius: 12,
+    marginBottom: 16,
+    shadowColor: '#00D2B4',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 3,
+  },
+  printKachaParchaBtnText: {
+    color: '#0B2239',
+    fontSize: 15,
+    fontWeight: '800',
+    letterSpacing: 0.3,
   },
   autoCalcBadge: {
     flexDirection: 'row',

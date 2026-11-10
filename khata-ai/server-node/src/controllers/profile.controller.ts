@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 import { Types } from 'mongoose';
 import { Profile, PersonaType, SubAccountRole } from '../models/Profile';
 import { AuditLog } from '../models/AuditLog';
+import { sendEmail, renderWelcomeEmailHtml } from '../utils/emailService';
 
 const BCRYPT_SALT_ROUNDS = 10;
 
@@ -315,7 +316,31 @@ export const updateBusinessProfile = async (req: Request, res: Response): Promis
       profile.registeredAccountType = profile.activePersona || 'VENDOR';
     }
 
+    // Automated 1st-Time Welcome Email Dispatcher (Strictly only once)
+    const shouldSendFirstWelcomeEmail = profile.email && !(profile as any).welcomeEmailSent;
+    if (shouldSendFirstWelcomeEmail) {
+      (profile as any).welcomeEmailSent = true;
+    }
+
     await profile.save();
+
+    // Trigger async welcome email in background (only once)
+    if (shouldSendFirstWelcomeEmail && profile.email) {
+      const recipientEmail = profile.email;
+      const persona = profile.activePersona || 'VENDOR';
+      const merchantName = profile.fullName || 'Valued User';
+      const entityName = profile.businessName || (persona === 'VENDOR' ? 'دکان' : 'گھرانہ');
+
+      const subject = persona === 'VENDOR'
+        ? `مبارک ہو! آپ کی دکان (${entityName}) کا کھاتہ DigiHisab پر فعال ہو گیا`
+        : `خوش آمدید! آپ کا DigiHisab گھرانہ کھاتہ فعال ہو گیا`;
+
+      const html = renderWelcomeEmailHtml(merchantName, entityName, persona);
+
+      sendEmail({ to: recipientEmail, subject, html }).catch((err) => {
+        console.warn(`[Automated Welcome Email Error for ${recipientEmail}]:`, err.message);
+      });
+    }
 
     const shopCity = profile.shopAddress?.city || profile.shopAddress?.areaOrChak || profile.businessAddress || 'Pakistan';
     const headerPreview = `${profile.businessName || 'Store'} • ${shopCity}`;

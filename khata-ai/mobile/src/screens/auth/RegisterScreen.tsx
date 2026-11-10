@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth, PersonaType } from '../../store/auth.store';
 import { COLORS } from '../../theme/colors';
+import { CnicScannerModal } from '../../components/CnicScannerModal';
 
 export const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const insets = useSafeAreaInsets();
@@ -27,6 +28,8 @@ export const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
   const [businessName, setBusinessName] = useState('');
   const [activePersona, setActivePersona] = useState<PersonaType>('VENDOR');
   const [agreeTerms, setAgreeTerms] = useState(true);
+  const [showCnicModal, setShowCnicModal] = useState(false);
+  const [cnicScanned, setCnicScanned] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -347,6 +350,37 @@ export const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
             </View>
           </View>
 
+          {/* Smart CNIC Scanner Card (Dual-Sided CNIC step with Skip option) */}
+          <View style={styles.cnicCardContainer}>
+            <View style={styles.cnicCardHeader}>
+              <Ionicons name="card-outline" size={20} color={cnicScanned ? '#00d49f' : COLORS.cyan} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.cnicCardTitle}>Smart CNIC (شناختی کارڈ) — اختیاری</Text>
+                <Text style={styles.cnicCardSub}>
+                  {cnicScanned
+                    ? 'دونوں رخ اسکین ہو چکے ہیں (Front & Back Scanned)'
+                    : 'ابھی اسکین کریں یا بعد میں ڈیش بورڈ سے مکمل کریں (Optional)'}
+                </Text>
+              </View>
+              {cnicScanned && <Ionicons name="checkmark-circle" size={22} color="#00d49f" />}
+            </View>
+
+            <TouchableOpacity
+              style={[styles.cnicScanBtn, cnicScanned && styles.cnicScanBtnSuccess]}
+              onPress={() => setShowCnicModal(true)}
+              activeOpacity={0.8}
+            >
+              <Ionicons
+                name={cnicScanned ? 'checkmark' : 'camera-outline'}
+                size={18}
+                color={cnicScanned ? '#00d49f' : '#FFF'}
+              />
+              <Text style={[styles.cnicScanBtnText, cnicScanned && { color: '#00d49f' }]}>
+                {cnicScanned ? 'دوبارہ اسکین کریں (Re-scan)' : 'شناختی کارڈ اسکین کریں (Scan Smart CNIC)'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
           {/* Security Terms Agreement */}
           <TouchableOpacity
             style={styles.termsRow}
@@ -389,6 +423,14 @@ export const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
           </View>
         </View>
       </ScrollView>
+
+      {/* Dual-Sided CNIC Scanner Modal */}
+      <CnicScannerModal
+        visible={showCnicModal}
+        onClose={() => setShowCnicModal(false)}
+        onScanComplete={() => setCnicScanned(true)}
+        userName={fullName || 'Merchant'}
+      />
     </KeyboardAvoidingView>
   );
 };
@@ -597,6 +639,49 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     color: COLORS.primary,
+  },
+  cnicCardContainer: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    padding: 14,
+    marginVertical: 10,
+    gap: 10,
+  },
+  cnicCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  cnicCardTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: COLORS.navy,
+  },
+  cnicCardSub: {
+    fontSize: 11,
+    color: COLORS.textSecondary,
+    marginTop: 2,
+  },
+  cnicScanBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: COLORS.navy,
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  cnicScanBtnSuccess: {
+    backgroundColor: 'rgba(0, 212, 159, 0.1)',
+    borderWidth: 1,
+    borderColor: '#00d49f',
+  },
+  cnicScanBtnText: {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: '700',
   },
 });
 

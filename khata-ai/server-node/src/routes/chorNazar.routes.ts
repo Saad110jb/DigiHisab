@@ -6,6 +6,7 @@ import {
   recordTillEvent,
   triggerSurpriseAudit,
   revokeVoidPermission,
+  evaluateTillAnomaly,
 } from '../controllers/chorNazar.controller';
 
 const router = Router();
@@ -25,5 +26,6 @@ router.post('/revoke-void-permission', requireRole('OWNER'), revokeVoidPermissio
  * POS Telemetry Event Logger (Accessible by authorized tills during floor transactions)
  */
 router.post('/record-till-event', requireRole('CASHIER', 'MANAGER', 'OWNER'), recordTillEvent);
+router.post('/evaluate-anomaly', requireRole('CASHIER', 'MANAGER', 'OWNER'), evaluateTillAnomaly);
 
 export default router;

@@ -4,9 +4,28 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { AuthProvider } from './src/store/auth.store';
+import { LocationSecurityProvider } from './src/context/LocationSecurityContext';
 import { NotificationProvider } from './src/context/NotificationContext';
 import { FinancialMetricsProvider } from './src/context/FinancialMetricsContext';
+import { AppVersionProvider, useAppVersion } from './src/context/AppVersionContext';
+import { EmergencyMaintenanceScreen } from './src/components/EmergencyMaintenanceScreen';
+import { ForcedUpdateModal } from './src/components/ForcedUpdateModal';
 import { RootNavigator } from './src/navigation/RootNavigator';
+
+function AppContent() {
+  const { maintenance, bypassMaintenance } = useAppVersion();
+
+  return (
+    <>
+      <NavigationContainer>
+        <StatusBar style="dark" />
+        <RootNavigator />
+      </NavigationContainer>
+      <ForcedUpdateModal />
+      {maintenance.isActive && !bypassMaintenance && <EmergencyMaintenanceScreen />}
+    </>
+  );
+}
 
 export default function App() {
   useEffect(() => {
@@ -48,14 +67,15 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <AuthProvider>
-        <NotificationProvider>
-          <FinancialMetricsProvider>
-            <NavigationContainer>
-              <StatusBar style="dark" />
-              <RootNavigator />
-            </NavigationContainer>
-          </FinancialMetricsProvider>
-        </NotificationProvider>
+        <LocationSecurityProvider>
+          <NotificationProvider>
+            <AppVersionProvider>
+              <FinancialMetricsProvider>
+                <AppContent />
+              </FinancialMetricsProvider>
+            </AppVersionProvider>
+          </NotificationProvider>
+        </LocationSecurityProvider>
       </AuthProvider>
     </SafeAreaProvider>
   );

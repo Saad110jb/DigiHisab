@@ -9,10 +9,13 @@ import {
   Alert,
   ScrollView,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { ledgerApi } from '../api/ledger.api';
+import { thermalPrinterService } from '../services/thermalPrinter.service';
+import { PaperWidth } from '../utils/escposBuilder';
 
 export interface ReceiptData {
   counterpartyId: string;
@@ -24,6 +27,11 @@ export interface ReceiptData {
   paymentMode: string;
   transactionId?: string;
   receiptMessage: string;
+  items?: Array<{ name: string; quantity: number; unitPrice?: number; total: number }>;
+  storeName?: string;
+  cashierName?: string;
+  ntn?: string;
+  raastId?: string;
 }
 
 interface DigitalReceiptModalProps {
@@ -39,6 +47,57 @@ export const DigitalReceiptModal: React.FC<DigitalReceiptModalProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
   const [smsSending, setSmsSending] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(false);
+  const [paperWidth, setPaperWidth] = useState<PaperWidth>('58mm');
+  const [connectingBt, setConnectingBt] = useState(false);
+
+  const handlePrintThermalReceipt = async () => {
+    try {
+      setIsPrinting(true);
+      const res = await thermalPrinterService.printReceipt(
+        {
+          storeName: receipt?.storeName || 'DIGI HISAB KAROBAR',
+          receiptNo: receipt?.transactionId ? `RCP-${receipt.transactionId.slice(-6)}` : undefined,
+          cashierName: receipt?.cashierName,
+          customerName: receipt?.counterpartyName,
+          customerPhone: receipt?.phone,
+          paymentMode: receipt?.paymentMode,
+          items: receipt?.items,
+          grandTotal: receipt?.amountPaid || 0,
+          amountPaid: receipt?.amountPaid,
+          discountAmount: receipt?.discountAmount,
+          remainingBalance: receipt?.remainingBalance,
+          raastId: receipt?.raastId,
+          ntn: receipt?.ntn,
+        },
+        { paperWidth }
+      );
+
+      if (res.success) {
+        Alert.alert('پرنٹ کامیابی (Success)', `کچا پرچہ (${paperWidth}) پرنٹر پر بھیج دیا گیا ہے۔`);
+      } else {
+        Alert.alert('پرنٹ کا مسئلہ', res.message || 'پرنٹ کرنے میں ناکامی ہوئی۔');
+      }
+    } catch (err: any) {
+      Alert.alert('پرنٹ کا مسئلہ', err.message || 'پرنٹ نہیں ہو سکا۔');
+    } finally {
+      setIsPrinting(false);
+    }
+  };
+
+  const handlePairBluetooth = async () => {
+    try {
+      setConnectingBt(true);
+      const res = await thermalPrinterService.connectBluetoothPrinter();
+      if (res.success) {
+        Alert.alert('Bluetooth Connected', `${res.deviceName} کامیابی سے کنیکٹ ہو گیا!`);
+      } else {
+        Alert.alert('Bluetooth', res.error || 'کنیکشن کینسل ہو گیا۔');
+      }
+    } finally {
+      setConnectingBt(false);
+    }
+  };
 
   if (!receipt) return null;
 
@@ -169,6 +228,59 @@ export const DigitalReceiptModal: React.FC<DigitalReceiptModalProps> = ({
 
           {/* Action Buttons */}
           <View style={styles.actionsContainer}>
+            {/* Native Bluetooth ESC/POS Thermal Print Action */}
+            <View style={styles.printerButtonGroup}>
+              <TouchableOpacity
+                style={[styles.printThermalBtn, isPrinting && { opacity: 0.7 }]}
+                onPress={handlePrintThermalReceipt}
+                disabled={isPrinting}
+              >
+                {isPrinting ? (
+                  <ActivityIndicator size="small" color="#0B2239" style={{ marginRight: 8 }} />
+                ) : (
+                  <Ionicons name="print" size={20} color="#0B2239" style={{ marginRight: 8 }} />
+                )}
+                <Text style={styles.printThermalBtnText}>
+                  {isPrinting ? 'پرنٹ بھیجا جا رہا ہے...' : `🖨️ Print Kacha Parcha (${paperWidth})`}
+                </Text>
+              </TouchableOpacity>
+
+              <View style={styles.printerAuxRow}>
+                {/* 58mm / 80mm Switcher */}
+                <View style={styles.paperToggleContainer}>
+                  <TouchableOpacity
+                    style={[styles.paperOption, paperWidth === '58mm' && styles.paperOptionActive]}
+                    onPress={() => setPaperWidth('58mm')}
+                  >
+                    <Text style={[styles.paperOptionText, paperWidth === '58mm' && styles.paperOptionTextActive]}>
+                      58mm
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.paperOption, paperWidth === '80mm' && styles.paperOptionActive]}
+                    onPress={() => setPaperWidth('80mm')}
+                  >
+                    <Text style={[styles.paperOptionText, paperWidth === '80mm' && styles.paperOptionTextActive]}>
+                      80mm
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Web Bluetooth Pair Button */}
+                {thermalPrinterService.isWebBluetoothSupported() && (
+                  <TouchableOpacity
+                    style={styles.btPairBtn}
+                    onPress={handlePairBluetooth}
+                    disabled={connectingBt}
+                  >
+                    <Ionicons name="bluetooth" size={15} color="#00D2B4" style={{ marginRight: 3 }} />
+                    <Text style={styles.btPairBtnText}>
+                      {connectingBt ? 'Pairing...' : 'Pair BT'}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
             <TouchableOpacity style={styles.smsBtn} onPress={handleSendNativeSms} disabled={smsSending}>
               <Ionicons name="chatbox-ellipses" size={20} color="#0B2239" style={{ marginRight: 8 }} />
               <Text style={styles.smsBtnText}>ایس ایم ایس رسید بھیجیں (SMS Raseed)</Text>
@@ -316,6 +428,76 @@ const styles = StyleSheet.create({
   actionsContainer: {
     width: '100%',
     gap: 10,
+  },
+  printerButtonGroup: {
+    width: '100%',
+    marginBottom: 2,
+  },
+  printThermalBtn: {
+    backgroundColor: '#00D2B4',
+    paddingVertical: 14,
+    borderRadius: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#00D2B4',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  printThermalBtnText: {
+    color: '#0B2239',
+    fontSize: 14,
+    fontWeight: '800',
+    letterSpacing: 0.3,
+  },
+  printerAuxRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 6,
+    paddingHorizontal: 4,
+  },
+  paperToggleContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#122E48',
+    borderRadius: 8,
+    padding: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  paperOption: {
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 6,
+  },
+  paperOptionActive: {
+    backgroundColor: '#00D2B4',
+  },
+  paperOptionText: {
+    color: '#94A3B8',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  paperOptionTextActive: {
+    color: '#0B2239',
+    fontWeight: '800',
+  },
+  btPairBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 210, 180, 0.12)',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 210, 180, 0.3)',
+  },
+  btPairBtnText: {
+    color: '#00D2B4',
+    fontSize: 11,
+    fontWeight: '700',
   },
   smsBtn: {
     backgroundColor: '#00D2B4',

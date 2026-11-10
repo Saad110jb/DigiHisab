@@ -4,6 +4,7 @@ import { TillSentinelEvent, ITillSentinelEvent, SentinelEventType } from '../mod
 import { CashierTrustProfile, ICashierTrustProfile, TrustTier, IDetectedAnomaly } from '../models/CashierTrustProfile';
 import { CashDrawerReconciliation } from '../models/CashDrawerReconciliation';
 import { LedgerEntry } from '../models/LedgerEntry';
+import { fastApiClient, ITillFeatureVector, IAnomalyScoreResult } from './fastApi.client';
 
 export interface ISentinelDashboardData {
   totalCashiersMonitored: number;
@@ -91,6 +92,151 @@ export class ChorNazarSentinelEngine {
         pWasooli,
       },
     };
+  }
+
+  /**
+   * ML-Powered Anomaly Scoring using Isolation Forest (Python FastAPI)
+   * Evaluates 5-feature vector:
+   * 1. amount_deviation_ratio: Transaction amount compared to 30-day cashier average.
+   * 2. time_skew: Minutes elapsed since shift start or late-night transaction flags (after 10 PM).
+   * 3. void_ratio: Ratio of voided/cancelled items in the current cashier shift.
+   * 4. drawer_variance: Discrepancy between counted cash and expected system balance.
+   * 5. velocity: Number of cash sales per minute (identifies hurried unrecorded sales).
+   */
+  static async evaluateTillAnomalyWithML(payload: {
+    profileId: string | Types.ObjectId;
+    subAccountId?: string | Types.ObjectId;
+    cashierName?: string;
+    amountInvolved?: number;
+    drawerVariance?: number;
+    voidRatio?: number;
+    velocity?: number;
+    timeSkewMinutes?: number;
+  }): Promise<IAnomalyScoreResult> {
+    const pId = new Types.ObjectId(payload.profileId);
+    const cashierName = payload.cashierName || 'کاؤنٹر کیشیئر';
+
+    // 1. Calculate amount_deviation_ratio
+    let amount_deviation_ratio = 1.0;
+    if (payload.amountInvolved && payload.amountInvolved > 0) {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      const avgAgg = await LedgerEntry.aggregate([
+        {
+          $match: {
+            profileId: pId,
+            createdAt: { $gte: thirtyDaysAgo },
+            amount: { $gt: 0 },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            avgAmount: { $avg: '$amount' },
+          },
+        },
+      ]);
+
+      const avgAmount = (avgAgg && avgAgg[0] && avgAgg[0].avgAmount) || 850;
+      amount_deviation_ratio = Math.round((payload.amountInvolved / avgAmount) * 100) / 100;
+    }
+
+    // 2. Calculate time_skew (Late night anomaly if transaction is between 22:00 and 06:00 PKT)
+    const currentHour = new Date().getHours();
+    let time_skew = payload.timeSkewMinutes !== undefined ? payload.timeSkewMinutes : 120;
+    if (currentHour >= 22 || currentHour < 6) {
+      time_skew = Math.max(time_skew, 540); // Marked as late night / off-hours anomaly
+    }
+
+    // 3. Calculate void_ratio
+    let void_ratio = payload.voidRatio !== undefined ? payload.voidRatio : 0.02;
+    if (payload.subAccountId && payload.voidRatio === undefined) {
+      const trustProfile = await CashierTrustProfile.findOne({
+        profileId: pId,
+        subAccountId: new Types.ObjectId(payload.subAccountId),
+      });
+      if (trustProfile && trustProfile.trailing7dMetrics.totalSalesHandled > 0) {
+        void_ratio = Math.min(
+          1.0,
+          trustProfile.trailing7dMetrics.totalVoidAmount /
+            Math.max(1000, trustProfile.trailing7dMetrics.totalSalesHandled)
+        );
+      }
+    }
+
+    // 4. Calculate drawer_variance (Discrepancy in PKR)
+    let drawer_variance = payload.drawerVariance !== undefined ? Math.abs(payload.drawerVariance) : 0;
+    if (drawer_variance === 0) {
+      const latestRecon = await CashDrawerReconciliation.findOne({ profileId: pId }).sort({ createdAt: -1 });
+      if (latestRecon && latestRecon.discrepancyAmount) {
+        drawer_variance = Math.abs(latestRecon.discrepancyAmount);
+      }
+    }
+
+    // 5. Calculate velocity (transactions per minute)
+    const velocity = payload.velocity !== undefined ? payload.velocity : 1.2;
+
+    const featureVector: ITillFeatureVector = {
+      amount_deviation_ratio,
+      time_skew,
+      void_ratio,
+      drawer_variance,
+      velocity,
+      cashier_id: payload.subAccountId ? String(payload.subAccountId) : undefined,
+      cashier_name: cashierName,
+    };
+
+    // Call Python FastAPI Isolation Forest ML microservice
+    const mlResult = await fastApiClient.scoreTillAnomaly(featureVector);
+
+    // If risk_score > 0.75, automatically record a Critical Chor Nazar Red Alert Event
+    if (mlResult.risk_score > 0.75) {
+      await this.recordTillEvent({
+        profileId: pId,
+        subAccountId: payload.subAccountId,
+        cashierName,
+        eventType: 'GALLA_DEFICIT_SPIKE',
+        amountInvolved: drawer_variance || payload.amountInvolved || 0,
+        severity: 'CRITICAL',
+        metadata: {
+          mlRiskScore: mlResult.risk_score,
+          mlTier: mlResult.tier,
+          requiresBiometricOverride: true,
+          isChorNazarRedAlert: true,
+          factors: mlResult.factors,
+          features: featureVector,
+          detailsUr: `🚨 چور نظر ریڈ الرٹ: رسک اسکور ${(mlResult.risk_score * 100).toFixed(0)}%۔ گلے میں غیر معمولی گڑبڑ پائی گئی۔ منیجر بائیو میٹرک لازمی ہے۔`,
+          detailsEn: `Chor Nazar Red Alert: Risk score ${(mlResult.risk_score * 100).toFixed(0)}%. Manager biometric override required to proceed.`,
+        },
+      });
+
+      // Update trust profile
+      if (payload.subAccountId) {
+        await CashierTrustProfile.findOneAndUpdate(
+          { profileId: pId, subAccountId: new Types.ObjectId(payload.subAccountId) },
+          {
+            $set: {
+              trustTier: 'CRITICAL_RISK',
+              trustScore: Math.max(10, Math.round(100 - mlResult.risk_score * 85)),
+            },
+            $push: {
+              detectedAnomalies: {
+                type: 'ISOLATION_FOREST_CHOR_NAZAR_ALERT',
+                descriptionUr: mlResult.alert_title_ur,
+                descriptionEn: `${mlResult.alert_title_en} (Risk: ${(mlResult.risk_score * 100).toFixed(0)}%)`,
+                detectedAt: new Date(),
+                timestampFormatted: new Date().toLocaleTimeString('en-PK'),
+                amountInvolved: drawer_variance || payload.amountInvolved || 0,
+                riskWeight: Math.round(mlResult.risk_score * 100),
+              },
+            },
+          }
+        );
+      }
+    }
+
+    return mlResult;
   }
 
   /**

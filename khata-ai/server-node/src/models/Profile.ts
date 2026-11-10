@@ -60,6 +60,23 @@ export interface IPaymentChannels {
   digitalWallet: number;
 }
 
+export interface IGeoLockConfig {
+  storeCoordinates?: {
+    latitude: number;
+    longitude: number;
+    radiusMeters: number; // default: 500m
+  };
+  locationStatus?: 'GRANTED' | 'DENIED' | 'UNPROMPTED';
+  safeCounterMode?: boolean;
+  diasporaExemptions?: Array<{
+    name: string;
+    phone: string;
+    country: string;
+    addedAt: Date;
+  }>;
+  activeDeviceFingerprint?: string;
+}
+
 export interface IProfile extends Document {
   fullName: string;
   phone: string; // Normalized E.164: +923001234567
@@ -85,12 +102,19 @@ export interface IProfile extends Document {
   paymentChannels?: IPaymentChannels;
   resetOtpCode?: string;
   resetOtpExpiresAt?: Date;
+  welcomeEmailSent?: boolean;
+  geoLockConfig?: IGeoLockConfig;
   subscription: {
     tier: SubscriptionTier;
+    planKey?: string;
+    personaScope?: 'DUKANDAR_ONLY' | 'HOUSEHOLD_ONLY' | 'DUAL_ACCESS';
     startDate: Date;
     expiresAt?: Date;
     paymentMethod?: 'JAZZCASH' | 'EASYPAISA' | 'STRIPE' | 'MANUAL';
     autoRenew: boolean;
+    lastPromptAt?: Date;
+    hasDismissedInitial?: boolean;
+    allowedFeatures?: string[];
   };
   subAccounts: Types.DocumentArray<ISubAccount & Document>;
   createdAt: Date;
@@ -192,8 +216,41 @@ const ProfileSchema = new Schema<IProfile>(
     },
     resetOtpCode: { type: String },
     resetOtpExpiresAt: { type: Date },
+    welcomeEmailSent: { type: Boolean, default: false },
+    geoLockConfig: {
+      storeCoordinates: {
+        latitude: { type: Number },
+        longitude: { type: Number },
+        radiusMeters: { type: Number, default: 500 },
+      },
+      locationStatus: {
+        type: String,
+        enum: ['GRANTED', 'DENIED', 'UNPROMPTED'],
+        default: 'UNPROMPTED',
+      },
+      safeCounterMode: { type: Boolean, default: false },
+      diasporaExemptions: [
+        {
+          name: { type: String, trim: true },
+          phone: { type: String, trim: true },
+          country: { type: String, trim: true },
+          addedAt: { type: Date, default: Date.now },
+        },
+      ],
+      activeDeviceFingerprint: { type: String },
+    },
     subscription: {
       tier: { type: String, enum: ['FREE', 'PRO'], default: 'FREE' },
+      planKey: {
+        type: String,
+        enum: ['FREE_STARTER', 'GHAR_AI_PRO_200', 'DUKAN_BASIC_250', 'DUKAN_PRO_MALIK_400', 'DUAL_VIP_750'],
+        default: 'FREE_STARTER'
+      },
+      personaScope: {
+        type: String,
+        enum: ['DUKANDAR_ONLY', 'HOUSEHOLD_ONLY', 'DUAL_ACCESS'],
+        default: 'DUKANDAR_ONLY'
+      },
       startDate: { type: Date, default: Date.now },
       expiresAt: { type: Date },
       paymentMethod: {
@@ -201,6 +258,9 @@ const ProfileSchema = new Schema<IProfile>(
         enum: ['JAZZCASH', 'EASYPAISA', 'STRIPE', 'MANUAL'],
       },
       autoRenew: { type: Boolean, default: false },
+      lastPromptAt: { type: Date },
+      hasDismissedInitial: { type: Boolean, default: false },
+      allowedFeatures: [{ type: String }],
     },
     subAccounts: [SubAccountSchema],
   },

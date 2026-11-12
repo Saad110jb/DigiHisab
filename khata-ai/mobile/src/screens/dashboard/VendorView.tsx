@@ -34,6 +34,10 @@ import { ManageTillModal } from '../../components/ManageTillModal';
 import { AddSupplierBillModal } from '../../components/AddSupplierBillModal';
 import { CashflowHistoryModal } from '../../components/CashflowHistoryModal';
 import { QuickSaleModal } from '../../components/QuickSaleModal';
+import {
+  ContinuousBarcodeScannerModal,
+  ScannedCartItem,
+} from '../../components/ContinuousBarcodeScannerModal';
 import { DukanStaffPayrollModal } from '../../components/DukanStaffPayrollModal';
 import { DailyExpenseModal } from '../../components/DailyExpenseModal';
 import { WholesalePoModal } from '../../components/WholesalePoModal';
@@ -53,6 +57,7 @@ import { LiquidityRadarModal } from '../../components/LiquidityRadarModal';
 import { MandiArbitrageRadarModal } from '../../components/MandiArbitrageRadarModal';
 import { DeadStockLiquidatorModal } from '../../components/DeadStockLiquidatorModal';
 import { CustomerTieringMarketingModal } from '../../components/CustomerTieringMarketingModal';
+import { socketService } from '../../services/socket.service';
 import { IHighMarginBundle } from '../../api/deadStockLiquidator.api';
 import { useFinancialMetrics } from '../../context/FinancialMetricsContext';
 import { SubscriptionModal } from '../../components/SubscriptionModal';
@@ -312,6 +317,23 @@ export const VendorView: React.FC = () => {
   const [addSupplierBillModalVisible, setAddSupplierBillModalVisible] = useState(false);
   const [cashflowHistoryModalVisible, setCashflowHistoryModalVisible] = useState(false);
   const [quickSaleModalVisible, setQuickSaleModalVisible] = useState(false);
+  const [continuousScannerVisible, setContinuousScannerVisible] = useState(false);
+  const [scannedInitialItems, setScannedInitialItems] = useState<any[]>([]);
+  const [scannedInitialAmount, setScannedInitialAmount] = useState<number | undefined>(undefined);
+
+  const handleContinuousScannerCheckout = (items: ScannedCartItem[], totalAmount: number) => {
+    setScannedInitialItems(
+      items.map((i) => ({
+        itemId: i.inventoryItemId,
+        name: i.name,
+        quantity: i.quantity,
+        unitPrice: i.price,
+      }))
+    );
+    setScannedInitialAmount(totalAmount);
+    setContinuousScannerVisible(false);
+    setQuickSaleModalVisible(true);
+  };
   const [dukanStaffModalVisible, setDukanStaffModalVisible] = useState(false);
   const [dailyExpenseModalVisible, setDailyExpenseModalVisible] = useState(false);
   const [wholesalePoModalVisible, setWholesalePoModalVisible] = useState(false);
@@ -515,6 +537,25 @@ export const VendorView: React.FC = () => {
 
   useEffect(() => {
     fetchDashboardData();
+
+    // Multi-Terminal Real-Time Till Pooling Subscriptions (Socket.io)
+    const unsubSale = socketService.onSaleCompleted((data) => {
+      fetchDashboardData();
+    });
+
+    const unsubDrawer = socketService.onDrawerVariance((data) => {
+      fetchDashboardData();
+    });
+
+    const unsubUdhaar = socketService.onUdhaarUpdated((data) => {
+      fetchDashboardData();
+    });
+
+    return () => {
+      unsubSale();
+      unsubDrawer();
+      unsubUdhaar();
+    };
   }, []);
 
   // Recalculate dynamic summaryData whenever customerList, suppliersList, or physicalCash update
@@ -682,6 +723,15 @@ export const VendorView: React.FC = () => {
       iconColor: '#006C4E',
       iconBg: '#E8F5EE',
       onPress: () => setQuickSaleModalVisible(true),
+    },
+    {
+      id: 'continuous_barcode_scan',
+      title: 'Continuous Scanner',
+      titleUrdu: 'بارکوڈ اسکینر (60 FPS)',
+      icon: 'barcode-outline',
+      iconColor: '#00D2B4',
+      iconBg: 'rgba(0, 210, 180, 0.12)',
+      onPress: () => setContinuousScannerVisible(true),
     },
     {
       id: 'staff_tankha',
@@ -1940,18 +1990,31 @@ export const VendorView: React.FC = () => {
       <QuickSaleModal
         visible={quickSaleModalVisible}
         initialBundle={selectedBundleForQuickSale}
+        initialItems={scannedInitialItems}
+        initialAmount={scannedInitialAmount}
         onClose={() => {
           setQuickSaleModalVisible(false);
           setSelectedBundleForQuickSale(undefined);
+          setScannedInitialItems([]);
+          setScannedInitialAmount(undefined);
         }}
         onSuccess={(amount, targetAccount, note) => {
           setSelectedBundleForQuickSale(undefined);
+          setScannedInitialItems([]);
+          setScannedInitialAmount(undefined);
           const destMode = targetAccount === 'PHYSICAL_CASH' ? 'CASH' : targetAccount === 'DIGITAL_WALLET' ? 'WALLET' : 'BANK';
           syncQuickSale(amount, destMode);
           refreshMetricsFromServer().catch(() => {});
           fetchDashboardData().catch(() => {});
           triggerToast(`Sale Recorded - Rs. ${amount.toLocaleString()}`);
         }}
+      />
+
+      {/* Continuous 60fps Camera Barcode Hardware Stream Modal */}
+      <ContinuousBarcodeScannerModal
+        visible={continuousScannerVisible}
+        onClose={() => setContinuousScannerVisible(false)}
+        onCheckout={handleContinuousScannerCheckout}
       />
 
       {/* Staff Tankha & Attendance Modal */}

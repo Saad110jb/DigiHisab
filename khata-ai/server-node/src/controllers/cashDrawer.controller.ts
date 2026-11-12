@@ -5,6 +5,7 @@ import { LedgerEntry } from '../models/LedgerEntry';
 import { Profile } from '../models/Profile';
 import { dispatchPushNotification, dispatchMetricsSync } from '../services/notificationDispatcher.service';
 import { getAggregatedStoreMetrics } from '../services/ledgerMetrics.service';
+import { socketService } from '../services/socket.service';
 
 /**
  * Helper to compute expected system cash balance for a given shift / date range
@@ -167,6 +168,16 @@ export const submitReconciliation = async (req: Request, res: Response): Promise
     else if (discrepancyAmount < 0) varianceType = 'DEFICIT';
 
     if (discrepancyAmount !== 0 && profileId) {
+      socketService.broadcastDrawerVariance(profileId.toString(), {
+        subAccountId: subAccountId ? subAccountId.toString() : undefined,
+        cashierName: req.user?.phone || 'Cashier',
+        discrepancyAmount,
+        systemExpectedCash: breakdown.systemExpectedCash,
+        physicalCountedCash: physicalCash,
+        isDeficit: discrepancyAmount < 0,
+        timestamp: new Date().toISOString(),
+      });
+
       const isShortage = discrepancyAmount < 0;
       dispatchPushNotification(profileId.toString(), {
         id: `galla-${reconciliation._id}-${Date.now()}`,

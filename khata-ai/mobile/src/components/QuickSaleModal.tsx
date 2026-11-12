@@ -19,12 +19,25 @@ import { ledgerApi } from '../api/ledger.api';
 import { deadStockLiquidatorApi, IHighMarginBundle } from '../api/deadStockLiquidator.api';
 import { counterpartyApi, ICounterparty } from '../api/counterparty.api';
 import { thermalPrinterService } from '../services/thermalPrinter.service';
+import {
+  ContinuousBarcodeScannerModal,
+  ScannedCartItem,
+} from './ContinuousBarcodeScannerModal';
+
+export interface ScannedItemInput {
+  itemId?: string;
+  name?: string;
+  quantity: number;
+  unitPrice?: number;
+}
 
 export interface QuickSaleModalProps {
   visible: boolean;
   onClose: () => void;
   onSuccess: (amount: number, targetAccount: string, note?: string) => void;
   initialBundle?: IHighMarginBundle;
+  initialItems?: ScannedItemInput[];
+  initialAmount?: number;
 }
 
 export type DestinationAccount = 'PHYSICAL_CASH' | 'DIGITAL_WALLET' | 'BANK_ACCOUNT';
@@ -39,6 +52,8 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({
   onClose,
   onSuccess,
   initialBundle,
+  initialItems,
+  initialAmount,
 }) => {
   const insets = useSafeAreaInsets();
   const [amount, setAmount] = useState<string>('');
@@ -46,6 +61,7 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({
   const [note, setNote] = useState<string>('');
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [showBarcodeScanner, setShowBarcodeScanner] = useState<boolean>(false);
 
   // Customer Loyalty Tagging (PRO)
   const [showCustomerSection, setShowCustomerSection] = useState<boolean>(false);
@@ -135,9 +151,32 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({
 
       if (initialBundle) {
         handleSelectBundle(initialBundle);
+      } else if (initialItems && initialItems.length > 0) {
+        setShowItemsSection(true);
+        setSelectedItems(
+          initialItems
+            .filter((item) => item.itemId)
+            .map((item) => ({ itemId: item.itemId!, quantity: item.quantity }))
+        );
+        if (initialAmount) {
+          setAmount(initialAmount.toString());
+        }
       }
     }
-  }, [visible, initialBundle]);
+  }, [visible, initialBundle, initialItems, initialAmount]);
+
+  const handleScannedCheckout = (items: ScannedCartItem[], totalAmount: number) => {
+    setShowItemsSection(true);
+    const validItems = items
+      .filter((i) => i.inventoryItemId)
+      .map((i) => ({ itemId: i.inventoryItemId!, quantity: i.quantity }));
+
+    if (validItems.length > 0) {
+      setSelectedItems(validItems);
+    }
+    setAmount(totalAmount.toString());
+    setShowBarcodeScanner(false);
+  };
 
   // Handle auto-sum of selected inventory items
   const handleAutoSum = () => {
@@ -767,28 +806,37 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({
 
             {/* Optional Itemized Stock Attachment Section */}
             <View style={styles.stockSectionContainer}>
-              <TouchableOpacity
-                style={styles.toggleStockBtn}
-                onPress={() => {
-                  if (!showItemsSection && selectedItems.length === 0) {
-                    handleAddItemRow();
-                  }
-                  setShowItemsSection(!showItemsSection);
-                }}
-                activeOpacity={0.8}
-              >
-                <Ionicons
-                  name={showItemsSection ? 'chevron-down-circle' : 'add-circle-outline'}
-                  size={18}
-                  color="#006C4E"
-                  style={{ marginRight: 6 }}
-                />
-                <Text style={styles.toggleStockBtnText}>
-                  {showItemsSection
-                    ? 'Hide Inventory Items (آئٹمز چھپائیں)'
-                    : '+ Add Inventory Items (Optional) / آئٹمز شامل کریں'}
-                </Text>
-              </TouchableOpacity>
+              <View style={styles.stockButtonsRow}>
+                <TouchableOpacity
+                  style={[styles.toggleStockBtn, { flex: 1, marginRight: 8 }]}
+                  onPress={() => {
+                    if (!showItemsSection && selectedItems.length === 0) {
+                      handleAddItemRow();
+                    }
+                    setShowItemsSection(!showItemsSection);
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons
+                    name={showItemsSection ? 'chevron-down-circle' : 'add-circle-outline'}
+                    size={18}
+                    color="#006C4E"
+                    style={{ marginRight: 6 }}
+                  />
+                  <Text style={styles.toggleStockBtnText} numberOfLines={1}>
+                    {showItemsSection ? 'Hide Items' : '+ Add Items'}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.rapidScanBtn}
+                  onPress={() => setShowBarcodeScanner(true)}
+                  activeOpacity={0.85}
+                >
+                  <Ionicons name="barcode-outline" size={18} color="#FFFFFF" style={{ marginRight: 6 }} />
+                  <Text style={styles.rapidScanBtnText}>📷 Rapid Scan</Text>
+                </TouchableOpacity>
+              </View>
 
               {showItemsSection && (
                 <View style={styles.itemsCardGroup}>
@@ -946,6 +994,14 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({
           </ScrollView>
         </View>
       </View>
+
+      {/* Continuous High-Velocity Camera Barcode Hardware Stream Modal */}
+      <ContinuousBarcodeScannerModal
+        visible={showBarcodeScanner}
+        onClose={() => setShowBarcodeScanner(false)}
+        onCheckout={handleScannedCheckout}
+        inventoryList={inventoryList}
+      />
     </Modal>
   );
 };
@@ -1201,6 +1257,24 @@ const styles = StyleSheet.create({
   },
   stockSectionContainer: {
     marginBottom: 16,
+  },
+  stockButtonsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  rapidScanBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#006C4E',
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
+  rapidScanBtnText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
   },
   toggleStockBtn: {
     flexDirection: 'row',

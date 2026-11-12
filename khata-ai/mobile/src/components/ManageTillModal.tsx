@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Modal,
   View,
@@ -13,6 +13,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { cashDrawerApi, ITillBalances } from '../api/cashDrawer.api';
+import { socketService } from '../services/socket.service';
 
 interface ManageTillModalProps {
   visible: boolean;
@@ -32,6 +33,20 @@ export const ManageTillModal: React.FC<ManageTillModalProps> = ({
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!visible) return;
+    const unsubSale = socketService.onSaleCompleted(() => {
+      onSuccess();
+    });
+    const unsubDrawer = socketService.onDrawerVariance(() => {
+      onSuccess();
+    });
+    return () => {
+      unsubSale();
+      unsubDrawer();
+    };
+  }, [visible]);
 
   const handleTopUp = async () => {
     const numAmt = parseFloat(amount);

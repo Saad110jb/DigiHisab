@@ -1,4 +1,5 @@
 import express, { Express, Request, Response } from 'express';
+import http from 'http';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -7,6 +8,7 @@ import { connectDB } from './config/db';
 import { errorHandler } from './middleware/error.middleware';
 import { geoFenceSentinel } from './middleware/geoFence.middleware';
 import apiV1Router from './routes';
+import { socketService } from './services/socket.service';
 
 import path from 'path';
 
@@ -43,10 +45,14 @@ app.get('/health', (req: Request, res: Response) => {
 // Centralized Error Handler
 app.use(errorHandler);
 
+// Create HTTP Server & Attach Real-Time Multi-Terminal WebSocket Engine
+const httpServer = http.createServer(app);
+socketService.init(httpServer);
+
 // Connect to MongoDB and start HTTP server
 const startServer = async () => {
   await connectDB();
-  app.listen(env.PORT, () => {
+  httpServer.listen(env.PORT, () => {
     console.log(`[Express] Core Ledger Service listening on port ${env.PORT} in ${env.NODE_ENV} mode`);
   });
 };

@@ -8,6 +8,7 @@ import { dispatchPushNotification, dispatchMetricsSync } from '../services/notif
 import { JevCreditService } from '../services/jevCredit.service';
 import { calculateLiquidityHorizon } from '../services/jevRunway.service';
 import { getAggregatedStoreMetrics } from '../services/ledgerMetrics.service';
+import { socketService } from '../services/socket.service';
 
 /**
  * 1. Primary Transactional Gatekeeper (Create Entry)
@@ -192,6 +193,19 @@ export const createEntry = async (req: Request, res: Response): Promise<Response
             await JevCreditService.persistRiskProfile(counterpartyDoc, jevEvaluation);
           } else {
             await counterpartyDoc.save();
+          }
+
+          // Real-time Multi-Terminal Till Synchronization (Socket.io)
+          if (profileId) {
+            socketService.broadcastUdhaarUpdated(profileId.toString(), {
+              counterpartyId: counterpartyDoc._id.toString(),
+              counterpartyName: counterpartyDoc.name,
+              newBalance: counterpartyDoc.currentBalance,
+              lastAmount: numericAmount,
+              entryType: entryType === 'RECEIVABLE' ? 'CREDIT' : 'PAYMENT',
+              updatedBy: req.user?.phone || 'Cashier Terminal',
+              timestamp: new Date().toISOString(),
+            });
           }
 
           // Real-time Push Notifications

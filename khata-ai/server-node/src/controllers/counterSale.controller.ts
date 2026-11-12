@@ -7,6 +7,7 @@ import { Profile } from '../models/Profile';
 import { Counterparty } from '../models/Counterparty';
 import { dispatchPushNotification, dispatchMetricsSync } from '../services/notificationDispatcher.service';
 import { getAggregatedStoreMetrics } from '../services/ledgerMetrics.service';
+import { socketService } from '../services/socket.service';
 
 /**
  * Atomic Quick Cash Sale Controller
@@ -217,12 +218,22 @@ export const processQuickSale = async (req: Request, res: Response): Promise<Res
       console.warn('[processQuickSale] Failed to update paymentChannels:', chanErr);
     }
 
-    // 5. Broadcast updated store metrics via real-time sync
+    // 5. Broadcast updated store metrics via real-time sync & multi-terminal till pooling
     try {
+      socketService.broadcastSaleCompleted(profileId.toString(), {
+        saleId: ledgerEntry._id.toString(),
+        amount: numericAmount,
+        paymentDestination,
+        itemsCount: hasItems ? items.length : 1,
+        cashierName: req.user?.phone || 'Till Terminal',
+        note: note?.trim(),
+        timestamp: new Date().toISOString(),
+      });
+
       const updatedMetrics = await getAggregatedStoreMetrics(profileId);
       dispatchMetricsSync(profileId.toString(), updatedMetrics);
     } catch (metricErr) {
-      console.warn('[processQuickSale] Failed to dispatch metrics sync:', metricErr);
+      console.warn('[processQuickSale] Failed to dispatch metrics sync / socket broadcast:', metricErr);
     }
 
     // 6. Trigger low stock notifications for items that breached low stock threshold

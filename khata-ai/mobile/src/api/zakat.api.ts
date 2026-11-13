@@ -101,12 +101,48 @@ export interface IFitranaEstimate {
   totalFitrana: number;
 }
 
+export interface IBullionNisabToday {
+  gold24kPerTola: number;
+  gold22kPerTola: number;
+  gold21kPerTola: number;
+  gold18kPerTola: number;
+  gold24kPer10g: number;
+  gold22kPer10g: number;
+  gold24kPerGram: number;
+  silverPerTola: number;
+  silverPer10g: number;
+  silverPerGram: number;
+  silverNisabThreshold: number;
+  goldNisabThreshold: number;
+  silverNisabGrams: number;
+  goldNisabGrams: number;
+  canonicalNisabBasis: 'SILVER';
+  canonicalNisabThreshold: number;
+  market: string;
+  source: string;
+  dateStr: string;
+  isLive: boolean;
+  change24kPerTola: number;
+  trend: 'UP' | 'DOWN' | 'STABLE';
+  lastUpdated: string;
+}
+
 export interface IZakatOverviewResponse {
   assessment: IZakatAssessment;
   availableVaults: IVaultOption[];
 }
 
 export const zakatApi = {
+  getTodayNisab: async (): Promise<IBullionNisabToday> => {
+    const res = await apiClient.get('/domestic/zakat/nisab-today');
+    return res.data.data;
+  },
+
+  syncBullion: async (): Promise<IBullionNisabToday> => {
+    const res = await apiClient.post('/domestic/zakat/sync-bullion');
+    return res.data.data;
+  },
+
   getAssessment: async (): Promise<IZakatOverviewResponse> => {
     const res = await apiClient.get('/domestic/zakat');
     return res.data.data;

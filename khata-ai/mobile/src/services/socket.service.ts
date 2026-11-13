@@ -41,6 +41,11 @@ export interface IUdhaarUpdatedEvent {
   timestamp: string;
 }
 
+export interface IBullionRatesUpdatedEvent {
+  rates: any;
+  timestamp: string;
+}
+
 type EventCallback<T> = (data: T) => void;
 
 class SocketService {
@@ -50,10 +55,12 @@ class SocketService {
     saleCompleted: Set<EventCallback<ISaleCompletedEvent>>;
     drawerVariance: Set<EventCallback<IDrawerVarianceEvent>>;
     udhaarUpdated: Set<EventCallback<IUdhaarUpdatedEvent>>;
+    bullionRatesUpdated: Set<EventCallback<IBullionRatesUpdatedEvent>>;
   } = {
     saleCompleted: new Set(),
     drawerVariance: new Set(),
     udhaarUpdated: new Set(),
+    bullionRatesUpdated: new Set(),
   };
 
   /**
@@ -139,6 +146,17 @@ class SocketService {
         });
       });
 
+      this.socket.on('bullion:rates_updated', (data: IBullionRatesUpdatedEvent) => {
+        console.log('[SocketService] Received bullion:rates_updated:', data);
+        this.listeners.bullionRatesUpdated.forEach((cb) => {
+          try {
+            cb(data);
+          } catch (e) {
+            console.error('Error in bullionRatesUpdated listener:', e);
+          }
+        });
+      });
+
       return this.socket;
     } catch (error) {
       console.warn('[SocketService] Init error:', error);
@@ -196,6 +214,19 @@ class SocketService {
     }
     return () => {
       this.listeners.udhaarUpdated.delete(callback);
+    };
+  }
+
+  /**
+   * Subscribe to real-time Karachi Sarafa bullion market updates & Nisab threshold shifts
+   */
+  public onBullionRatesUpdated(callback: EventCallback<IBullionRatesUpdatedEvent>): () => void {
+    this.listeners.bullionRatesUpdated.add(callback);
+    if (!this.socket?.connected) {
+      this.connect();
+    }
+    return () => {
+      this.listeners.bullionRatesUpdated.delete(callback);
     };
   }
 }

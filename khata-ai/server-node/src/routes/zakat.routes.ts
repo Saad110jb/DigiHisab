@@ -7,6 +7,8 @@ import {
   deleteDisbursement,
   getFitranaEstimate,
   generateCharityReceiptText,
+  getTodayNisab,
+  syncBullionRatesNow,
 } from '../controllers/zakat.controller';
 import { requireAuth } from '../middleware/auth.middleware';
 
@@ -15,6 +17,8 @@ const router = Router();
 router.use(requireAuth);
 
 router.get('/', getZakatAssessment);
+router.get('/nisab-today', getTodayNisab);
+router.post('/sync-bullion', syncBullionRatesNow);
 router.post('/sync-vault', syncWithLiveVaults);
 router.post('/calculate', calculateZakat);
 router.post('/disburse', disburseCharity);

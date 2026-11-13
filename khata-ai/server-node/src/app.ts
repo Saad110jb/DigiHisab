@@ -10,6 +10,7 @@ import { geoFenceSentinel } from './middleware/geoFence.middleware';
 import apiV1Router from './routes';
 import { socketService } from './services/socket.service';
 import { mandiScraperService } from './services/mandiScraper.service';
+import { bullionSyncService } from './services/bullionSync.service';
 
 import path from 'path';
 
@@ -60,6 +61,14 @@ const startServer = async () => {
   });
   setInterval(() => {
     mandiScraperService.scheduleDailyIngestion().catch(() => {});
+  }, 1000 * 60 * 60 * 6);
+
+  // Initial Karachi Sarafa Bullion & Nisab Sync & 6-Hour Interval
+  bullionSyncService.syncBullionRates().catch((e) => {
+    console.warn('[BullionSync] Initial bullion sync error:', e.message);
+  });
+  setInterval(() => {
+    bullionSyncService.syncBullionRates().catch(() => {});
   }, 1000 * 60 * 60 * 6);
 
   httpServer.listen(env.PORT, () => {

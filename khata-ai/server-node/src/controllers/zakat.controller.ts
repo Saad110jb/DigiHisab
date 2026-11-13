@@ -16,6 +16,7 @@ import { UtilityBill } from '../models/UtilityBill';
 import { SchoolFeeTracker } from '../models/SchoolFeeTracker';
 import { DomesticHelpStaff } from '../models/DomesticHelpStaff';
 import { LedgerEntry } from '../models/LedgerEntry';
+import { bullionSyncService } from '../services/bullionSync.service';
 
 const getProfileId = (req: Request): Types.ObjectId => {
   const rawId = (req.user as any)?.id || (req.headers['x-profile-id'] as string) || '6ad88c683ba1c0ade2302e81';
@@ -33,8 +34,9 @@ const getCurrentMonthKey = (): string => {
  * Recompute full Zakat mathematics according to Pakistani Shariah norms
  */
 export const computeZakatTotals = (doc: any) => {
-  const goldRate = doc.goldRatePerTola || 275000;
-  const silverRate = doc.silverRatePerTola || 3100;
+  const cachedBullion = bullionSyncService.getCachedRates();
+  const goldRate = doc.goldRatePerTola || cachedBullion.gold24kPerTola || 285400;
+  const silverRate = doc.silverRatePerTola || cachedBullion.silverPerTola || 3350;
 
   // 1. Gold valuation with purity deduction
   const gold = doc.goldHoldings || { weight: 0, unit: 'TOLA', purity: '22K' };
@@ -117,13 +119,17 @@ const seedSampleZakatAssessment = async (profileId: Types.ObjectId) => {
   const pastDate = new Date(now);
   pastDate.setDate(pastDate.getDate() - 14);
 
+  const cachedBullion = bullionSyncService.getCachedRates();
+  const liveGoldRate = cachedBullion.gold24kPerTola || 285400;
+  const liveSilverRate = cachedBullion.silverPerTola || 3350;
+
   const sampleAssessment = new ZakatAssessment({
     profileId,
     hijriYear: '1448 AH (2026-2027)',
     assessmentDate: now,
     nisabStandard: 'SILVER',
-    goldRatePerTola: 275000,
-    silverRatePerTola: 3100,
+    goldRatePerTola: liveGoldRate,
+    silverRatePerTola: liveSilverRate,
 
     cashInHand: 38500,
     bankBalances: 145000,
@@ -133,13 +139,13 @@ const seedSampleZakatAssessment = async (profileId: Types.ObjectId) => {
       weight: 5.5, // 5.5 Tolas
       unit: 'TOLA',
       purity: '22K',
-      ratePerTola: 275000,
+      ratePerTola: liveGoldRate,
     },
 
     silverHoldings: {
       weight: 25, // 25 Tolas
       unit: 'TOLA',
-      ratePerTola: 3100,
+      ratePerTola: liveSilverRate,
     },
 
     kametiReceivables: 50000,
@@ -622,6 +628,40 @@ export const generateCharityReceiptText = async (req: Request, res: Response): P
         shareText: slip,
         voucherNumber: item.voucherNumber,
       },
+    });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * 8. GET /api/v1/domestic/zakat/nisab-today
+ * Returns today's live Karachi Sarafa market bullion rates & computed Nisab thresholds
+ */
+export const getTodayNisab = async (req: Request, res: Response): Promise<Response> => {
+  try {
+    const rates = await bullionSyncService.getCurrentRates();
+    return res.status(200).json({
+      success: true,
+      message: 'آج کے کراچی صرافہ مارکیٹ ریٹس اور شرعی نصاب',
+      data: rates,
+    });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * 9. POST /api/v1/domestic/zakat/sync-bullion
+ * Force refreshes live bullion rates from Sarafa market feed
+ */
+export const syncBullionRatesNow = async (req: Request, res: Response): Promise<Response> => {
+  try {
+    const rates = await bullionSyncService.syncBullionRates(true);
+    return res.status(200).json({
+      success: true,
+      message: 'صرافہ بلین ریٹس کامیابی کے ساتھ ریفریش ہو گئے ہیں۔',
+      data: rates,
     });
   } catch (error: any) {
     return res.status(500).json({ success: false, message: error.message });

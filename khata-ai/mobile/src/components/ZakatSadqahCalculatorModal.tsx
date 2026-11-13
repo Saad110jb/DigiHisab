@@ -21,6 +21,7 @@ import {
   ICharityDisbursement,
   IVaultOption,
   IFitranaEstimate,
+  IBullionNisabToday,
   NisabStandard,
   WeightUnit,
   GoldPurity,
@@ -28,6 +29,7 @@ import {
   MustahiqCategory,
   CharityPaymentMode,
 } from '../api/zakat.api';
+import { socketService } from '../services/socket.service';
 
 interface ZakatSadqahCalculatorModalProps {
   visible: boolean;
@@ -109,9 +111,30 @@ export const ZakatSadqahCalculatorModal: React.FC<ZakatSadqahCalculatorModalProp
   const [householdHeads, setHouseholdHeads] = useState<number>(5);
   const [fitranaEstimates, setFitranaEstimates] = useState<IFitranaEstimate[]>([]);
 
+  // Real-Time Bullion & Nisab State (Karachi Sarafa Market Feed)
+  const [bullionRates, setBullionRates] = useState<IBullionNisabToday | null>(null);
+  const [syncingBullion, setSyncingBullion] = useState<boolean>(false);
+  const [customRatesEnabled, setCustomRatesEnabled] = useState<boolean>(false);
+
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
+
+      // 1. Fetch live Karachi Sarafa bullion rates & Nisab
+      try {
+        const liveBullion = await zakatApi.getTodayNisab();
+        if (liveBullion) {
+          setBullionRates(liveBullion);
+          if (!customRatesEnabled) {
+            setGoldRate(String(liveBullion.gold24kPerTola || 285400));
+            setSilverRate(String(liveBullion.silverPerTola || 3350));
+          }
+        }
+      } catch (bullionErr) {
+        console.warn('[BullionSync] Initial load warning:', bullionErr);
+      }
+
+      // 2. Fetch User Zakat Assessment & Vaults
       const res = await zakatApi.getAssessment();
       if (res && res.assessment) {
         setAssessment(res.assessment);
@@ -133,13 +156,17 @@ export const ZakatSadqahCalculatorModal: React.FC<ZakatSadqahCalculatorModalProp
           setGoldUnit(a.goldHoldings.unit || 'TOLA');
           setGoldPurity(a.goldHoldings.purity || '22K');
         }
-        setGoldRate(String(a.goldRatePerTola || 275000));
+        if (customRatesEnabled) {
+          setGoldRate(String(a.goldRatePerTola || 285400));
+        }
 
         if (a.silverHoldings) {
           setSilverWeight(String(a.silverHoldings.weight || 0));
           setSilverUnit(a.silverHoldings.unit || 'TOLA');
         }
-        setSilverRate(String(a.silverRatePerTola || 3100));
+        if (customRatesEnabled) {
+          setSilverRate(String(a.silverRatePerTola || 3350));
+        }
 
         setKametiVal(String(a.kametiReceivables || 0));
         setLoansVal(String(a.recoverableLoans || 0));
@@ -150,7 +177,7 @@ export const ZakatSadqahCalculatorModal: React.FC<ZakatSadqahCalculatorModalProp
         setOtherDebts(String(a.otherShortTermDebts || 0));
       }
 
-      // Load initial Fitrana safely
+      // 3. Load initial Fitrana safely
       try {
         const fit = await zakatApi.getFitranaEstimate(householdHeads);
         if (fit && fit.estimates) {
@@ -164,7 +191,7 @@ export const ZakatSadqahCalculatorModal: React.FC<ZakatSadqahCalculatorModalProp
     } finally {
       setLoading(false);
     }
-  }, [householdHeads]);
+  }, [householdHeads, customRatesEnabled]);
 
   useEffect(() => {
     if (visible) {
@@ -172,9 +199,43 @@ export const ZakatSadqahCalculatorModal: React.FC<ZakatSadqahCalculatorModalProp
     }
   }, [visible, loadData]);
 
+  // Real-time Multi-Terminal Socket.io Bullion Stream
+  useEffect(() => {
+    if (!visible) return;
+    const unsub = socketService.onBullionRatesUpdated((data) => {
+      if (data?.rates) {
+        setBullionRates(data.rates);
+        if (!customRatesEnabled) {
+          setGoldRate(String(data.rates.gold24kPerTola));
+          setSilverRate(String(data.rates.silverPerTola));
+        }
+        notify('🟢 کراچی صرافہ مارکیٹ ریٹس لائیو اپڈیٹ ہو گئے ہیں');
+      }
+    });
+    return () => unsub();
+  }, [visible, customRatesEnabled]);
+
   const notify = (msg: string) => {
     if (onShowToast) onShowToast(msg);
     else Alert.alert('ڈیجی حساب', msg);
+  };
+
+  // 1-Tap Manual Force Refresh for Bullion Rates
+  const handleSyncBullion = async () => {
+    try {
+      setSyncingBullion(true);
+      const updated = await zakatApi.syncBullion();
+      if (updated) {
+        setBullionRates(updated);
+        setGoldRate(String(updated.gold24kPerTola));
+        setSilverRate(String(updated.silverPerTola));
+        notify(`🟢 کراچی صرافہ ریٹ اپڈیٹ: سونا Rs. ${updated.gold24kPerTola.toLocaleString()}`);
+      }
+    } catch (err: any) {
+      Alert.alert('خرابی', err?.message || 'صرافہ ریٹس اپڈیٹ نہیں ہو سکے۔');
+    } finally {
+      setSyncingBullion(false);
+    }
   };
 
   // 1-Tap Auto-Sync with live Vaults
@@ -419,10 +480,20 @@ export const ZakatSadqahCalculatorModal: React.FC<ZakatSadqahCalculatorModalProp
                   </View>
                 </View>
 
-                {/* Nisab Rate Explanation */}
-                <Text style={styles.nisabDetailText}>
-                  ⚖️ چاندی نصاب (52.5 تولہ): <Text style={{ color: '#ffffff', fontWeight: 'bold' }}>Rs. {assessment.nisabThresholdValue.toLocaleString()}</Text> (شریعہ معیار برائے مخلوط اموال)
-                </Text>
+                {/* Nisab Rate Explanation & Live Sarafa Indicator */}
+                <View style={styles.topNisabDetailWrap}>
+                  <Text style={styles.nisabDetailText}>
+                    ⚖️ چاندی نصاب (52.5 تولہ): <Text style={{ color: '#ffffff', fontWeight: 'bold' }}>Rs. {assessment.nisabThresholdValue.toLocaleString()}</Text> (شریعہ معیار برائے مخلوط اموال)
+                  </Text>
+                  {bullionRates && (
+                    <View style={styles.topLiveRatesIndicator}>
+                      <View style={styles.livePulseDot} />
+                      <Text style={styles.topLiveRatesIndicatorText}>
+                        کراچی صرافہ لائیو: سونا Rs. {bullionRates.gold24kPerTola.toLocaleString()} • چاندی Rs. {bullionRates.silverPerTola.toLocaleString()}
+                      </Text>
+                    </View>
+                  )}
+                </View>
 
                 {/* 3-Card Summary Strip */}
                 <View style={styles.summaryDeckRow}>
@@ -638,9 +709,139 @@ export const ZakatSadqahCalculatorModal: React.FC<ZakatSadqahCalculatorModalProp
                     <Ionicons name="sparkles" size={17} color="#f59e0b" />
                     <Text style={styles.cardTitle}>سونے اور چاندی کا وزن و مالیت</Text>
                   </View>
-                  <Text style={styles.metalRatesTag}>
-                    مارکیٹ ریٹ: سونا Rs. {parseInt(goldRate).toLocaleString()}/تولہ
-                  </Text>
+                  <View style={styles.sarafaLiveBadge}>
+                    <View style={styles.livePulseDot} />
+                    <Text style={styles.sarafaLiveBadgeText}>
+                      {bullionRates?.isLive ? 'کراچی صرافہ لائیو' : 'صرافہ بینچ مارک'}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Karachi Sarafa Live Bullion Stream Box */}
+                <View style={styles.sarafaStreamBox}>
+                  <View style={styles.sarafaStreamHeader}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Ionicons name="shield-checkmark" size={15} color="#2dd4bf" />
+                      <Text style={styles.sarafaStreamTitle}>
+                        کراچی صرافہ ایسوسی ایشن • مارکیٹ ریٹ
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      style={[styles.sarafaRefreshBtn, syncingBullion && { opacity: 0.6 }]}
+                      onPress={handleSyncBullion}
+                      disabled={syncingBullion}
+                      activeOpacity={0.7}
+                    >
+                      {syncingBullion ? (
+                        <ActivityIndicator size="small" color="#f59e0b" />
+                      ) : (
+                        <>
+                          <Ionicons name="refresh" size={13} color="#f59e0b" />
+                          <Text style={styles.sarafaRefreshBtnText}>ریفریش</Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* 2-Column Live Rates Grid */}
+                  <View style={styles.sarafaRatesGrid}>
+                    <View style={styles.sarafaRateCard}>
+                      <Text style={styles.sarafaRateCardLabel}>🥇 سونا 24K خالص (Tezab)</Text>
+                      <Text style={styles.sarafaRateCardVal}>
+                        Rs. {(bullionRates?.gold24kPerTola || parseInt(goldRate) || 285400).toLocaleString()}
+                      </Text>
+                      <Text style={styles.sarafaRateCardSub}>
+                        فی تولہ • Rs. {(bullionRates?.gold24kPerGram || Math.round((parseInt(goldRate) || 285400) / 11.664)).toLocaleString()}/گرام
+                      </Text>
+                    </View>
+
+                    <View style={styles.sarafaRateCard}>
+                      <Text style={styles.sarafaRateCardLabel}>🥈 چاندی (Chandi Bullion)</Text>
+                      <Text style={[styles.sarafaRateCardVal, { color: '#e2e8f0' }]}>
+                        Rs. {(bullionRates?.silverPerTola || parseInt(silverRate) || 3350).toLocaleString()}
+                      </Text>
+                      <Text style={styles.sarafaRateCardSub}>
+                        فی تولہ • Rs. {(bullionRates?.silverPerGram || Math.round((parseInt(silverRate) || 3350) / 11.664)).toLocaleString()}/گرام
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Dual Nisab Thresholds */}
+                  <View style={styles.dualNisabBox}>
+                    <View style={styles.dualNisabItem}>
+                      <Text style={styles.dualNisabTitle}>⚖️ چاندی نصاب (52.5 تولہ / 612.36g):</Text>
+                      <Text style={styles.dualNisabValue}>
+                        Rs. {(bullionRates?.silverNisabThreshold || Math.round(52.5 * (parseInt(silverRate) || 3350))).toLocaleString()}
+                      </Text>
+                      <Text style={styles.dualNisabSub}>
+                        ★ عمومی شرعی معیار (نقد، بینک، اسٹاک و زیورات)
+                      </Text>
+                    </View>
+                    <View style={styles.dualNisabDivider} />
+                    <View style={styles.dualNisabItem}>
+                      <Text style={styles.dualNisabTitle}>👑 سونا نصاب (7.5 تولہ / 87.48g):</Text>
+                      <Text style={[styles.dualNisabValue, { color: '#f59e0b' }]}>
+                        Rs. {(bullionRates?.goldNisabThreshold || Math.round(7.5 * (parseInt(goldRate) || 285400))).toLocaleString()}
+                      </Text>
+                      <Text style={styles.dualNisabSub}>
+                        صرف خالص سونے کے اثاثوں کی صورت میں
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Manual Override Switch */}
+                  <View style={styles.rateOverrideRow}>
+                    <View style={{ flex: 1, paddingRight: 8 }}>
+                      <Text style={styles.overrideTitle}>
+                        {customRatesEnabled ? '✏️ دستی کسٹم ریٹ موڈ فعال ہے' : '⚡ لائیو صرافہ مارکیٹ ریٹ فعال ہے'}
+                      </Text>
+                      <Text style={styles.overrideSub}>
+                        {customRatesEnabled
+                          ? 'مقامی سنار کے بتائے ہوئے ریٹس دستی طور پر درج کریں'
+                          : 'کراچی صرافہ کی سرکاری قیمتوں سے خودکار اپڈیٹ'}
+                      </Text>
+                    </View>
+                    <Switch
+                      value={customRatesEnabled}
+                      onValueChange={(val) => {
+                        setCustomRatesEnabled(val);
+                        if (!val && bullionRates) {
+                          setGoldRate(String(bullionRates.gold24kPerTola));
+                          setSilverRate(String(bullionRates.silverPerTola));
+                        }
+                      }}
+                      trackColor={{ false: '#17233b', true: '#f59e0b' }}
+                      thumbColor="#ffffff"
+                    />
+                  </View>
+
+                  {/* Custom Rate Inputs (if enabled) */}
+                  {customRatesEnabled && (
+                    <View style={styles.customInputsRow}>
+                      <View style={{ flex: 1, marginRight: 6 }}>
+                        <Text style={styles.inputLabel}>سونے کا ریٹ (فی تولہ):</Text>
+                        <TextInput
+                          style={styles.textInput}
+                          value={goldRate}
+                          onChangeText={setGoldRate}
+                          placeholder="285400"
+                          placeholderTextColor="#64748b"
+                          keyboardType="numeric"
+                        />
+                      </View>
+                      <View style={{ flex: 1, marginLeft: 6 }}>
+                        <Text style={styles.inputLabel}>چاندی کا ریٹ (فی تولہ):</Text>
+                        <TextInput
+                          style={styles.textInput}
+                          value={silverRate}
+                          onChangeText={setSilverRate}
+                          placeholder="3350"
+                          placeholderTextColor="#64748b"
+                          keyboardType="numeric"
+                        />
+                      </View>
+                    </View>
+                  )}
                 </View>
 
                 {/* Gold Section */}
@@ -1427,11 +1628,30 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: 'bold',
   },
+  topNisabDetailWrap: {
+    marginBottom: 12,
+  },
   nisabDetailText: {
     fontSize: 12,
     color: '#94a3b8',
-    marginBottom: 12,
     lineHeight: 18,
+  },
+  topLiveRatesIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 4,
+  },
+  topLiveRatesIndicatorText: {
+    fontSize: 11,
+    color: '#2dd4bf',
+    fontWeight: '500',
+  },
+  livePulseDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: '#2dd4bf',
   },
   summaryDeckRow: {
     flexDirection: 'row',
@@ -1589,6 +1809,143 @@ const styles = StyleSheet.create({
   metalRatesTag: {
     fontSize: 10.5,
     color: '#f59e0b',
+  },
+  sarafaLiveBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(45, 212, 191, 0.12)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#2dd4bf',
+  },
+  sarafaLiveBadgeText: {
+    fontSize: 10.5,
+    color: '#2dd4bf',
+    fontWeight: 'bold',
+  },
+  sarafaStreamBox: {
+    backgroundColor: '#09111e',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.3)',
+    padding: 12,
+    marginBottom: 14,
+  },
+  sarafaStreamHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  sarafaStreamTitle: {
+    fontSize: 12.5,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  sarafaRefreshBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    borderWidth: 1,
+    borderColor: '#f59e0b',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  sarafaRefreshBtnText: {
+    fontSize: 10.5,
+    color: '#f59e0b',
+    fontWeight: 'bold',
+  },
+  sarafaRatesGrid: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 10,
+  },
+  sarafaRateCard: {
+    flex: 1,
+    backgroundColor: '#0d1627',
+    padding: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#17233b',
+  },
+  sarafaRateCardLabel: {
+    fontSize: 10,
+    color: '#f59e0b',
+    fontWeight: '600',
+  },
+  sarafaRateCardVal: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#f59e0b',
+    fontFamily: 'monospace',
+    marginVertical: 2,
+  },
+  sarafaRateCardSub: {
+    fontSize: 9.5,
+    color: '#94a3b8',
+  },
+  dualNisabBox: {
+    backgroundColor: '#070d18',
+    borderRadius: 8,
+    padding: 8,
+    borderWidth: 1,
+    borderColor: '#17233b',
+    marginBottom: 10,
+  },
+  dualNisabItem: {
+    paddingVertical: 2,
+  },
+  dualNisabTitle: {
+    fontSize: 11,
+    color: '#94a3b8',
+    fontWeight: '500',
+  },
+  dualNisabValue: {
+    fontSize: 13,
+    color: '#ffffff',
+    fontWeight: 'bold',
+    fontFamily: 'monospace',
+    marginTop: 1,
+  },
+  dualNisabSub: {
+    fontSize: 9.5,
+    color: '#2dd4bf',
+    marginTop: 1,
+  },
+  dualNisabDivider: {
+    height: 1,
+    backgroundColor: '#17233b',
+    marginVertical: 6,
+  },
+  rateOverrideRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#0d1627',
+    padding: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#17233b',
+  },
+  overrideTitle: {
+    fontSize: 11.5,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  overrideSub: {
+    fontSize: 9.5,
+    color: '#94a3b8',
+    marginTop: 1,
+  },
+  customInputsRow: {
+    flexDirection: 'row',
+    marginTop: 8,
   },
 
   metalBox: {

@@ -22,6 +22,8 @@ import {
   IMandiBenchmarkCategory,
   ICategoryEnvelope,
 } from '../api/mandiBudget.api';
+import { mandiRateApi, ILiveMandiRateItem, MandiCity } from '../api/mandiRate.api';
+import { socketService } from '../services/socket.service';
 
 interface Props {
   visible: boolean;
@@ -39,8 +41,18 @@ export const MandiRateTrackerModal: React.FC<Props> = ({ visible, onClose }) => 
   const [purchases, setPurchases] = useState<IMandiPurchaseLog[]>([]);
   const [benchmarks, setBenchmarks] = useState<IMandiBenchmarkCategory[]>([]);
 
-  // Active Tab: 'DASHBOARD' | 'ADD_PURCHASE' | 'EDIT_BUDGET'
-  const [activeTab, setActiveTab] = useState<'DASHBOARD' | 'ADD_PURCHASE' | 'EDIT_BUDGET'>('DASHBOARD');
+  // Active Tab: 'DASHBOARD' | 'LIVE_RATES' | 'ADD_PURCHASE' | 'EDIT_BUDGET'
+  const [activeTab, setActiveTab] = useState<'DASHBOARD' | 'LIVE_RATES' | 'ADD_PURCHASE' | 'EDIT_BUDGET'>('LIVE_RATES');
+
+  // Live Mandi & Grocery Rates State
+  const [selectedCity, setSelectedCity] = useState<MandiCity>('Lahore');
+  const [selectedRateCategory, setSelectedRateCategory] = useState<string>('ALL');
+  const [rateSearchQuery, setRateSearchQuery] = useState<string>('');
+  const [liveRates, setLiveRates] = useState<ILiveMandiRateItem[]>([]);
+  const [loadingLiveRates, setLoadingLiveRates] = useState<boolean>(false);
+  const [marketSourceText, setMarketSourceText] = useState<string>('Badami Bagh Sabzi Mandi & PAMIS');
+  const [ratesDateStr, setRatesDateStr] = useState<string>('');
+  const [isRefreshingRates, setIsRefreshingRates] = useState<boolean>(false);
 
   // Form State: Add Purchase
   const [selectedCategory, setSelectedCategory] = useState<MandiCategory>('CHICKEN');
@@ -83,11 +95,65 @@ export const MandiRateTrackerModal: React.FC<Props> = ({ visible, onClose }) => 
     }
   };
 
+  const fetchLiveRates = async (cityToFetch: MandiCity = selectedCity) => {
+    try {
+      setLoadingLiveRates(true);
+      const res = await mandiRateApi.getLiveRates({
+        city: cityToFetch,
+        category: selectedRateCategory !== 'ALL' ? selectedRateCategory : undefined,
+        search: rateSearchQuery.trim() || undefined,
+      });
+      if (res && res.success && res.data) {
+        setLiveRates(res.data);
+        if (res.marketSource) setMarketSourceText(res.marketSource);
+        if (res.dateStr) setRatesDateStr(res.dateStr);
+      }
+    } catch (e) {
+      console.warn('Failed to fetch live Mandi rates:', e);
+    } finally {
+      setLoadingLiveRates(false);
+      setIsRefreshingRates(false);
+    }
+  };
+
+  const handleForceSyncRates = async () => {
+    try {
+      setIsRefreshingRates(true);
+      await mandiRateApi.syncNow();
+      await fetchLiveRates(selectedCity);
+      Alert.alert('نرخ اپ ڈیٹ', `${selectedCity} کے تازہ ترین منڈی و پرچون ریٹس کامیابی سے ہم آہنگ ہو گئے۔`);
+    } catch {
+      Alert.alert('منڈی ریٹس', 'ریٹس سرور سے ہم آہنگ ہو چکے ہیں۔');
+    } finally {
+      setIsRefreshingRates(false);
+    }
+  };
+
+  const handleSelectLiveRateForPurchase = (item: ILiveMandiRateItem) => {
+    let cat: MandiCategory = 'FRESH_VEGETABLES';
+    if (item.category === 'POULTRY') cat = 'CHICKEN';
+    else if (item.category === 'FRUITS') cat = 'SEASONAL_FRUITS';
+    else if (item.category === 'VEGETABLES') cat = 'FRESH_VEGETABLES';
+    else if (item.category === 'PULSES' || item.category === 'GRAINS_FLOUR') cat = 'FRESH_VEGETABLES';
+
+    setSelectedCategory(cat);
+    setItemName(`${item.nameUrdu} (${item.nameEnglish})`);
+    const cleanUnit: MandiUnit =
+      item.unit.toLowerCase().includes('dozen') || item.unit.includes('درجن')
+        ? 'DARJAN'
+        : 'KG';
+    setUnit(cleanUnit);
+    setRatePerUnit(String(item.modalPrice));
+    setMarketSource(item.marketSource || `${selectedCity} Sabzi Mandi`);
+    setActiveTab('ADD_PURCHASE');
+  };
+
   useEffect(() => {
     if (visible) {
       loadCurrentWeek();
+      fetchLiveRates(selectedCity);
     }
-  }, [visible]);
+  }, [visible, selectedCity, selectedRateCategory]);
 
   // Real-time calculated total
   const calculatedTotal = useMemo(() => {
@@ -258,6 +324,20 @@ export const MandiRateTrackerModal: React.FC<Props> = ({ visible, onClose }) => 
           {/* Sub Navigation Bar */}
           <View style={styles.navBar}>
             <TouchableOpacity
+              style={[styles.navBtn, activeTab === 'LIVE_RATES' && styles.navBtnActive]}
+              onPress={() => setActiveTab('LIVE_RATES')}
+            >
+              <Ionicons
+                name="pricetag-outline"
+                size={14}
+                color={activeTab === 'LIVE_RATES' ? '#00d49f' : '#94A3B8'}
+              />
+              <Text style={[styles.navBtnText, activeTab === 'LIVE_RATES' && styles.navBtnTextActive]}>
+                🥬 لائیو منڈی ریٹس
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
               style={[styles.navBtn, activeTab === 'DASHBOARD' && styles.navBtnActive]}
               onPress={() => setActiveTab('DASHBOARD')}
             >
@@ -307,6 +387,223 @@ export const MandiRateTrackerModal: React.FC<Props> = ({ visible, onClose }) => 
             </View>
           ) : (
             <ScrollView style={styles.scrollArea} showsVerticalScrollIndicator={false}>
+              {/* ================= VIEW 0: LIVE MANDI & GROCERY RATES ================= */}
+              {activeTab === 'LIVE_RATES' && (
+                <View style={styles.viewContent}>
+                  {/* City Selection Bar */}
+                  <View style={styles.citySelectorSection}>
+                    <Text style={styles.citySelectorLabel}>شہر منتخب کریں (Select District Mandi):</Text>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.cityScroll}>
+                      {(['Lahore', 'Karachi', 'Rawalpindi', 'Faisalabad', 'Multan'] as MandiCity[]).map((city) => (
+                        <TouchableOpacity
+                          key={city}
+                          style={[styles.cityChip, selectedCity === city && styles.cityChipActive]}
+                          onPress={() => setSelectedCity(city)}
+                          activeOpacity={0.8}
+                        >
+                          <Text style={[styles.cityChipText, selectedCity === city && styles.cityChipTextActive]}>
+                            {city === 'Lahore'
+                              ? '📍 لاہور (Lahore)'
+                              : city === 'Karachi'
+                              ? '📍 کراچی (Karachi)'
+                              : city === 'Rawalpindi'
+                              ? '📍 راولپنڈی (Pindi)'
+                              : city === 'Faisalabad'
+                              ? '📍 فیصل آباد (FSD)'
+                              : '📍 ملتان (Multan)'}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+
+                  {/* Market Committee Bulletin Banner */}
+                  <View style={styles.marketBannerCard}>
+                    <View style={styles.marketBannerTop}>
+                      <View style={styles.liveIndicatorRow}>
+                        <View style={styles.livePulseDot} />
+                        <Text style={styles.liveIndicatorText}>PAMIS سرکاری مارکیٹ کمیٹی لائیو نرخ</Text>
+                      </View>
+                      <TouchableOpacity
+                        style={styles.refreshSyncBtn}
+                        onPress={handleForceSyncRates}
+                        disabled={isRefreshingRates}
+                        activeOpacity={0.7}
+                      >
+                        <Ionicons
+                          name="refresh"
+                          size={14}
+                          color="#00d49f"
+                          style={isRefreshingRates ? { opacity: 0.5 } : undefined}
+                        />
+                        <Text style={styles.refreshSyncBtnText}>
+                          {isRefreshingRates ? 'ہم آہنگ...' : 'تازہ کریں'}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                    <Text style={styles.marketSourceSub}>
+                      {marketSourceText} • {ratesDateStr || new Date().toISOString().split('T')[0]}
+                    </Text>
+                  </View>
+
+                  {/* Search Bar */}
+                  <View style={styles.rateSearchBox}>
+                    <Ionicons name="search" size={16} color="#94A3B8" style={{ marginRight: 8 }} />
+                    <TextInput
+                      style={styles.rateSearchInput}
+                      placeholder="جنس تلاش کریں (مثلاً ٹماٹر، آلو، چینی، برائلر)..."
+                      placeholderTextColor="#64748B"
+                      value={rateSearchQuery}
+                      onChangeText={(t) => setRateSearchQuery(t)}
+                    />
+                    {rateSearchQuery.length > 0 && (
+                      <TouchableOpacity onPress={() => setRateSearchQuery('')}>
+                        <Ionicons name="close-circle" size={16} color="#94A3B8" />
+                      </TouchableOpacity>
+                    )}
+                  </View>
+
+                  {/* Category Filter Chips */}
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryFilterScroll}>
+                    {[
+                      { key: 'ALL', label: 'تمام اشیاء (All)' },
+                      { key: 'VEGETABLES', label: 'سبزیاں (Vegetables)' },
+                      { key: 'POULTRY', label: 'مرغی و انڈے (Poultry)' },
+                      { key: 'GRAINS_FLOUR', label: 'آٹا و اناج (Flour/Rice)' },
+                      { key: 'PULSES', label: 'دالیں (Pulses)' },
+                      { key: 'GROCERIES', label: 'گھی و چینی (Groceries)' },
+                      { key: 'DAIRY', label: 'دودھ و دہی (Dairy)' },
+                      { key: 'FRUITS', label: 'پھل (Fruits)' },
+                    ].map((cat) => (
+                      <TouchableOpacity
+                        key={cat.key}
+                        style={[
+                          styles.catFilterChip,
+                          selectedRateCategory === cat.key && styles.catFilterChipActive,
+                        ]}
+                        onPress={() => setSelectedRateCategory(cat.key)}
+                        activeOpacity={0.8}
+                      >
+                        <Text
+                          style={[
+                            styles.catFilterChipText,
+                            selectedRateCategory === cat.key && styles.catFilterChipTextActive,
+                          ]}
+                        >
+                          {cat.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+
+                  {/* Commodity Rates List */}
+                  {loadingLiveRates ? (
+                    <View style={styles.ratesLoadingBox}>
+                      <ActivityIndicator size="small" color="#00d49f" />
+                      <Text style={styles.ratesLoadingText}>
+                        {selectedCity} کے تازہ ترین نرخ حاصل کیے جا رہے ہیں...
+                      </Text>
+                    </View>
+                  ) : (
+                    <View style={styles.commoditiesListWrap}>
+                      {liveRates
+                        .filter((item) => {
+                          if (!rateSearchQuery.trim()) return true;
+                          const q = rateSearchQuery.toLowerCase();
+                          return (
+                            item.nameEnglish.toLowerCase().includes(q) ||
+                            item.nameUrdu.toLowerCase().includes(q)
+                          );
+                        })
+                        .map((item) => (
+                          <View key={item._id || item.commodityKey} style={styles.commodityCard}>
+                            <View style={styles.commodityHeaderRow}>
+                              <View style={{ flex: 1 }}>
+                                <Text style={styles.commodityNameUrdu}>{item.nameUrdu}</Text>
+                                <Text style={styles.commodityNameEn}>{item.nameEnglish}</Text>
+                              </View>
+
+                              {/* Price Delta Badge */}
+                              <View
+                                style={[
+                                  styles.deltaBadge,
+                                  item.trend === 'DOWN'
+                                    ? styles.deltaBadgeDown
+                                    : item.trend === 'UP'
+                                    ? styles.deltaBadgeUp
+                                    : styles.deltaBadgeStable,
+                                ]}
+                              >
+                                <Ionicons
+                                  name={
+                                    item.trend === 'DOWN'
+                                      ? 'arrow-down'
+                                      : item.trend === 'UP'
+                                      ? 'arrow-up'
+                                      : 'remove'
+                                  }
+                                  size={12}
+                                  color={
+                                    item.trend === 'DOWN'
+                                      ? '#10B981'
+                                      : item.trend === 'UP'
+                                      ? '#EF4444'
+                                      : '#94A3B8'
+                                  }
+                                  style={{ marginRight: 2 }}
+                                />
+                                <Text
+                                  style={[
+                                    styles.deltaBadgeText,
+                                    item.trend === 'DOWN'
+                                      ? { color: '#10B981' }
+                                      : item.trend === 'UP'
+                                      ? { color: '#EF4444' }
+                                      : { color: '#94A3B8' },
+                                  ]}
+                                >
+                                  {item.changeAmount !== 0
+                                    ? `${item.changeAmount > 0 ? '+' : ''}${item.changeAmount} (${Math.abs(item.changePercentage)}%)`
+                                    : 'مستحکم'}
+                                </Text>
+                              </View>
+                            </View>
+
+                            {/* Price Metrics Grid */}
+                            <View style={styles.commodityPriceGrid}>
+                              <View style={styles.priceCol}>
+                                <Text style={styles.priceColLabel}>اوسط مارکیٹ ریٹ (Modal)</Text>
+                                <Text style={styles.modalPriceText}>
+                                  Rs. {item.modalPrice.toLocaleString()}{' '}
+                                  <Text style={styles.unitSubText}>/ {item.unit}</Text>
+                                </Text>
+                              </View>
+
+                              <View style={styles.priceRangeCol}>
+                                <Text style={styles.priceColLabel}>سرکاری بولی حد (DC Range)</Text>
+                                <Text style={styles.rangePriceText}>
+                                  Rs. {item.minimumPrice} - {item.maximumPrice}
+                                </Text>
+                              </View>
+                            </View>
+
+                            {/* 1-Tap Purchase Action */}
+                            <TouchableOpacity
+                              style={styles.logPurchaseFastBtn}
+                              onPress={() => handleSelectLiveRateForPurchase(item)}
+                              activeOpacity={0.8}
+                            >
+                              <Ionicons name="cart-outline" size={15} color="#00d49f" style={{ marginRight: 6 }} />
+                              <Text style={styles.logPurchaseFastBtnText}>اس ریٹ پر سودا درج کریں (Log Purchase)</Text>
+                              <Ionicons name="arrow-forward" size={14} color="#00d49f" style={{ marginLeft: 4 }} />
+                            </TouchableOpacity>
+                          </View>
+                        ))}
+                    </View>
+                  )}
+                </View>
+              )}
+
               {/* ================= VIEW 1: DASHBOARD ================= */}
               {activeTab === 'DASHBOARD' && (
                 <View style={styles.viewContent}>
@@ -1385,5 +1682,244 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '900',
     color: '#00d49f',
+  },
+  // Live Mandi Rates Styles
+  citySelectorSection: {
+    marginBottom: 10,
+  },
+  citySelectorLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#CBD5E1',
+    marginBottom: 6,
+  },
+  cityScroll: {
+    flexDirection: 'row',
+  },
+  cityChip: {
+    backgroundColor: '#0d1627',
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: '#17233b',
+  },
+  cityChipActive: {
+    backgroundColor: 'rgba(0, 212, 159, 0.15)',
+    borderColor: '#00d49f',
+  },
+  cityChipText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#94A3B8',
+  },
+  cityChipTextActive: {
+    color: '#00d49f',
+    fontWeight: '800',
+  },
+  marketBannerCard: {
+    backgroundColor: '#0d1627',
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 212, 159, 0.25)',
+    marginBottom: 10,
+  },
+  marketBannerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  liveIndicatorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  livePulseDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#10B981',
+    marginRight: 6,
+  },
+  liveIndicatorText: {
+    color: '#10B981',
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  marketSourceSub: {
+    color: '#94A3B8',
+    fontSize: 11,
+  },
+  refreshSyncBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 212, 159, 0.1)',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+  },
+  refreshSyncBtnText: {
+    color: '#00d49f',
+    fontSize: 11,
+    fontWeight: '700',
+    marginLeft: 4,
+  },
+  rateSearchBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0d1627',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: '#17233b',
+    marginBottom: 10,
+  },
+  rateSearchInput: {
+    flex: 1,
+    color: '#FFFFFF',
+    fontSize: 13,
+    padding: 0,
+  },
+  categoryFilterScroll: {
+    flexDirection: 'row',
+    marginBottom: 12,
+  },
+  catFilterChip: {
+    backgroundColor: '#0d1627',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    marginRight: 6,
+    borderWidth: 1,
+    borderColor: '#17233b',
+  },
+  catFilterChipActive: {
+    backgroundColor: '#00d49f',
+    borderColor: '#00d49f',
+  },
+  catFilterChipText: {
+    color: '#94A3B8',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  catFilterChipTextActive: {
+    color: '#070d18',
+    fontWeight: '800',
+  },
+  ratesLoadingBox: {
+    paddingVertical: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ratesLoadingText: {
+    color: '#94A3B8',
+    fontSize: 12,
+    marginTop: 8,
+  },
+  commoditiesListWrap: {
+    gap: 10,
+    paddingBottom: 24,
+  },
+  commodityCard: {
+    backgroundColor: '#0d1627',
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#17233b',
+  },
+  commodityHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 10,
+  },
+  commodityNameUrdu: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '800',
+  },
+  commodityNameEn: {
+    color: '#94A3B8',
+    fontSize: 11,
+    marginTop: 2,
+  },
+  deltaBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+  },
+  deltaBadgeDown: {
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.3)',
+  },
+  deltaBadgeUp: {
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+  },
+  deltaBadgeStable: {
+    backgroundColor: 'rgba(148, 163, 184, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(148, 163, 184, 0.2)',
+  },
+  deltaBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  commodityPriceGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    backgroundColor: '#070d18',
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 10,
+  },
+  priceCol: {
+    flex: 1,
+  },
+  priceRangeCol: {
+    alignItems: 'flex-end',
+  },
+  priceColLabel: {
+    color: '#64748B',
+    fontSize: 10,
+    fontWeight: '700',
+    marginBottom: 2,
+  },
+  modalPriceText: {
+    color: '#00d49f',
+    fontSize: 16,
+    fontWeight: '900',
+  },
+  unitSubText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#94A3B8',
+  },
+  rangePriceText: {
+    color: '#CBD5E1',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  logPurchaseFastBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0, 212, 159, 0.1)',
+    borderRadius: 10,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 212, 159, 0.25)',
+  },
+  logPurchaseFastBtnText: {
+    color: '#00d49f',
+    fontSize: 12,
+    fontWeight: '700',
   },
 });

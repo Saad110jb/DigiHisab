@@ -9,6 +9,7 @@ import { errorHandler } from './middleware/error.middleware';
 import { geoFenceSentinel } from './middleware/geoFence.middleware';
 import apiV1Router from './routes';
 import { socketService } from './services/socket.service';
+import { mandiScraperService } from './services/mandiScraper.service';
 
 import path from 'path';
 
@@ -52,6 +53,15 @@ socketService.init(httpServer);
 // Connect to MongoDB and start HTTP server
 const startServer = async () => {
   await connectDB();
+
+  // Initial Daily Mandi Rate Ingestion & 6-Hour Background Sync
+  mandiScraperService.scheduleDailyIngestion().catch((e) => {
+    console.warn('[MandiScraper] Initial rate ingestion error:', e.message);
+  });
+  setInterval(() => {
+    mandiScraperService.scheduleDailyIngestion().catch(() => {});
+  }, 1000 * 60 * 60 * 6);
+
   httpServer.listen(env.PORT, () => {
     console.log(`[Express] Core Ledger Service listening on port ${env.PORT} in ${env.NODE_ENV} mode`);
   });

@@ -11,6 +11,8 @@ import { VaultAccount } from '../models/HouseholdVault';
 import { LedgerEntry } from '../models/LedgerEntry';
 import { Profile } from '../models/Profile';
 import { dispatchPushNotification } from '../services/notificationDispatcher.service';
+import { kametiDrawService } from '../services/kametiDraw.service';
+import { socketService } from '../services/socket.service';
 
 const getProfileId = (req: Request): Types.ObjectId => {
   const rawId = (req.user as any)?.id || (req.headers['x-profile-id'] as string) || '6ad88c683ba1c0ade2302e81';
@@ -1017,6 +1019,503 @@ export const deleteMemberFromKameti = async (req: Request, res: Response): Promi
       success: true,
       message: `ممبر "${deletedMember.memberName}" کا سلاٹ کامیابی سے حذف کر دیا گیا ہے۔`,
       data: enrichKameti(kameti),
+    });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * 14. POST /api/v1/domestic/kameti/:id/run-draw
+ * Executes cryptographically fair Lucky Draw or Bidding Auction
+ */
+export const runKametiDraw = async (req: Request, res: Response): Promise<Response> => {
+  try {
+    const profileId = getProfileId(req);
+    const { id } = req.params;
+    const {
+      kametiType = 'LUCKY_DRAW',
+      pinnedSlots = [],
+      bidWinnerMemberId,
+      bidDiscountAmount = 0,
+    } = req.body;
+
+    const kameti = await DomesticKameti.findOne({ _id: id, profileId });
+    if (!kameti) {
+      return res.status(404).json({ success: false, message: 'کمیٹی نہیں ملی۔' });
+    }
+
+    if (!Array.isArray(kameti.members) || kameti.members.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'قرعہ اندازی کے لیے پہلے کمیٹی میں ممبرز شامل کریں۔',
+      });
+    }
+
+    // Convert members into draw candidates
+    const candidates = kameti.members.map((m: any) => {
+      const pin = (pinnedSlots as any[]).find(
+        (p) => p.memberId === m._id.toString() || p.memberName === m.memberName
+      );
+      return {
+        id: m._id.toString(),
+        name: m.memberName,
+        phone: m.memberPhone,
+        pinnedMonth: pin ? Number(pin.month) : undefined,
+      };
+    });
+
+    // Execute Fair Fisher-Yates Draw
+    const drawResult = kametiDrawService.executeFairDraw(
+      candidates,
+      kameti.totalMonths,
+      kameti.poolAmount
+    );
+
+    // If Neelaam / Bidding Auction was chosen and a winner/discount provided
+    let schedule = drawResult.schedule;
+    let dividend = 0;
+    if (kametiType === 'NEELAAM_BID' && bidWinnerMemberId && Number(bidDiscountAmount) > 0) {
+      const auctionRes = kametiDrawService.applyBiddingAuction(
+        schedule,
+        kameti.currentCycle,
+        bidWinnerMemberId,
+        Number(bidDiscountAmount),
+        kameti.totalMonths,
+        kameti.poolAmount
+      );
+      schedule = auctionRes.updatedSchedule;
+      dividend = auctionRes.dividendPerMember;
+    }
+
+    // Update each member's designated payout month in the members array
+    kameti.members.forEach((m: any) => {
+      const match = schedule.find((s) => s.memberId.toString() === m._id.toString());
+      if (match) {
+        m.payoutMonth = match.cycleNumber;
+      }
+    });
+
+    kameti.kametiType = kametiType;
+    kameti.isDrawCompleted = true;
+    kameti.drawDate = drawResult.drawDate;
+    kameti.drawSeedHash = drawResult.drawSeedHash;
+    kameti.drawSchedule = schedule;
+
+    await kameti.save();
+
+    // Broadcast draw completion in real-time
+    try {
+      const io = socketService.getIO();
+      if (io) {
+        io.emit('kameti:draw_completed', {
+          kametiId: kameti._id.toString(),
+          title: kameti.title,
+          schedule,
+          drawSeedHash: drawResult.drawSeedHash,
+        });
+      }
+    } catch (sockErr: any) {
+      console.warn('[KametiDraw] Socket emit warning:', sockErr.message);
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: drawResult.summaryUrdu,
+      data: {
+        kameti: enrichKameti(kameti),
+        schedule,
+        drawSeedHash: drawResult.drawSeedHash,
+        dividendPerMember: dividend,
+      },
+    });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * 15. POST /api/v1/domestic/kameti/:id/disburse-payout
+ * Handover committee payout to the designated recipient for the cycle
+ */
+export const disburseKametiPayout = async (req: Request, res: Response): Promise<Response> => {
+  try {
+    const profileId = getProfileId(req);
+    const { id } = req.params;
+    const {
+      cycleNumber,
+      debitedFromVaultAccountId,
+      paymentMode = 'CASH',
+      notes,
+    } = req.body;
+
+    const kameti = await DomesticKameti.findOne({ _id: id, profileId });
+    if (!kameti) {
+      return res.status(404).json({ success: false, message: 'کمیٹی نہیں ملی۔' });
+    }
+
+    const cNum = Number(cycleNumber) || kameti.currentCycle;
+
+    // Find recipient in drawSchedule or fallback to members
+    let scheduleItem = (kameti.drawSchedule as any[])?.find((s) => s.cycleNumber === cNum);
+    let recipientMember = (kameti.members as any[])?.find((m) => m.payoutMonth === cNum);
+
+    if (!scheduleItem && !recipientMember) {
+      return res.status(400).json({
+        success: false,
+        message: `ماہ #${cNum} کا کوئی نامزد وصول کنندہ نہیں ملا۔ پہلے قرعہ اندازی مکمل کریں۔`,
+      });
+    }
+
+    if (scheduleItem && scheduleItem.payoutStatus === 'DISBURSED') {
+      return res.status(400).json({
+        success: false,
+        message: `ماہ #${cNum} کی رقم پہلے ہی ادا کی جا چکی ہے (واؤچر #${scheduleItem.voucherNumber})۔`,
+      });
+    }
+
+    const recipientName = scheduleItem?.memberName || recipientMember?.memberName || 'معزز ممبر';
+    const recipientPhone = scheduleItem?.memberPhone || recipientMember?.memberPhone || '';
+    const grossPool = kameti.poolAmount;
+    const discount = scheduleItem?.bidDiscountAmount || 0;
+    const netAmount = scheduleItem?.netPayoutAmount || grossPool - discount;
+
+    // Debit Vault if specified
+    let vaultTitle: string | undefined;
+    if (debitedFromVaultAccountId) {
+      const vault = await VaultAccount.findOne({ _id: debitedFromVaultAccountId, profileId });
+      if (vault) {
+        if (vault.currentBalance < netAmount) {
+          return res.status(400).json({
+            success: false,
+            message: `${vault.accountTitle} میں رقم ناکافی ہے (موجود: Rs. ${vault.currentBalance.toLocaleString()})`,
+          });
+        }
+        vault.currentBalance -= netAmount;
+        vault.lastReconciledAt = new Date();
+        await vault.save();
+        vaultTitle = vault.accountTitle;
+
+        // Log double-entry LedgerEntry (CASH_OUT)
+        try {
+          await LedgerEntry.create({
+            profileId,
+            entryType: 'CASH_OUT',
+            amount: netAmount,
+            paymentMode:
+              vault.accountType === 'COMMERCIAL_BANK'
+                ? 'BANK_TRANSFER'
+                : vault.accountType === 'MOBILE_WALLET'
+                ? 'JAZZCASH'
+                : 'CASH',
+            category: 'Kameti Payout',
+            description: `Kameti Payout: ${kameti.title} (Cycle #${cNum}) - ${recipientName}`,
+            inputMode: 'MANUAL',
+            isSettled: true,
+            settledAt: new Date(),
+            wasOverridden: false,
+            isAnomaly: false,
+          });
+        } catch (lErr: any) {
+          console.warn('[LedgerEntry] Kameti payout sync warning:', lErr.message);
+        }
+      }
+    }
+
+    // Generate unique Voucher Number & Receipt Chits
+    const voucherNumber = kametiDrawService.generateVoucherNumber(cNum);
+    const { thermalChit, whatsappSlip } = kametiDrawService.formatPayoutChit({
+      kametiTitle: kameti.title,
+      organizerName: kameti.organizerName,
+      organizerPhone: kameti.organizerPhone,
+      voucherNumber,
+      cycleNumber: cNum,
+      totalMonths: kameti.totalMonths,
+      recipientName,
+      recipientPhone,
+      grossPoolAmount: grossPool,
+      bidDiscountAmount: discount,
+      netAmount,
+      paymentMode,
+      vaultAccountTitle: vaultTitle,
+      disbursementDate: new Date(),
+      notes,
+    });
+
+    // Update draw schedule item
+    if (scheduleItem) {
+      scheduleItem.payoutStatus = 'DISBURSED';
+      scheduleItem.payoutDate = new Date();
+      scheduleItem.voucherNumber = voucherNumber;
+      scheduleItem.disbursedByVaultId = debitedFromVaultAccountId
+        ? new Types.ObjectId(debitedFromVaultAccountId)
+        : undefined;
+      scheduleItem.paymentMode = paymentMode;
+      scheduleItem.notes = notes?.trim();
+    }
+
+    // Mark recipient member as paid
+    if (recipientMember) {
+      recipientMember.payoutReceived = true;
+    }
+
+    // Record in kameti.payoutVouchers
+    if (!kameti.payoutVouchers) {
+      kameti.payoutVouchers = [];
+    }
+    kameti.payoutVouchers.push({
+      voucherNumber,
+      cycleNumber: cNum,
+      recipientName,
+      recipientPhone,
+      grossPoolAmount: grossPool,
+      bidDiscountAmount: discount,
+      netAmount,
+      paymentMode,
+      disbursementDate: new Date(),
+      shareSlipText: whatsappSlip,
+    });
+
+    await kameti.save();
+
+    // Broadcast payout disbursement in real time
+    try {
+      const io = socketService.getIO();
+      if (io) {
+        io.emit('kameti:payout_disbursed', {
+          kametiId: kameti._id.toString(),
+          cycleNumber: cNum,
+          voucherNumber,
+          recipientName,
+          netAmount,
+        });
+      }
+    } catch (sockErr: any) {
+      console.warn('[KametiPayout] Socket emit warning:', sockErr.message);
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `ماہ #${cNum} کی کمیٹی (Rs. ${netAmount.toLocaleString()}) کامیابی سے ادا کر دی گئی ہے۔`,
+      data: {
+        voucherNumber,
+        thermalChit,
+        whatsappSlip,
+        kameti: enrichKameti(kameti),
+      },
+    });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * 16. GET /api/v1/domestic/kameti/:id/payout-voucher/:cycleNumber
+ * Retrieve thermal receipt chit and share text for printing/sharing
+ */
+export const getKametiPayoutVoucher = async (req: Request, res: Response): Promise<Response> => {
+  try {
+    const profileId = getProfileId(req);
+    const { id, cycleNumber } = req.params;
+    const cNum = Number(cycleNumber);
+
+    const kameti = await DomesticKameti.findOne({ _id: id, profileId });
+    if (!kameti) {
+      return res.status(404).json({ success: false, message: 'کمیٹی نہیں ملی۔' });
+    }
+
+    const voucher = (kameti.payoutVouchers as any[])?.find((v) => v.cycleNumber === cNum);
+    const scheduleItem = (kameti.drawSchedule as any[])?.find((s) => s.cycleNumber === cNum);
+
+    const recipientName = voucher?.recipientName || scheduleItem?.memberName || 'معزز ممبر';
+    const recipientPhone = voucher?.recipientPhone || scheduleItem?.memberPhone || '';
+    const voucherNumber = voucher?.voucherNumber || scheduleItem?.voucherNumber || `KMT-C${cNum}`;
+    const grossPool = voucher?.grossPoolAmount || kameti.poolAmount;
+    const discount = voucher?.bidDiscountAmount || scheduleItem?.bidDiscountAmount || 0;
+    const netAmount = voucher?.netAmount || scheduleItem?.netPayoutAmount || grossPool - discount;
+    const paymentMode = voucher?.paymentMode || scheduleItem?.paymentMode || 'CASH';
+
+    const { thermalChit, whatsappSlip } = kametiDrawService.formatPayoutChit({
+      kametiTitle: kameti.title,
+      organizerName: kameti.organizerName,
+      organizerPhone: kameti.organizerPhone,
+      voucherNumber,
+      cycleNumber: cNum,
+      totalMonths: kameti.totalMonths,
+      recipientName,
+      recipientPhone,
+      grossPoolAmount: grossPool,
+      bidDiscountAmount: discount,
+      netAmount,
+      paymentMode,
+      disbursementDate: voucher?.disbursementDate || scheduleItem?.payoutDate,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        voucherNumber,
+        thermalChit,
+        shareText: whatsappSlip,
+        recipientName,
+        recipientPhone,
+        netAmount,
+        cycleNumber: cNum,
+        isDisbursed: scheduleItem?.payoutStatus === 'DISBURSED',
+      },
+    });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * 17. POST /api/v1/domestic/kameti/:id/send-reminders
+ * Generates direct WhatsApp click-to-chat links and push alerts for unpaid members
+ */
+export const sendKametiReminders = async (req: Request, res: Response): Promise<Response> => {
+  try {
+    const profileId = getProfileId(req);
+    const { id } = req.params;
+    const { cycleNumber } = req.body;
+
+    const kameti = await DomesticKameti.findOne({ _id: id, profileId });
+    if (!kameti) {
+      return res.status(404).json({ success: false, message: 'کمیٹی نہیں ملی۔' });
+    }
+
+    const cNum = Number(cycleNumber) || kameti.currentCycle;
+    const unpaidMembers: any[] = [];
+
+    if (Array.isArray(kameti.members)) {
+      for (const m of kameti.members) {
+        const hasPaid = m.paidCycles && m.paidCycles.includes(cNum);
+        if (!hasPaid) {
+          const reminderText = `🤝 *السلام علیکم ${m.memberName}!*
+"${kameti.title}" کی *ماہ #${cNum}* کی قسط کا وقت ہو گیا ہے۔
+
+💰 *واجب الادا رقم*: Rs. ${kameti.monthlyContribution.toLocaleString()}
+🗓️ *سائیکل*: ماہ ${cNum} از ${kameti.totalMonths}
+👤 *منتظم*: ${kameti.organizerName} ${kameti.organizerPhone ? `(${kameti.organizerPhone})` : ''}
+
+برائے مہربانی قسط جلد از جلد جمع کروا دیں تاکہ وقت پر قرعہ اندازی و ادائیگی مکمل کی جا سکے۔ شکریہ!
+---------------------------------
+ڈیجی حساب • خاندانی شفاف کمیٹی کھاتہ`;
+
+          let waPhone = m.memberPhone ? m.memberPhone.replace(/[\s\-\(\)\+]/g, '') : '';
+          if (waPhone.startsWith('03')) waPhone = '92' + waPhone.substring(1);
+
+          unpaidMembers.push({
+            memberId: (m._id || '').toString(),
+            memberName: m.memberName,
+            memberPhone: m.memberPhone,
+            amountDue: kameti.monthlyContribution,
+            cycleNumber: cNum,
+            whatsappUrl: waPhone ? `https://wa.me/${waPhone}?text=${encodeURIComponent(reminderText)}` : undefined,
+            reminderText,
+          });
+
+          // Also dispatch in-app push notification if linked
+          if (m.memberProfileId) {
+            dispatchPushNotification(m.memberProfileId.toString(), {
+              id: `kameti-remind-${kameti._id}-${cNum}-${m._id || 'slot'}`,
+              category: 'FINANCIAL_METRICS_SYNC',
+              priority: 'INFO',
+              titleUrdu: 'کمیٹی قسط یاد دہانی 🔔',
+              titleEnglish: 'Kameti Installment Reminder',
+              messageUrdu: `السلام علیکم ${m.memberName}! "${kameti.title}" کی ماہ #${cNum} کی قسط (Rs. ${kameti.monthlyContribution.toLocaleString()}) واجب الادا ہے۔`,
+              messageEnglish: `Installment for cycle ${cNum} in ${kameti.title} is due.`,
+              timestamp: new Date().toISOString(),
+              actionRoute: 'KametiCommitteeModal',
+              metadata: { kametiId: kameti._id.toString(), cycle: cNum },
+            });
+          }
+        }
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `${unpaidMembers.length} ممبرز کے لیے یاد دہانی کا شیڈول تیار ہے۔`,
+      data: {
+        cycleNumber: cNum,
+        totalUnpaid: unpaidMembers.length,
+        reminders: unpaidMembers,
+      },
+    });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * 18. GET /api/v1/domestic/kameti/:id/matrix
+ * Returns multi-month matrix of all members across all N cycles
+ */
+export const getKametiMatrix = async (req: Request, res: Response): Promise<Response> => {
+  try {
+    const profileId = getProfileId(req);
+    const { id } = req.params;
+
+    const kameti = await DomesticKameti.findOne({ _id: id, profileId });
+    if (!kameti) {
+      return res.status(404).json({ success: false, message: 'کمیٹی نہیں ملی۔' });
+    }
+
+    const currentCycle = kameti.currentCycle;
+    const totalMonths = kameti.totalMonths;
+
+    const matrixRows = (kameti.members || []).map((m: any) => {
+      const cycleStatuses: Array<{
+        cycleNumber: number;
+        status: 'PAID' | 'DUE' | 'OVERDUE' | 'FUTURE';
+      }> = [];
+
+      for (let c = 1; c <= totalMonths; c++) {
+        const isPaid = m.paidCycles && m.paidCycles.includes(c);
+        let status: 'PAID' | 'DUE' | 'OVERDUE' | 'FUTURE';
+        if (isPaid) {
+          status = 'PAID';
+        } else if (c < currentCycle) {
+          status = 'OVERDUE';
+        } else if (c === currentCycle) {
+          status = 'DUE';
+        } else {
+          status = 'FUTURE';
+        }
+        cycleStatuses.push({ cycleNumber: c, status });
+      }
+
+      // Find schedule item for this member
+      const memberIdStr = (m._id || '').toString();
+      const scheduleItem = (kameti.drawSchedule as any[])?.find(
+        (s) => s.memberId.toString() === memberIdStr
+      );
+
+      return {
+        memberId: memberIdStr,
+        memberName: m.memberName,
+        memberPhone: m.memberPhone,
+        payoutMonth: m.payoutMonth,
+        payoutReceived: m.payoutReceived,
+        payoutStatus: scheduleItem?.payoutStatus || (m.payoutReceived ? 'DISBURSED' : 'SCHEDULED'),
+        netPayoutAmount: scheduleItem?.netPayoutAmount || kameti.poolAmount,
+        voucherNumber: scheduleItem?.voucherNumber,
+        cycles: cycleStatuses,
+      };
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        kametiId: kameti._id.toString(),
+        title: kameti.title,
+        totalMonths,
+        currentCycle,
+        monthlyContribution: kameti.monthlyContribution,
+        poolAmount: kameti.poolAmount,
+        matrix: matrixRows,
+      },
     });
   } catch (error: any) {
     return res.status(500).json({ success: false, message: error.message });

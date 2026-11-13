@@ -3,6 +3,76 @@ import { apiClient } from './client';
 export type KametiRole = 'PARTICIPANT' | 'ORGANIZER';
 export type DomesticKametiStatus = 'ACTIVE' | 'COMPLETED' | 'DEFAULTED';
 export type MemberInviteStatus = 'LINKED' | 'INVITE_PENDING' | 'UNREGISTERED';
+export type KametiType = 'STANDARD_ROTATING' | 'LUCKY_DRAW' | 'NEELAAM_BID';
+export type PayoutStatus = 'SCHEDULED' | 'DISBURSED' | 'SKIPPED';
+
+export interface IKametiDrawScheduleItem {
+  _id?: string;
+  cycleNumber: number;
+  memberId: string;
+  memberName: string;
+  memberPhone?: string;
+  isPinned: boolean;
+  expectedPayoutAmount: number;
+  bidDiscountAmount?: number;
+  dividendPerMember?: number;
+  netPayoutAmount: number;
+  payoutStatus: PayoutStatus;
+  payoutDate?: string;
+  voucherNumber?: string;
+  disbursedByVaultId?: string;
+  paymentMode?: string;
+  notes?: string;
+}
+
+export interface IPayoutVoucher {
+  _id?: string;
+  voucherNumber: string;
+  cycleNumber: number;
+  recipientName: string;
+  recipientPhone?: string;
+  grossPoolAmount: number;
+  bidDiscountAmount: number;
+  netAmount: number;
+  paymentMode: string;
+  disbursementDate: string;
+  shareSlipText: string;
+}
+
+export interface IKametiMatrixMember {
+  memberId: string;
+  memberName: string;
+  memberPhone?: string;
+  payoutMonth: number;
+  payoutReceived: boolean;
+  payoutStatus: PayoutStatus;
+  netPayoutAmount: number;
+  voucherNumber?: string;
+  cycles: Array<{
+    cycleNumber: number;
+    status: 'PAID' | 'DUE' | 'OVERDUE' | 'FUTURE';
+  }>;
+}
+
+export interface IKametiMatrixResponse {
+  kametiId: string;
+  title: string;
+  totalMonths: number;
+  currentCycle: number;
+  monthlyContribution: number;
+  poolAmount: number;
+  matrix: IKametiMatrixMember[];
+}
+
+export interface IKametiReminderItem {
+  memberId: string;
+  memberName: string;
+  memberPhone?: string;
+  amountDue: number;
+  cycleNumber: number;
+  whatsappUrl?: string;
+  reminderText: string;
+}
 
 export interface IInstallmentPayment {
   _id?: string;
@@ -61,6 +131,15 @@ export interface IDomesticKameti {
 
   installments: IInstallmentPayment[];
   members: IOrganizerMember[];
+
+  // Kameti Draw & Bidding Auction Extensions
+  kametiType?: KametiType;
+  isDrawCompleted?: boolean;
+  drawDate?: string;
+  drawSeedHash?: string;
+  drawSchedule?: IKametiDrawScheduleItem[];
+  payoutVouchers?: IPayoutVoucher[];
+
   notes?: string;
 
   // Enriched metrics
@@ -237,6 +316,76 @@ export const domesticKametiApi = {
 
   deleteMember: async (kametiId: string, memberId: string): Promise<IDomesticKameti> => {
     const res = await apiClient.delete(`/domestic/kameti/${kametiId}/members/${memberId}`);
+    return res.data.data;
+  },
+
+  runDraw: async (
+    kametiId: string,
+    payload: {
+      kametiType?: KametiType;
+      pinnedSlots?: Array<{ memberId?: string; memberName?: string; month: number }>;
+      bidWinnerMemberId?: string;
+      bidDiscountAmount?: number;
+    }
+  ): Promise<{
+    kameti: IDomesticKameti;
+    schedule: IKametiDrawScheduleItem[];
+    drawSeedHash: string;
+    dividendPerMember: number;
+  }> => {
+    const res = await apiClient.post(`/domestic/kameti/${kametiId}/run-draw`, payload);
+    return res.data.data;
+  },
+
+  disbursePayout: async (
+    kametiId: string,
+    payload: {
+      cycleNumber?: number;
+      debitedFromVaultAccountId?: string;
+      paymentMode?: string;
+      notes?: string;
+    }
+  ): Promise<{
+    voucherNumber: string;
+    thermalChit: string;
+    whatsappSlip: string;
+    kameti: IDomesticKameti;
+  }> => {
+    const res = await apiClient.post(`/domestic/kameti/${kametiId}/disburse-payout`, payload);
+    return res.data.data;
+  },
+
+  getPayoutVoucher: async (
+    kametiId: string,
+    cycleNumber: number
+  ): Promise<{
+    voucherNumber: string;
+    thermalChit: string;
+    shareText: string;
+    recipientName: string;
+    recipientPhone?: string;
+    netAmount: number;
+    cycleNumber: number;
+    isDisbursed: boolean;
+  }> => {
+    const res = await apiClient.get(`/domestic/kameti/${kametiId}/payout-voucher/${cycleNumber}`);
+    return res.data.data;
+  },
+
+  sendReminders: async (
+    kametiId: string,
+    cycleNumber?: number
+  ): Promise<{
+    cycleNumber: number;
+    totalUnpaid: number;
+    reminders: IKametiReminderItem[];
+  }> => {
+    const res = await apiClient.post(`/domestic/kameti/${kametiId}/send-reminders`, { cycleNumber });
+    return res.data.data;
+  },
+
+  getMatrix: async (kametiId: string): Promise<IKametiMatrixResponse> => {
+    const res = await apiClient.get(`/domestic/kameti/${kametiId}/matrix`);
     return res.data.data;
   },
 };

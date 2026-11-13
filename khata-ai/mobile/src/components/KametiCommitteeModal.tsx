@@ -13,6 +13,7 @@ import {
   useWindowDimensions,
   Linking,
   FlatList,
+  Vibration,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -26,7 +27,12 @@ import {
   KametiRole,
   IOrganizerMember,
   IMemberLookupResult,
+  IKametiDrawScheduleItem,
+  IKametiMatrixResponse,
+  IKametiReminderItem,
+  KametiType,
 } from '../api/domesticKameti.api';
+import { thermalPrinterService } from '../services/thermalPrinter.service';
 
 interface KametiCommitteeModalProps {
   visible: boolean;
@@ -82,6 +88,44 @@ export const KametiCommitteeModal: React.FC<KametiCommitteeModalProps> = ({
   const [swapModalKameti, setSwapModalKameti] = useState<IDomesticKameti | null>(null);
   const [swapMember1Id, setSwapMember1Id] = useState<string>('');
   const [swapMember2Id, setSwapMember2Id] = useState<string>('');
+
+  // 1. Lucky Draw & Auction Engine State
+  const [drawModalKameti, setDrawModalKameti] = useState<IDomesticKameti | null>(null);
+  const [drawMode, setDrawMode] = useState<KametiType>('LUCKY_DRAW');
+  const [drawPinnedSlots, setDrawPinnedSlots] = useState<Record<string, number>>({});
+  const [drawBidWinnerId, setDrawBidWinnerId] = useState<string>('');
+  const [drawBidDiscount, setDrawBidDiscount] = useState<string>('0');
+  const [isRollingDraw, setIsRollingDraw] = useState<boolean>(false);
+  const [rollingCandidateName, setRollingCandidateName] = useState<string>('');
+  const [drawResultData, setDrawResultData] = useState<{
+    schedule: IKametiDrawScheduleItem[];
+    seedHash: string;
+    dividendPerMember: number;
+  } | null>(null);
+
+  // 2. Interactive Installment Matrix State
+  const [matrixModalKameti, setMatrixModalKameti] = useState<IDomesticKameti | null>(null);
+  const [matrixData, setMatrixData] = useState<IKametiMatrixResponse | null>(null);
+  const [loadingMatrix, setLoadingMatrix] = useState<boolean>(false);
+
+  // 3. Handover Payout (کمیٹی ادا کریں) State
+  const [handoverModalKameti, setHandoverModalKameti] = useState<IDomesticKameti | null>(null);
+  const [handoverCycle, setHandoverCycle] = useState<number>(1);
+  const [handoverVaultId, setHandoverVaultId] = useState<string>('');
+  const [handoverPaymentMode, setHandoverPaymentMode] = useState<string>('CASH');
+  const [handoverNotes, setHandoverNotes] = useState<string>('');
+  const [handoverSuccessData, setHandoverSuccessData] = useState<{
+    voucherNumber: string;
+    thermalChit: string;
+    whatsappSlip: string;
+    recipientName: string;
+    netAmount: number;
+  } | null>(null);
+
+  // 4. Batch Reminders State
+  const [remindersModalKameti, setRemindersModalKameti] = useState<IDomesticKameti | null>(null);
+  const [remindersList, setRemindersList] = useState<IKametiReminderItem[]>([]);
+  const [loadingReminders, setLoadingReminders] = useState<boolean>(false);
 
   // Add Kameti Form State
   const [newTitle, setNewTitle] = useState<string>('');
@@ -524,6 +568,192 @@ export const KametiCommitteeModal: React.FC<KametiCommitteeModalProps> = ({
       Alert.alert('خرابی', err?.response?.data?.message || 'تبادلہ نہ ہو سکا۔');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  // 1. Lucky Draw Handlers
+  const handleOpenLuckyDraw = (k: IDomesticKameti) => {
+    setDrawModalKameti(k);
+    setDrawResultData(null);
+    setDrawMode(k.kametiType || 'LUCKY_DRAW');
+    // Pin organizer by default to Month 1 if organizer slot exists
+    const pinned: Record<string, number> = {};
+    if (k.members && k.members.length > 0) {
+      const orgMember = k.members.find((m) => m.memberName.includes('خود') || m.payoutMonth === 1);
+      if (orgMember && orgMember._id) {
+        pinned[orgMember._id] = 1;
+      }
+    }
+    setDrawPinnedSlots(pinned);
+  };
+
+  const handleExecuteLuckyDraw = async () => {
+    if (!drawModalKameti) return;
+    try {
+      setIsRollingDraw(true);
+      Vibration.vibrate([0, 60, 40, 60]);
+
+      // Rolling shuffle animation effect
+      const names = (drawModalKameti.members || []).map((m) => m.memberName);
+      let rollTicks = 0;
+      const interval = setInterval(() => {
+        rollTicks++;
+        const randName = names[Math.floor(Math.random() * names.length)] || 'ممبر';
+        setRollingCandidateName(randName);
+        if (rollTicks > 12) {
+          clearInterval(interval);
+        }
+      }, 90);
+
+      // Prepare pinned slots payload
+      const pinnedPayload = Object.entries(drawPinnedSlots).map(([mId, month]) => ({
+        memberId: mId,
+        month,
+      }));
+
+      const res = await domesticKametiApi.runDraw(drawModalKameti._id, {
+        kametiType: drawMode,
+        pinnedSlots: pinnedPayload,
+        bidWinnerMemberId: drawMode === 'NEELAAM_BID' ? drawBidWinnerId : undefined,
+        bidDiscountAmount: drawMode === 'NEELAAM_BID' ? parseFloat(drawBidDiscount) || 0 : undefined,
+      });
+
+      clearInterval(interval);
+      setDrawResultData({
+        schedule: res.schedule,
+        seedHash: res.drawSeedHash,
+        dividendPerMember: res.dividendPerMember || 0,
+      });
+      fetchData();
+      Vibration.vibrate(100);
+      if (onShowToast) onShowToast('🎉 قرعہ اندازی مکمل! تمام مہینے الاٹ ہو گئے ہیں۔');
+    } catch (err: any) {
+      Alert.alert('خرابی', err?.response?.data?.message || err?.message || 'قرعہ اندازی مکمل نہ ہو سکی۔');
+    } finally {
+      setIsRollingDraw(false);
+    }
+  };
+
+  // 2. Installment Matrix Handlers
+  const handleOpenMatrix = async (k: IDomesticKameti) => {
+    setMatrixModalKameti(k);
+    setLoadingMatrix(true);
+    try {
+      const data = await domesticKametiApi.getMatrix(k._id);
+      setMatrixData(data);
+    } catch (err: any) {
+      console.warn('Matrix fetch error:', err);
+      Alert.alert('خرابی', 'میٹرکس لوڈ نہ ہو سکا۔');
+    } finally {
+      setLoadingMatrix(false);
+    }
+  };
+
+  const handleMatrixTogglePayment = async (memberId: string, cycleNumber: number) => {
+    if (!matrixModalKameti) return;
+    try {
+      await domesticKametiApi.toggleMemberPayment(matrixModalKameti._id, memberId, cycleNumber);
+      // Reload matrix & main data
+      const data = await domesticKametiApi.getMatrix(matrixModalKameti._id);
+      setMatrixData(data);
+      fetchData();
+    } catch (err: any) {
+      Alert.alert('خرابی', err?.response?.data?.message || 'قسط اپڈیٹ نہ ہو سکی۔');
+    }
+  };
+
+  // 3. Handover Payout Handlers
+  const handleOpenHandover = (k: IDomesticKameti, cycle?: number) => {
+    setHandoverModalKameti(k);
+    setHandoverCycle(cycle || k.currentCycle);
+    setHandoverVaultId(availableVaults && availableVaults.length > 0 ? availableVaults[0].id : '');
+    setHandoverPaymentMode('CASH');
+    setHandoverNotes('');
+    setHandoverSuccessData(null);
+  };
+
+  const handleSubmitHandover = async () => {
+    if (!handoverModalKameti) return;
+    try {
+      setSubmitting(true);
+      const res = await domesticKametiApi.disbursePayout(handoverModalKameti._id, {
+        cycleNumber: handoverCycle,
+        debitedFromVaultAccountId: handoverVaultId || undefined,
+        paymentMode: handoverPaymentMode,
+        notes: handoverNotes,
+      });
+
+      // Find recipient name
+      const sched = handoverModalKameti.drawSchedule?.find((s) => s.cycleNumber === handoverCycle);
+      const mem = handoverModalKameti.members?.find((m) => m.payoutMonth === handoverCycle);
+      const recName = sched?.memberName || mem?.memberName || 'معزز ممبر';
+
+      setHandoverSuccessData({
+        voucherNumber: res.voucherNumber,
+        thermalChit: res.thermalChit,
+        whatsappSlip: res.whatsappSlip,
+        recipientName: recName,
+        netAmount: sched?.netPayoutAmount || handoverModalKameti.poolAmount,
+      });
+      fetchData();
+      if (onShowToast) onShowToast(`✅ ماہ #${handoverCycle} کی کمیٹی کامیابی سے ادا ہو گئی!`);
+    } catch (err: any) {
+      Alert.alert('خرابی', err?.response?.data?.message || err?.message || 'کمیٹی ادا نہ ہو سکی۔');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handlePrint58mmThermalChit = async () => {
+    if (!handoverSuccessData || !handoverModalKameti) return;
+    try {
+      await thermalPrinterService.printReceipt(
+        {
+          storeName: 'DIGI HISAB - KHATA AI',
+          storeTagline: 'کمیٹی ادائیگی باضابطہ تصدیق رسید',
+          receiptNo: handoverSuccessData.voucherNumber,
+          customerName: handoverSuccessData.recipientName,
+          paymentMode: handoverPaymentMode,
+          grandTotal: handoverSuccessData.netAmount,
+          amountPaid: handoverSuccessData.netAmount,
+          items: [
+            {
+              name: `${handoverModalKameti.title} (ماہ #${handoverCycle})`,
+              quantity: 1,
+              unitPrice: handoverSuccessData.netAmount,
+              total: handoverSuccessData.netAmount,
+            },
+          ],
+          footerNoteUrdu: 'یہ کمیٹی رقم باہمی رضامندی و قرعہ اندازی کے مطابق ادا کی گئی ہے۔',
+          footerNoteEnglish: 'DigiHisab Domestic Ledger - Committee Payout Slip',
+        },
+        { paperWidth: '58mm' }
+      );
+      if (onShowToast) onShowToast('🖨️ کچا پرچہ 58mm پرنٹر پر بھیج دیا گیا ہے!');
+    } catch (pErr: any) {
+      Alert.alert('پرنٹنگ خرابی', pErr.message || 'تھرمل پرنٹنگ میں مسئلہ پیش آیا۔');
+    }
+  };
+
+  const handleShareWhatsAppChit = () => {
+    if (!handoverSuccessData) return;
+    const url = `whatsapp://send?text=${encodeURIComponent(handoverSuccessData.whatsappSlip)}`;
+    Linking.openURL(url).catch(() => {
+      Share.share({ message: handoverSuccessData.whatsappSlip });
+    });
+  };
+
+  // 4. Batch Reminders Handlers
+  const handleOpenReminders = async (k: IDomesticKameti) => {
+    setRemindersModalKameti(k);
+    setLoadingReminders(true);
+    try {
+      const res = await domesticKametiApi.sendReminders(k._id, k.currentCycle);
+      setRemindersList(res.reminders || []);
+    } catch (err: any) {
+      Alert.alert('خرابی', 'یاد دہانی لوڈ نہ ہو سکی۔');
+    } finally {
+      setLoadingReminders(false);
     }
   };
 
@@ -1291,6 +1521,52 @@ export const KametiCommitteeModal: React.FC<KametiCommitteeModalProps> = ({
                               </TouchableOpacity>
                             </View>
                           </View>
+
+                          {/* Quick Actions Strip: Lucky Draw, Matrix, Payout & Reminders */}
+                          <View style={styles.organizerActionsStrip}>
+                            <TouchableOpacity
+                              style={styles.actionPillBtnGold}
+                              onPress={() => handleOpenLuckyDraw(k)}
+                            >
+                              <Ionicons name="dice" size={13} color="#070d18" />
+                              <Text style={styles.actionPillBtnTextDark}>
+                                {k.isDrawCompleted ? '🎲 دوبارہ قرعہ' : '🎲 قرعہ اندازی'}
+                              </Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                              style={styles.actionPillBtnBlue}
+                              onPress={() => handleOpenMatrix(k)}
+                            >
+                              <Ionicons name="grid" size={13} color="#38BDF8" />
+                              <Text style={styles.actionPillBtnTextBlue}>📊 اقساط میٹرکس</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                              style={styles.actionPillBtnGreen}
+                              onPress={() => handleOpenHandover(k)}
+                            >
+                              <Ionicons name="gift" size={13} color="#00d49f" />
+                              <Text style={styles.actionPillBtnTextGreen}>💸 کمیٹی ادا کریں</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                              style={styles.actionPillBtnAmber}
+                              onPress={() => handleOpenReminders(k)}
+                            >
+                              <Ionicons name="notifications" size={13} color="#f59e0b" />
+                              <Text style={styles.actionPillBtnTextAmber}>🔔 یاد دہانی</Text>
+                            </TouchableOpacity>
+                          </View>
+
+                          {k.isDrawCompleted && k.drawSeedHash ? (
+                            <View style={styles.drawVerifiedBanner}>
+                              <Ionicons name="shield-checkmark" size={12} color="#00d49f" />
+                              <Text style={styles.drawVerifiedBannerText}>
+                                قرعہ اندازی تصدیق شدہ • Hash: {k.drawSeedHash.slice(0, 10)}
+                              </Text>
+                            </View>
+                          ) : null}
 
                           {/* Expanded Members List with Designated Payout Month */}
                           {isMembersExpanded && (
@@ -2497,6 +2773,566 @@ export const KametiCommitteeModal: React.FC<KametiCommitteeModalProps> = ({
                   )}
                 </TouchableOpacity>
               </View>
+            </View>
+          </View>
+        </Modal>
+
+        {/* ============================================================= */}
+        {/* SUB-MODAL 7: Lucky Draw & Neelaam Auction Engine              */}
+        {/* ============================================================= */}
+        <Modal
+          visible={!!drawModalKameti}
+          animationType="slide"
+          transparent
+          onRequestClose={() => setDrawModalKameti(null)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={[styles.modalSheet, isDesktop && styles.modalSheetDesktop, { maxHeight: '90%' }]}>
+              <View style={styles.modalSheetHeader}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.modalSheetTitle}>🎲 قرعہ اندازی و نیلامی انجن</Text>
+                  <Text style={styles.modalSheetSub}>{drawModalKameti?.title} • منصفانہ باری الاٹمنٹ</Text>
+                </View>
+                <TouchableOpacity onPress={() => setDrawModalKameti(null)} style={styles.closeBtn}>
+                  <Ionicons name="close" size={20} color="#94A3B8" />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
+                {/* Draw Mode Selector */}
+                <Text style={styles.fieldLabel}>طریقۂ کار کا انتخاب کریں:</Text>
+                <View style={styles.drawModeToggleRow}>
+                  <TouchableOpacity
+                    style={[styles.drawModeBtn, drawMode === 'LUCKY_DRAW' && styles.drawModeBtnActive]}
+                    onPress={() => setDrawMode('LUCKY_DRAW')}
+                  >
+                    <Ionicons
+                      name="dice"
+                      size={15}
+                      color={drawMode === 'LUCKY_DRAW' ? '#070d18' : '#F59E0B'}
+                    />
+                    <Text
+                      style={[
+                        styles.drawModeBtnText,
+                        drawMode === 'LUCKY_DRAW' && styles.drawModeBtnTextActive,
+                      ]}
+                    >
+                      🎲 منصفانہ قرعہ (Fair Draw)
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.drawModeBtn, drawMode === 'NEELAAM_BID' && styles.drawModeBtnActive]}
+                    onPress={() => setDrawMode('NEELAAM_BID')}
+                  >
+                    <Ionicons
+                      name="pricetag"
+                      size={15}
+                      color={drawMode === 'NEELAAM_BID' ? '#070d18' : '#38BDF8'}
+                    />
+                    <Text
+                      style={[
+                        styles.drawModeBtnText,
+                        drawMode === 'NEELAAM_BID' && styles.drawModeBtnTextActive,
+                      ]}
+                    >
+                      🏷️ نیلامی کمیٹی (Discount Bid)
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* If Neelaam Mode: Bid discount inputs */}
+                {drawMode === 'NEELAAM_BID' && (
+                  <View style={styles.neelaamBidBox}>
+                    <Text style={styles.neelaamBoxTitle}>🏷️ نیلامی ڈسکاؤنٹ بولی کی تفصیلات</Text>
+                    <Text style={styles.fieldLabel}>بولی جیتنے والا ممبر:</Text>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 8 }}>
+                      {drawModalKameti?.members.map((m) => (
+                        <TouchableOpacity
+                          key={m._id ? m._id.toString() : m.memberName}
+                          style={[
+                            styles.swapMemberChip,
+                            drawBidWinnerId === (m._id ? m._id.toString() : '') && styles.swapMemberChipActive,
+                          ]}
+                          onPress={() => setDrawBidWinnerId(m._id ? m._id.toString() : '')}
+                        >
+                          <Text
+                            style={[
+                              styles.swapMemberChipText,
+                              drawBidWinnerId === (m._id ? m._id.toString() : '') &&
+                                styles.swapMemberChipTextActive,
+                            ]}
+                          >
+                            {m.memberName}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+
+                    <Text style={styles.fieldLabel}>ڈسکاؤنٹ بولی رقم (PKR):</Text>
+                    <TextInput
+                      style={styles.sheetInput}
+                      value={drawBidDiscount}
+                      onChangeText={setDrawBidDiscount}
+                      placeholder="مثلاً 5000"
+                      placeholderTextColor="#64748B"
+                      keyboardType="numeric"
+                    />
+
+                    {Number(drawBidDiscount) > 0 && drawModalKameti && (
+                      <View style={styles.dividendInfoPill}>
+                        <Text style={styles.dividendInfoText}>
+                          خالص وصولی: Rs. {(drawModalKameti.poolAmount - Number(drawBidDiscount)).toLocaleString()} • بقیہ ممبرز کو منافع: Rs. {Math.floor(Number(drawBidDiscount) / (drawModalKameti.totalMonths - 1)).toLocaleString()} / ممبر
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                )}
+
+                {/* Candidate Member Slots & Pinning */}
+                <Text style={styles.fieldLabel}>ممبران اور فکس باری کی سیٹنگ (اختیاری):</Text>
+                <View style={styles.drawCandidatesList}>
+                  {drawModalKameti?.members.map((m) => {
+                    const mId = m._id ? m._id.toString() : m.memberName;
+                    const isPinned = drawPinnedSlots[mId] !== undefined;
+
+                    return (
+                      <View key={mId} style={styles.drawCandidateCard}>
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.drawCandidateName}>{m.memberName}</Text>
+                          <Text style={styles.drawCandidateSub}>
+                            {isPinned
+                              ? `📌 فکس شدہ: ماہ #${drawPinnedSlots[mId]}`
+                              : `فی الحال: ماہ #${m.payoutMonth} (قرعہ میں شامل)`}
+                          </Text>
+                        </View>
+
+                        <TouchableOpacity
+                          style={[styles.pinToggleBtn, isPinned && styles.pinToggleBtnActive]}
+                          onPress={() => {
+                            const newPinned = { ...drawPinnedSlots };
+                            if (isPinned) {
+                              delete newPinned[mId];
+                            } else {
+                              newPinned[mId] = m.payoutMonth || 1;
+                            }
+                            setDrawPinnedSlots(newPinned);
+                          }}
+                        >
+                          <Ionicons
+                            name={isPinned ? 'pin' : 'pin-outline'}
+                            size={13}
+                            color={isPinned ? '#070d18' : '#F59E0B'}
+                          />
+                          <Text style={[styles.pinToggleText, isPinned && styles.pinToggleTextActive]}>
+                            {isPinned ? 'فکس باری' : 'آزاد قرعہ'}
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    );
+                  })}
+                </View>
+
+                {/* Animated Rolling Card during draw */}
+                {isRollingDraw && (
+                  <View style={styles.rollingCardBox}>
+                    <Text style={styles.rollingCardLabel}>🎲 قرعہ اندازی جاری ہے...</Text>
+                    <Text style={styles.rollingCardName}>{rollingCandidateName}</Text>
+                    <ActivityIndicator size="small" color="#F59E0B" style={{ marginTop: 8 }} />
+                  </View>
+                )}
+
+                {/* Draw Results View */}
+                {drawResultData && (
+                  <View style={styles.drawResultBox}>
+                    <View style={styles.drawResultHeader}>
+                      <Ionicons name="trophy" size={20} color="#F59E0B" />
+                      <Text style={styles.drawResultTitle}>🎉 باضابطہ نتائج محفوظ ہو گئے ہیں!</Text>
+                    </View>
+                    <Text style={styles.drawSeedHashText}>
+                      تصدیقی ہیش (Audit Hash): {drawResultData.seedHash}
+                    </Text>
+
+                    <View style={styles.drawScheduleGrid}>
+                      {drawResultData.schedule.map((item) => (
+                        <View key={item.cycleNumber} style={styles.drawScheduleRow}>
+                          <View style={styles.drawMonthBadge}>
+                            <Text style={styles.drawMonthBadgeText}>ماہ {item.cycleNumber}</Text>
+                          </View>
+                          <Text style={styles.drawScheduleMemberName}>{item.memberName}</Text>
+                          <Text style={styles.drawScheduleAmount}>
+                            Rs. {item.netPayoutAmount.toLocaleString()}
+                          </Text>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                )}
+
+                {/* Execute Draw Button */}
+                <TouchableOpacity
+                  style={[styles.confirmSheetBtn, { backgroundColor: '#F59E0B', marginTop: 16 }]}
+                  onPress={handleExecuteLuckyDraw}
+                  disabled={isRollingDraw}
+                >
+                  <Ionicons name="dice" size={18} color="#070d18" />
+                  <Text style={styles.confirmSheetBtnText}>
+                    {isRollingDraw ? 'قرعہ ڈالا جا رہا ہے...' : '🎲 قرعہ اندازی مکمل کریں'}
+                  </Text>
+                </TouchableOpacity>
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
+
+        {/* ============================================================= */}
+        {/* SUB-MODAL 8: Interactive Installment Matrix                   */}
+        {/* ============================================================= */}
+        <Modal
+          visible={!!matrixModalKameti}
+          animationType="slide"
+          transparent
+          onRequestClose={() => setMatrixModalKameti(null)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={[styles.modalSheet, isDesktop && styles.modalSheetDesktop, { maxHeight: '90%' }]}>
+              <View style={styles.modalSheetHeader}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.modalSheetTitle}>📊 اقساط میٹرکس (Installment Matrix)</Text>
+                  <Text style={styles.modalSheetSub}>
+                    {matrixModalKameti?.title} • سائیکل #{matrixModalKameti?.currentCycle} از {matrixModalKameti?.totalMonths}
+                  </Text>
+                </View>
+                <TouchableOpacity onPress={() => setMatrixModalKameti(null)} style={styles.closeBtn}>
+                  <Ionicons name="close" size={20} color="#94A3B8" />
+                </TouchableOpacity>
+              </View>
+
+              {loadingMatrix ? (
+                <View style={{ padding: 40, alignItems: 'center' }}>
+                  <ActivityIndicator size="large" color="#38BDF8" />
+                  <Text style={{ color: '#94A3B8', marginTop: 12 }}>میٹرکس لوڈ ہو رہا ہے...</Text>
+                </View>
+              ) : (
+                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
+                  {/* Legend Strip */}
+                  <View style={styles.matrixLegendRow}>
+                    <View style={styles.matrixLegendItem}>
+                      <View style={[styles.matrixStatusDot, { backgroundColor: '#00d49f' }]} />
+                      <Text style={styles.matrixLegendText}>وصول شدہ (Paid)</Text>
+                    </View>
+                    <View style={styles.matrixLegendItem}>
+                      <View style={[styles.matrixStatusDot, { backgroundColor: '#F59E0B' }]} />
+                      <Text style={styles.matrixLegendText}>واجب الادا (Due)</Text>
+                    </View>
+                    <View style={styles.matrixLegendItem}>
+                      <View style={[styles.matrixStatusDot, { backgroundColor: '#FB7185' }]} />
+                      <Text style={styles.matrixLegendText}>تاخیر شدہ (Overdue)</Text>
+                    </View>
+                  </View>
+
+                  {/* Horizontal Scrollable Matrix Table */}
+                  <ScrollView horizontal showsHorizontalScrollIndicator={true} style={{ marginVertical: 12 }}>
+                    <View>
+                      {/* Table Header Row */}
+                      <View style={styles.matrixHeaderRow}>
+                        <Text style={[styles.matrixHeaderCell, { width: 120, textAlign: 'right' }]}>ممبر کا نام</Text>
+                        {Array.from({ length: matrixModalKameti?.totalMonths || 0 }, (_, i) => (
+                          <Text key={i + 1} style={[styles.matrixHeaderCell, { width: 44, textAlign: 'center' }]}>
+                            ماہ {i + 1}
+                          </Text>
+                        ))}
+                        <Text style={[styles.matrixHeaderCell, { width: 90, textAlign: 'center' }]}>باری / وصولی</Text>
+                      </View>
+
+                      {/* Member Rows */}
+                      {matrixData?.matrix.map((row) => (
+                        <View key={row.memberId} style={styles.matrixDataRow}>
+                          <View style={{ width: 120, paddingRight: 6 }}>
+                            <Text style={styles.matrixMemberName} numberOfLines={1}>{row.memberName}</Text>
+                            <Text style={styles.matrixMemberPhone} numberOfLines={1}>{row.memberPhone || '—'}</Text>
+                          </View>
+
+                          {row.cycles.map((c) => {
+                            const isPaid = c.status === 'PAID';
+                            const isDue = c.status === 'DUE';
+                            const isOverdue = c.status === 'OVERDUE';
+
+                            return (
+                              <TouchableOpacity
+                                key={c.cycleNumber}
+                                style={[
+                                  styles.matrixCycleCell,
+                                  isPaid && styles.matrixCycleCellPaid,
+                                  isDue && styles.matrixCycleCellDue,
+                                  isOverdue && styles.matrixCycleCellOverdue,
+                                ]}
+                                onPress={() => handleMatrixTogglePayment(row.memberId, c.cycleNumber)}
+                              >
+                                {isPaid ? (
+                                  <Ionicons name="checkmark" size={13} color="#070d18" />
+                                ) : isDue ? (
+                                  <Ionicons name="time" size={12} color="#F59E0B" />
+                                ) : isOverdue ? (
+                                  <Ionicons name="alert" size={12} color="#FB7185" />
+                                ) : (
+                                  <Text style={styles.matrixCycleCellFuture}>—</Text>
+                                )}
+                              </TouchableOpacity>
+                            );
+                          })}
+
+                          <View style={[styles.matrixPayoutCell, { width: 90 }]}>
+                            <Text style={styles.matrixPayoutCellText}>ماہ {row.payoutMonth}</Text>
+                            {row.payoutReceived ? (
+                              <Text style={styles.matrixPayoutStatusPaid}>وصول شد ✅</Text>
+                            ) : (
+                              <Text style={styles.matrixPayoutStatusPending}>باقی ⏳</Text>
+                            )}
+                          </View>
+                        </View>
+                      ))}
+                    </View>
+                  </ScrollView>
+
+                  {/* Matrix Bottom Action */}
+                  <TouchableOpacity
+                    style={[styles.confirmSheetBtn, { backgroundColor: '#38BDF8', marginTop: 12 }]}
+                    onPress={() => matrixModalKameti && handleOpenReminders(matrixModalKameti)}
+                  >
+                    <Ionicons name="notifications" size={16} color="#070d18" />
+                    <Text style={styles.confirmSheetBtnText}>
+                      واجب الادا اقساط کی واٹس ایپ یاد دہانی بھیجیں
+                    </Text>
+                  </TouchableOpacity>
+                </ScrollView>
+              )}
+            </View>
+          </View>
+        </Modal>
+
+        {/* ============================================================= */}
+        {/* SUB-MODAL 9: Handover Payout & Thermal Receipt Chit           */}
+        {/* ============================================================= */}
+        <Modal
+          visible={!!handoverModalKameti}
+          animationType="slide"
+          transparent
+          onRequestClose={() => setHandoverModalKameti(null)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={[styles.modalSheet, isDesktop && styles.modalSheetDesktop]}>
+              <View style={styles.modalSheetHeader}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.modalSheetTitle}>💸 کمیٹی ادا کریں (Handover Payout)</Text>
+                  <Text style={styles.modalSheetSub}>{handoverModalKameti?.title}</Text>
+                </View>
+                <TouchableOpacity onPress={() => setHandoverModalKameti(null)} style={styles.closeBtn}>
+                  <Ionicons name="close" size={20} color="#94A3B8" />
+                </TouchableOpacity>
+              </View>
+
+              {!handoverSuccessData ? (
+                <ScrollView showsVerticalScrollIndicator={false}>
+                  {/* Recipient Details Pill */}
+                  {(() => {
+                    const sched = handoverModalKameti?.drawSchedule?.find(
+                      (s) => s.cycleNumber === handoverCycle
+                    );
+                    const mem = handoverModalKameti?.members?.find(
+                      (m) => m.payoutMonth === handoverCycle
+                    );
+                    const recName = sched?.memberName || mem?.memberName || 'معزز ممبر';
+                    const recPhone = sched?.memberPhone || mem?.memberPhone || '';
+                    const netAmt = sched?.netPayoutAmount || handoverModalKameti?.poolAmount || 0;
+
+                    return (
+                      <View style={styles.handoverRecipientCard}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                          <Ionicons name="trophy" size={20} color="#F59E0B" />
+                          <View>
+                            <Text style={styles.handoverRecipientTitle}>
+                              ماہ #{handoverCycle} کے نامزد وصول کنندہ:
+                            </Text>
+                            <Text style={styles.handoverRecipientName}>
+                              {recName} {recPhone ? `(${recPhone})` : ''}
+                            </Text>
+                          </View>
+                        </View>
+                        <Text style={styles.handoverAmountHighlight}>
+                          Rs. {netAmt.toLocaleString()}
+                        </Text>
+                      </View>
+                    );
+                  })()}
+
+                  <Text style={styles.fieldLabel}>ادائیگی کا ذریعہ (Vault Account):</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
+                    {availableVaults.map((v) => (
+                      <TouchableOpacity
+                        key={v.id}
+                        style={[styles.vaultChip, handoverVaultId === v.id && styles.vaultChipActive]}
+                        onPress={() => setHandoverVaultId(v.id)}
+                      >
+                        <Text style={[styles.vaultChipTitle, handoverVaultId === v.id && styles.vaultChipTitleActive]}>
+                          {v.accountTitle}
+                        </Text>
+                        <Text style={styles.vaultChipBalance}>Rs. {v.currentBalance.toLocaleString()}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+
+                  <Text style={styles.fieldLabel}>طریقۂ ادائیگی (Payment Mode):</Text>
+                  <View style={styles.payModeRow}>
+                    {['CASH', 'BANK_TRANSFER', 'JAZZCASH', 'EASYPAISA'].map((m) => (
+                      <TouchableOpacity
+                        key={m}
+                        style={[styles.payModeBtn, handoverPaymentMode === m && styles.payModeBtnActive]}
+                        onPress={() => setHandoverPaymentMode(m)}
+                      >
+                        <Text
+                          style={[
+                            styles.payModeBtnText,
+                            handoverPaymentMode === m && styles.payModeBtnTextActive,
+                          ]}
+                        >
+                          {m === 'CASH' ? '💵 کیش' : m === 'BANK_TRANSFER' ? '🏦 بینک' : m}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+
+                  <Text style={styles.fieldLabel}>اضافی نوٹس (اختیاری):</Text>
+                  <TextInput
+                    style={styles.sheetInput}
+                    value={handoverNotes}
+                    onChangeText={setHandoverNotes}
+                    placeholder="مثلاً بذریعہ چیک یا رسید نمبر"
+                    placeholderTextColor="#64748B"
+                  />
+
+                  <TouchableOpacity
+                    style={[styles.confirmSheetBtn, { backgroundColor: '#00d49f', marginTop: 14 }]}
+                    onPress={handleSubmitHandover}
+                    disabled={submitting}
+                  >
+                    {submitting ? (
+                      <ActivityIndicator size="small" color="#070d18" />
+                    ) : (
+                      <>
+                        <Ionicons name="checkmark-circle" size={18} color="#070d18" />
+                        <Text style={styles.confirmSheetBtnText}>کمیٹی ادا کریں اور واؤچر بنائیں</Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                </ScrollView>
+              ) : (
+                <View style={styles.handoverSuccessBox}>
+                  <Ionicons name="checkmark-done-circle" size={48} color="#00d49f" />
+                  <Text style={styles.handoverSuccessTitle}>کمیٹی کامیابی سے ادا ہو گئی!</Text>
+                  <Text style={styles.handoverVoucherPill}>
+                    واؤچر نمبر: {handoverSuccessData.voucherNumber}
+                  </Text>
+                  <Text style={styles.handoverSuccessRecipient}>
+                    {handoverSuccessData.recipientName} • Rs. {handoverSuccessData.netAmount.toLocaleString()}
+                  </Text>
+
+                  <View style={styles.handoverActionsRow}>
+                    <TouchableOpacity
+                      style={styles.printThermalBtn}
+                      onPress={handlePrint58mmThermalChit}
+                    >
+                      <Ionicons name="print" size={16} color="#070d18" />
+                      <Text style={styles.printThermalBtnText}>🖨️ پرنٹ کچا پرچہ (58mm)</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={styles.shareWhatsAppBtn}
+                      onPress={handleShareWhatsAppChit}
+                    >
+                      <Ionicons name="logo-whatsapp" size={16} color="#ffffff" />
+                      <Text style={styles.shareWhatsAppBtnText}>واٹس ایپ رسید</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <TouchableOpacity
+                    style={[styles.confirmSheetBtn, { backgroundColor: '#17233b', marginTop: 14 }]}
+                    onPress={() => {
+                      setHandoverModalKameti(null);
+                      setHandoverSuccessData(null);
+                    }}
+                  >
+                    <Text style={[styles.confirmSheetBtnText, { color: '#ffffff' }]}>بند کریں</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          </View>
+        </Modal>
+
+        {/* ============================================================= */}
+        {/* SUB-MODAL 10: WhatsApp & In-App Reminders List                */}
+        {/* ============================================================= */}
+        <Modal
+          visible={!!remindersModalKameti}
+          animationType="slide"
+          transparent
+          onRequestClose={() => setRemindersModalKameti(null)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={[styles.modalSheet, isDesktop && styles.modalSheetDesktop, { maxHeight: '85%' }]}>
+              <View style={styles.modalSheetHeader}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.modalSheetTitle}>🔔 اقساط یاد دہانی (Reminders)</Text>
+                  <Text style={styles.modalSheetSub}>
+                    {remindersModalKameti?.title} • سائیکل #{remindersModalKameti?.currentCycle} کے غیر ادا شدہ ممبران
+                  </Text>
+                </View>
+                <TouchableOpacity onPress={() => setRemindersModalKameti(null)} style={styles.closeBtn}>
+                  <Ionicons name="close" size={20} color="#94A3B8" />
+                </TouchableOpacity>
+              </View>
+
+              {loadingReminders ? (
+                <View style={{ padding: 40, alignItems: 'center' }}>
+                  <ActivityIndicator size="large" color="#F59E0B" />
+                  <Text style={{ color: '#94A3B8', marginTop: 12 }}>یاد دہانی شیڈول تیار ہو رہا ہے...</Text>
+                </View>
+              ) : (
+                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
+                  {remindersList.length === 0 ? (
+                    <View style={{ padding: 30, alignItems: 'center' }}>
+                      <Ionicons name="checkmark-circle" size={44} color="#00d49f" />
+                      <Text style={{ color: '#ffffff', fontWeight: 'bold', marginTop: 12, fontSize: 15 }}>
+                        تمام ممبران نے قسط ادا کر دی ہے!
+                      </Text>
+                      <Text style={{ color: '#94A3B8', fontSize: 12, marginTop: 4 }}>
+                        اس سائیکل میں کوئی بقایا رقم واجب الادا نہیں ہے۔
+                      </Text>
+                    </View>
+                  ) : (
+                    remindersList.map((item) => (
+                      <View key={item.memberId} style={styles.reminderCard}>
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.reminderMemberName}>{item.memberName}</Text>
+                          <Text style={styles.reminderPhone}>{item.memberPhone || 'فون نمبر دستیاب نہیں'}</Text>
+                          <Text style={styles.reminderAmount}>واجب الادا: Rs. {item.amountDue.toLocaleString()}</Text>
+                        </View>
+
+                        {item.whatsappUrl && (
+                          <TouchableOpacity
+                            style={styles.sendWaBtn}
+                            onPress={() => Linking.openURL(item.whatsappUrl!)}
+                          >
+                            <Ionicons name="logo-whatsapp" size={14} color="#ffffff" />
+                            <Text style={styles.sendWaBtnText}>میسج بھیجیں</Text>
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    ))
+                  )}
+                </ScrollView>
+              )}
             </View>
           </View>
         </Modal>
@@ -3812,5 +4648,604 @@ const styles = StyleSheet.create({
   swapMemberChipTextActive: {
     color: '#F59E0B',
     fontWeight: 'bold',
+  },
+
+  /* ------------------------------------------------------------- */
+  /* KAMETI DRAW, MATRIX & PAYOUT ENGINE STYLES                    */
+  /* ------------------------------------------------------------- */
+  modalSheetHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#17233b',
+    marginBottom: 12,
+  },
+  modalSheetTitle: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  modalSheetSub: {
+    fontSize: 11,
+    color: '#94A3B8',
+    marginTop: 2,
+  },
+  closeBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#070d18',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sheetInput: {
+    backgroundColor: '#070d18',
+    borderWidth: 1,
+    borderColor: '#17233b',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    fontSize: 13,
+    color: '#ffffff',
+    marginBottom: 10,
+  },
+  vaultChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: '#070d18',
+    borderWidth: 1,
+    borderColor: '#17233b',
+    marginRight: 8,
+  },
+  vaultChipActive: {
+    borderColor: '#38BDF8',
+    backgroundColor: 'rgba(56, 189, 248, 0.15)',
+  },
+  vaultChipTitle: {
+    fontSize: 11.5,
+    color: '#94A3B8',
+  },
+  vaultChipTitleActive: {
+    color: '#38BDF8',
+    fontWeight: 'bold',
+  },
+  vaultChipBalance: {
+    fontSize: 11,
+    color: '#ffffff',
+    fontFamily: 'monospace',
+    marginTop: 2,
+  },
+  payModeRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 12,
+  },
+  payModeBtn: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: '#070d18',
+    borderWidth: 1,
+    borderColor: '#17233b',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  payModeBtnActive: {
+    borderColor: '#00d49f',
+    backgroundColor: 'rgba(0, 212, 159, 0.15)',
+  },
+  payModeBtnText: {
+    fontSize: 11,
+    color: '#94A3B8',
+  },
+  payModeBtnTextActive: {
+    color: '#00d49f',
+    fontWeight: 'bold',
+  },
+
+  organizerActionsStrip: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 8,
+    marginBottom: 6,
+  },
+  actionPillBtnGold: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: '#F59E0B',
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 8,
+  },
+  actionPillBtnTextDark: {
+    fontSize: 10.5,
+    fontWeight: 'bold',
+    color: '#070d18',
+  },
+  actionPillBtnBlue: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(56, 189, 248, 0.15)',
+    borderWidth: 1,
+    borderColor: '#38BDF8',
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 8,
+  },
+  actionPillBtnTextBlue: {
+    fontSize: 10.5,
+    fontWeight: 'bold',
+    color: '#38BDF8',
+  },
+  actionPillBtnGreen: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(0, 212, 159, 0.15)',
+    borderWidth: 1,
+    borderColor: '#00d49f',
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 8,
+  },
+  actionPillBtnTextGreen: {
+    fontSize: 10.5,
+    fontWeight: 'bold',
+    color: '#00d49f',
+  },
+  actionPillBtnAmber: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    borderWidth: 1,
+    borderColor: '#F59E0B',
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 8,
+  },
+  actionPillBtnTextAmber: {
+    fontSize: 10.5,
+    fontWeight: 'bold',
+    color: '#F59E0B',
+  },
+  drawVerifiedBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(0, 212, 159, 0.12)',
+    borderWidth: 1,
+    borderColor: '#00d49f',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    alignSelf: 'flex-start',
+    marginTop: 4,
+  },
+  drawVerifiedBannerText: {
+    fontSize: 10,
+    color: '#00d49f',
+    fontWeight: 'bold',
+  },
+
+  // Draw Mode Switcher
+  drawModeToggleRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 12,
+  },
+  drawModeBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#070d18',
+    borderWidth: 1,
+    borderColor: '#17233b',
+    paddingVertical: 9,
+    borderRadius: 10,
+  },
+  drawModeBtnActive: {
+    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+    borderColor: '#F59E0B',
+  },
+  drawModeBtnText: {
+    fontSize: 11,
+    color: '#94A3B8',
+  },
+  drawModeBtnTextActive: {
+    color: '#F59E0B',
+    fontWeight: 'bold',
+  },
+
+  // Neelaam Auction Box
+  neelaamBidBox: {
+    backgroundColor: '#09111e',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#17233b',
+    padding: 10,
+    marginBottom: 12,
+  },
+  neelaamBoxTitle: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#38BDF8',
+    marginBottom: 8,
+  },
+  dividendInfoPill: {
+    backgroundColor: 'rgba(56, 189, 248, 0.12)',
+    borderRadius: 6,
+    padding: 6,
+    marginTop: 6,
+  },
+  dividendInfoText: {
+    fontSize: 10.5,
+    color: '#38BDF8',
+    textAlign: 'center',
+  },
+
+  // Candidates & Pinning List
+  drawCandidatesList: {
+    gap: 6,
+    marginBottom: 10,
+  },
+  drawCandidateCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#070d18',
+    borderWidth: 1,
+    borderColor: '#17233b',
+    borderRadius: 8,
+    padding: 8,
+  },
+  drawCandidateName: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  drawCandidateSub: {
+    fontSize: 10,
+    color: '#94A3B8',
+    marginTop: 2,
+  },
+  pinToggleBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#0d1627',
+    borderWidth: 1,
+    borderColor: '#F59E0B',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  pinToggleBtnActive: {
+    backgroundColor: '#F59E0B',
+  },
+  pinToggleText: {
+    fontSize: 10,
+    color: '#F59E0B',
+    fontWeight: '600',
+  },
+  pinToggleTextActive: {
+    color: '#070d18',
+    fontWeight: 'bold',
+  },
+
+  // Rolling Card Animation
+  rollingCardBox: {
+    backgroundColor: '#09111e',
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#F59E0B',
+    padding: 16,
+    alignItems: 'center',
+    marginVertical: 12,
+  },
+  rollingCardLabel: {
+    fontSize: 12,
+    color: '#94A3B8',
+  },
+  rollingCardName: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#F59E0B',
+    marginTop: 4,
+  },
+
+  // Draw Result Box
+  drawResultBox: {
+    backgroundColor: '#09111e',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#00d49f',
+    padding: 12,
+    marginTop: 12,
+  },
+  drawResultHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 4,
+  },
+  drawResultTitle: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#00d49f',
+  },
+  drawSeedHashText: {
+    fontSize: 9.5,
+    color: '#94A3B8',
+    fontFamily: 'monospace',
+    marginBottom: 10,
+  },
+  drawScheduleGrid: {
+    gap: 4,
+  },
+  drawScheduleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#070d18',
+    padding: 6,
+    borderRadius: 6,
+  },
+  drawMonthBadge: {
+    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  drawMonthBadgeText: {
+    fontSize: 10,
+    color: '#F59E0B',
+    fontWeight: 'bold',
+  },
+  drawScheduleMemberName: {
+    flex: 1,
+    fontSize: 11.5,
+    color: '#ffffff',
+    marginHorizontal: 8,
+  },
+  drawScheduleAmount: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#00d49f',
+    fontFamily: 'monospace',
+  },
+
+  // Matrix Styles
+  matrixLegendRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 16,
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: '#17233b',
+  },
+  matrixLegendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  matrixStatusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  matrixLegendText: {
+    fontSize: 10.5,
+    color: '#94A3B8',
+  },
+  matrixHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: '#17233b',
+  },
+  matrixHeaderCell: {
+    fontSize: 10.5,
+    color: '#94A3B8',
+    fontWeight: 'bold',
+  },
+  matrixDataRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: '#0d1627',
+  },
+  matrixMemberName: {
+    fontSize: 11.5,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  matrixMemberPhone: {
+    fontSize: 9.5,
+    color: '#64748b',
+  },
+  matrixCycleCell: {
+    width: 36,
+    height: 28,
+    marginHorizontal: 4,
+    borderRadius: 6,
+    backgroundColor: '#070d18',
+    borderWidth: 1,
+    borderColor: '#17233b',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  matrixCycleCellPaid: {
+    backgroundColor: '#00d49f',
+    borderColor: '#00d49f',
+  },
+  matrixCycleCellDue: {
+    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+    borderColor: '#F59E0B',
+  },
+  matrixCycleCellOverdue: {
+    backgroundColor: 'rgba(251, 113, 133, 0.2)',
+    borderColor: '#FB7185',
+  },
+  matrixCycleCellFuture: {
+    fontSize: 10,
+    color: '#64748b',
+  },
+  matrixPayoutCell: {
+    alignItems: 'center',
+    paddingHorizontal: 4,
+  },
+  matrixPayoutCellText: {
+    fontSize: 10,
+    color: '#F59E0B',
+    fontWeight: 'bold',
+  },
+  matrixPayoutStatusPaid: {
+    fontSize: 9,
+    color: '#00d49f',
+  },
+  matrixPayoutStatusPending: {
+    fontSize: 9,
+    color: '#94A3B8',
+  },
+
+  // Handover Payout Styles
+  handoverRecipientCard: {
+    backgroundColor: '#09111e',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#F59E0B',
+    padding: 12,
+    marginBottom: 12,
+  },
+  handoverRecipientTitle: {
+    fontSize: 11,
+    color: '#94A3B8',
+  },
+  handoverRecipientName: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  handoverAmountHighlight: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#00d49f',
+    fontFamily: 'monospace',
+    marginTop: 6,
+  },
+  handoverSuccessBox: {
+    alignItems: 'center',
+    padding: 16,
+  },
+  handoverSuccessTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#00d49f',
+    marginTop: 8,
+  },
+  handoverVoucherPill: {
+    fontSize: 11,
+    fontFamily: 'monospace',
+    color: '#38BDF8',
+    backgroundColor: 'rgba(56, 189, 248, 0.15)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    marginTop: 6,
+  },
+  handoverSuccessRecipient: {
+    fontSize: 13,
+    color: '#ffffff',
+    marginTop: 6,
+  },
+  handoverActionsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 16,
+    width: '100%',
+  },
+  printThermalBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#F59E0B',
+    paddingVertical: 11,
+    borderRadius: 10,
+  },
+  printThermalBtnText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#070d18',
+  },
+  shareWhatsAppBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#25D366',
+    paddingVertical: 11,
+    borderRadius: 10,
+  },
+  shareWhatsAppBtnText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+
+  // Reminders Styles
+  reminderCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#09111e',
+    borderWidth: 1,
+    borderColor: '#17233b',
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 8,
+  },
+  reminderMemberName: {
+    fontSize: 12.5,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  reminderPhone: {
+    fontSize: 10.5,
+    color: '#94A3B8',
+    marginTop: 2,
+  },
+  reminderAmount: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#F59E0B',
+    marginTop: 2,
+  },
+  sendWaBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: '#25D366',
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderRadius: 8,
+  },
+  sendWaBtnText: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#ffffff',
   },
 });

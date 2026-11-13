@@ -3,6 +3,39 @@ import { Schema, model, Document, Types } from 'mongoose';
 export type KametiRole = 'PARTICIPANT' | 'ORGANIZER';
 export type DomesticKametiStatus = 'ACTIVE' | 'COMPLETED' | 'DEFAULTED';
 export type MemberInviteStatus = 'LINKED' | 'INVITE_PENDING' | 'UNREGISTERED';
+export type KametiType = 'STANDARD_ROTATING' | 'LUCKY_DRAW' | 'NEELAAM_BID';
+export type PayoutStatus = 'SCHEDULED' | 'DISBURSED' | 'SKIPPED';
+
+export interface IKametiDrawScheduleItem {
+  cycleNumber: number; // 1 to totalMonths
+  memberId: Types.ObjectId;
+  memberName: string;
+  memberPhone?: string;
+  isPinned: boolean; // Pre-fixed slot (e.g. Organizer Month 1 or emergency claim)
+  expectedPayoutAmount: number; // Pool amount
+  bidDiscountAmount?: number; // Auction discount (for NEELAAM_BID)
+  dividendPerMember?: number; // Discount dividend credited to other members
+  netPayoutAmount: number; // expectedPayoutAmount - (bidDiscountAmount || 0)
+  payoutStatus: PayoutStatus;
+  payoutDate?: Date;
+  voucherNumber?: string;
+  disbursedByVaultId?: Types.ObjectId;
+  paymentMode?: string;
+  notes?: string;
+}
+
+export interface IPayoutVoucher {
+  voucherNumber: string;
+  cycleNumber: number;
+  recipientName: string;
+  recipientPhone?: string;
+  grossPoolAmount: number;
+  bidDiscountAmount: number;
+  netAmount: number;
+  paymentMode: string;
+  disbursementDate: Date;
+  shareSlipText: string;
+}
 
 export interface IInstallmentPayment {
   cycleNumber: number;
@@ -60,6 +93,14 @@ export interface IDomesticKameti extends Document {
   // Organizer Specific Members
   members: IOrganizerMember[];
 
+  // Kameti Draw & Bidding Auction Extensions
+  kametiType: KametiType;
+  isDrawCompleted: boolean;
+  drawDate?: Date;
+  drawSeedHash?: string;
+  drawSchedule: IKametiDrawScheduleItem[];
+  payoutVouchers: IPayoutVoucher[];
+
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -104,6 +145,47 @@ const OrganizerMemberSchema = new Schema<IOrganizerMember>(
   { _id: true }
 );
 
+const DrawScheduleItemSchema = new Schema<IKametiDrawScheduleItem>(
+  {
+    cycleNumber: { type: Number, required: true },
+    memberId: { type: Schema.Types.ObjectId, required: true },
+    memberName: { type: String, required: true, trim: true },
+    memberPhone: { type: String, trim: true },
+    isPinned: { type: Boolean, default: false },
+    expectedPayoutAmount: { type: Number, required: true },
+    bidDiscountAmount: { type: Number, default: 0 },
+    dividendPerMember: { type: Number, default: 0 },
+    netPayoutAmount: { type: Number, required: true },
+    payoutStatus: {
+      type: String,
+      enum: ['SCHEDULED', 'DISBURSED', 'SKIPPED'],
+      default: 'SCHEDULED',
+    },
+    payoutDate: { type: Date },
+    voucherNumber: { type: String, trim: true },
+    disbursedByVaultId: { type: Schema.Types.ObjectId, ref: 'VaultAccount' },
+    paymentMode: { type: String, trim: true },
+    notes: { type: String, trim: true },
+  },
+  { _id: true }
+);
+
+const PayoutVoucherSchema = new Schema<IPayoutVoucher>(
+  {
+    voucherNumber: { type: String, required: true, trim: true },
+    cycleNumber: { type: Number, required: true },
+    recipientName: { type: String, required: true, trim: true },
+    recipientPhone: { type: String, trim: true },
+    grossPoolAmount: { type: Number, required: true },
+    bidDiscountAmount: { type: Number, default: 0 },
+    netAmount: { type: Number, required: true },
+    paymentMode: { type: String, default: 'CASH' },
+    disbursementDate: { type: Date, default: Date.now },
+    shareSlipText: { type: String, required: true },
+  },
+  { _id: true }
+);
+
 const DomesticKametiSchema = new Schema<IDomesticKameti>(
   {
     profileId: {
@@ -142,6 +224,18 @@ const DomesticKametiSchema = new Schema<IDomesticKameti>(
 
     installments: [InstallmentPaymentSchema],
     members: [OrganizerMemberSchema],
+
+    kametiType: {
+      type: String,
+      enum: ['STANDARD_ROTATING', 'LUCKY_DRAW', 'NEELAAM_BID'],
+      default: 'STANDARD_ROTATING',
+    },
+    isDrawCompleted: { type: Boolean, default: false },
+    drawDate: { type: Date },
+    drawSeedHash: { type: String, trim: true },
+    drawSchedule: [DrawScheduleItemSchema],
+    payoutVouchers: [PayoutVoucherSchema],
+
     notes: { type: String, trim: true },
   },
   { timestamps: true }

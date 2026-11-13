@@ -13,6 +13,11 @@ import {
   getMemberInviteText,
   swapPayoutMonths,
   deleteMemberFromKameti,
+  runKametiDraw,
+  disburseKametiPayout,
+  getKametiPayoutVoucher,
+  sendKametiReminders,
+  getKametiMatrix,
 } from '../controllers/domesticKameti.controller';
 import { requireAuth } from '../middleware/auth.middleware';
 
@@ -28,6 +33,13 @@ router.post('/:id/collect-payout', collectKametiPayout);
 router.patch('/:id/advance-cycle', advanceKametiCycle);
 router.delete('/:id', deleteDomesticKameti);
 router.get('/:id/share-text', getKametiShareSlip);
+
+// Kameti Draw & Payout Engine
+router.post('/:id/run-draw', runKametiDraw);
+router.post('/:id/disburse-payout', disburseKametiPayout);
+router.get('/:id/payout-voucher/:cycleNumber', getKametiPayoutVoucher);
+router.post('/:id/send-reminders', sendKametiReminders);
+router.get('/:id/matrix', getKametiMatrix);
 
 // Multi-user member management & WhatsApp / push notification sync
 router.post('/:id/members', addMemberToKameti);

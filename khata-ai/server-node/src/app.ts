@@ -11,6 +11,7 @@ import apiV1Router from './routes';
 import { socketService } from './services/socket.service';
 import { mandiScraperService } from './services/mandiScraper.service';
 import { bullionSyncService } from './services/bullionSync.service';
+import { kametiDrawService } from './services/kametiDraw.service';
 
 import path from 'path';
 
@@ -70,6 +71,14 @@ const startServer = async () => {
   setInterval(() => {
     bullionSyncService.syncBullionRates().catch(() => {});
   }, 1000 * 60 * 60 * 6);
+
+  // Kameti Monthly Installment & Payout Sentinel (Runs Daily / Grace Period Alerts)
+  kametiDrawService.runMonthlyInstallmentSentinel().catch((e) => {
+    console.warn('[KametiSentinel] Initial sentinel error:', e.message);
+  });
+  setInterval(() => {
+    kametiDrawService.runMonthlyInstallmentSentinel().catch(() => {});
+  }, 1000 * 60 * 60 * 24);
 
   httpServer.listen(env.PORT, () => {
     console.log(`[Express] Core Ledger Service listening on port ${env.PORT} in ${env.NODE_ENV} mode`);

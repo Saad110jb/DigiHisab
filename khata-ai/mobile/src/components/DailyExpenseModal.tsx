@@ -440,9 +440,13 @@ export const DailyExpenseModal: React.FC<DailyExpenseModalProps> = ({
                         : '#059669'
                     }
                   />
-                  <View>
-                    <Text style={styles.budgetTitle}>Daily Safe OPEX Budget (روزانہ محفوظ بجٹ)</Text>
-                    <Text style={styles.budgetSubtitle}>30 روزہ منافع سے حساب شدہ یومیہ حد</Text>
+                  <View style={{ flex: 1, minWidth: 0, marginRight: 6 }}>
+                    <Text style={styles.budgetTitle} numberOfLines={1} ellipsizeMode="tail">
+                      Daily Safe OPEX (روزانہ محفوظ بجٹ)
+                    </Text>
+                    <Text style={styles.budgetSubtitle} numberOfLines={1}>
+                      30 روزہ منافع سے حساب شدہ یومیہ حد
+                    </Text>
                   </View>
                 </View>
 
@@ -614,6 +618,7 @@ export const DailyExpenseModal: React.FC<DailyExpenseModalProps> = ({
                     styles.segmentTabText,
                     targetAccount === 'PHYSICAL_CASH' && styles.segmentTabTextActive,
                   ]}
+                  numberOfLines={1}
                 >
                   Cash Galla (نقد گلہ)
                 </Text>
@@ -637,8 +642,9 @@ export const DailyExpenseModal: React.FC<DailyExpenseModalProps> = ({
                     styles.segmentTabText,
                     targetAccount === 'BANK_ACCOUNT' && styles.segmentTabTextActive,
                   ]}
+                  numberOfLines={1}
                 >
-                  Bank Transfer / Raast (بینک)
+                  Bank / Raast (بینک)
                 </Text>
               </TouchableOpacity>
 
@@ -660,8 +666,9 @@ export const DailyExpenseModal: React.FC<DailyExpenseModalProps> = ({
                     styles.segmentTabText,
                     targetAccount === 'DIGITAL_WALLET' && styles.segmentTabTextActive,
                   ]}
+                  numberOfLines={1}
                 >
-                  Digital Wallet (JazzCash / Easypaisa)
+                  Digital Wallet (والٹ)
                 </Text>
               </TouchableOpacity>
             </View>
@@ -714,37 +721,6 @@ export const DailyExpenseModal: React.FC<DailyExpenseModalProps> = ({
                 </Text>
               </View>
             )}
-
-            {/* Record & Deduct Button */}
-            <TouchableOpacity
-              style={[
-                styles.saveBtn,
-                simulatedState === 'OVERBUDGET' && styles.saveBtnOverbudget,
-                simulatedState === 'THRESHOLD_WARNING' && styles.saveBtnWarning,
-                (submitting || isInsufficientFunds) && styles.btnDisabled,
-              ]}
-              onPress={() => handleSave()}
-              disabled={submitting || isInsufficientFunds}
-              activeOpacity={0.85}
-            >
-              {submitting ? (
-                <ActivityIndicator color="#FFFFFF" size="small" />
-              ) : (
-                <>
-                  <Ionicons
-                    name={simulatedState === 'OVERBUDGET' ? 'warning' : 'remove-circle'}
-                    size={20}
-                    color="#FFFFFF"
-                    style={{ marginRight: 8 }}
-                  />
-                  <Text style={styles.saveBtnText}>
-                    {simulatedState === 'OVERBUDGET'
-                      ? 'غیر معمولی خرچہ درج کریں (Log Overbudget Expense)'
-                      : 'Record & Deduct from Till (خرچہ منہا کریں)'}
-                  </Text>
-                </>
-              )}
-            </TouchableOpacity>
 
             {/* PERSISTENT SUB-PANEL: Collapsible Monthly Kharcha History */}
             <View style={styles.subPanelCard}>
@@ -836,6 +812,39 @@ export const DailyExpenseModal: React.FC<DailyExpenseModalProps> = ({
               )}
             </View>
           </ScrollView>
+
+          {/* Sticky Bottom Action Footer (Permanently above Android Navigation Bar) */}
+          <View style={[styles.stickyFooter, { paddingBottom: Math.max(insets.bottom, 12), paddingTop: 8 }]}>
+            <TouchableOpacity
+              style={[
+                styles.saveBtn,
+                simulatedState === 'OVERBUDGET' && styles.saveBtnOverbudget,
+                simulatedState === 'THRESHOLD_WARNING' && styles.saveBtnWarning,
+                (submitting || isInsufficientFunds) && styles.btnDisabled,
+              ]}
+              onPress={() => handleSave()}
+              disabled={submitting || isInsufficientFunds}
+              activeOpacity={0.85}
+            >
+              {submitting ? (
+                <ActivityIndicator color="#FFFFFF" size="small" />
+              ) : (
+                <>
+                  <Ionicons
+                    name={simulatedState === 'OVERBUDGET' ? 'warning' : 'remove-circle'}
+                    size={20}
+                    color="#FFFFFF"
+                    style={{ marginRight: 8 }}
+                  />
+                  <Text style={styles.saveBtnText} numberOfLines={1} ellipsizeMode="tail">
+                    {simulatedState === 'OVERBUDGET'
+                      ? 'غیر معمولی خرچہ درج کریں (Log Overbudget Expense)'
+                      : 'Record & Deduct from Till (خرچہ منہا کریں)'}
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
 
           {/* Manager PIN Override Modal for Cashier */}
           <Modal
@@ -1076,11 +1085,15 @@ const styles = StyleSheet.create({
   },
   segmentedRow: {
     flexDirection: 'row',
-    gap: 8,
+    flexWrap: 'wrap',
+    gap: 6,
     marginBottom: 14,
   },
   segmentTab: {
-    flex: 1,
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: '30%',
+    minWidth: 100,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -1089,20 +1102,28 @@ const styles = StyleSheet.create({
     borderColor: '#CBD5E1',
     borderRadius: 10,
     paddingVertical: 10,
-    gap: 6,
+    paddingHorizontal: 6,
+    gap: 4,
   },
   segmentTabActive: {
     backgroundColor: '#FFE4E6',
     borderColor: '#E11D48',
   },
   segmentTabText: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 11,
+    fontWeight: '700',
     color: '#64748B',
+    flexShrink: 1,
   },
   segmentTabTextActive: {
     color: '#E11D48',
     fontWeight: '800',
+  },
+  stickyFooter: {
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+    marginTop: 4,
   },
   noteInput: {
     backgroundColor: '#F8FAFC',

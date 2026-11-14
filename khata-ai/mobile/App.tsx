@@ -1,5 +1,11 @@
 import React, { useEffect } from 'react';
 import { Platform } from 'react-native';
+import * as ExpoModule from 'expo';
+
+// Polyfill Platform on Expo object for backwards compatibility with any mismatched Expo modules
+if (ExpoModule && !(ExpoModule as any).Platform) {
+  (ExpoModule as any).Platform = Platform;
+}
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';

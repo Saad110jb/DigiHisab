@@ -1117,6 +1117,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '800',
+    flexShrink: 1,
   },
   callPrimaryBtn: {
     backgroundColor: '#D97706',
@@ -1132,6 +1133,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '800',
+    flexShrink: 1,
   },
   callSecondaryBtn: {
     backgroundColor: '#F0F9FF',
@@ -1149,6 +1151,7 @@ const styles = StyleSheet.create({
     color: '#0284C7',
     fontSize: 12,
     fontWeight: '700',
+    flexShrink: 1,
   },
   secondaryActionsRow: {
     flexDirection: 'row',

@@ -355,8 +355,12 @@ export const GallaBandiModal: React.FC<GallaBandiModalProps> = ({
                   onChangeText={setNotes}
                 />
               </View>
+            </ScrollView>
+          )}
 
-              {/* Submit Button */}
+          {/* Sticky Bottom Reconciliation Action Footer */}
+          {!loading && (
+            <View style={[styles.stickyFooter, { paddingBottom: Math.max(insets.bottom, 12), paddingTop: 8 }]}>
               <TouchableOpacity
                 style={[styles.submitBtn, submitting && styles.btnDisabled]}
                 onPress={handleReconcile}
@@ -367,11 +371,13 @@ export const GallaBandiModal: React.FC<GallaBandiModalProps> = ({
                 ) : (
                   <>
                     <Ionicons name="checkmark-done" size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
-                    <Text style={styles.submitBtnText}>گلہ بند کریں اور محفوظ کریں (Submit Reconciliation)</Text>
+                    <Text style={styles.submitBtnText} numberOfLines={1} ellipsizeMode="tail">
+                      گلہ بند کریں اور محفوظ کریں (Submit)
+                    </Text>
                   </>
                 )}
               </TouchableOpacity>
-            </ScrollView>
+            </View>
           )}
         </View>
       </View>
@@ -537,6 +543,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     flex: 1,
   },
+  stickyFooter: {
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+    paddingHorizontal: 20,
+    marginTop: 4,
+  },
   submitBtn: {
     backgroundColor: '#16A34A',
     flexDirection: 'row',
@@ -544,16 +557,17 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 8,
-    marginBottom: 20,
+    marginTop: 4,
+    marginBottom: 4,
   },
   btnDisabled: {
     opacity: 0.6,
   },
   submitBtnText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
+    flexShrink: 1,
   },
   denomSection: {
     marginBottom: 16,

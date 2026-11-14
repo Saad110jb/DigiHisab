@@ -349,7 +349,7 @@ _Digi Hisab Domestic Ledger کے ذریعے تیار کردہ_`;
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <View style={styles.overlay}>
-        <View style={[styles.modalCard, { paddingTop: Math.max(16, insets.top) }]}>
+        <View style={[styles.modalCard, { paddingTop: Math.max(16, insets.top), paddingBottom: Math.max(16, insets.bottom) }]}>
           {/* Top Bar with Live Accumulated Ticker */}
           <View style={styles.header}>
             <View style={{ flex: 1 }}>

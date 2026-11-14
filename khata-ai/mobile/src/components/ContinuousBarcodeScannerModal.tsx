@@ -17,11 +17,45 @@ import {
   ScrollView,
   Animated,
   ActivityIndicator,
+  TextInput,
 } from 'react-native';
 import { CameraView, useCameraPermissions, BarcodeScanningResult } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { inventoryApi, IInventoryItem } from '../api/inventory.api';
+import { fontScale, responsiveTextProps } from '../theme/responsive';
+
+interface CameraErrorBoundaryProps {
+  children: React.ReactNode;
+  fallback: (error: string) => React.ReactNode;
+}
+
+interface CameraErrorBoundaryState {
+  hasError: boolean;
+  error: string;
+}
+
+class CameraErrorBoundary extends React.Component<CameraErrorBoundaryProps, CameraErrorBoundaryState> {
+  constructor(props: CameraErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false, error: '' };
+  }
+
+  static getDerivedStateFromError(error: any) {
+    return { hasError: true, error: error?.message || 'Camera failed to load' };
+  }
+
+  componentDidCatch(error: any, errorInfo: any) {
+    console.warn('[CameraErrorBoundary] Caught camera view error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback(this.state.error);
+    }
+    return this.props.children;
+  }
+}
 
 export interface ScannedCartItem {
   barcode: string;
@@ -53,6 +87,51 @@ export const ContinuousBarcodeScannerModal: React.FC<ContinuousBarcodeScannerMod
   const [showCartDrawer, setShowCartDrawer] = useState(false);
   const [inventory, setInventory] = useState<IInventoryItem[]>(propInventoryList || []);
   const [loadingInventory, setLoadingInventory] = useState(false);
+  const [manualMode, setManualMode] = useState(false);
+  const [manualInput, setManualInput] = useState('');
+
+  const addItemToCart = (rawBarcode: string, matchedItem?: IInventoryItem) => {
+    const itemName = matchedItem ? matchedItem.itemName : `Item #${rawBarcode.slice(-4)}`;
+    const unitPrice = matchedItem ? matchedItem.retailPrice : 100;
+    const invId = matchedItem ? matchedItem._id : undefined;
+    const uom = matchedItem?.unitOfMeasure || 'pcs';
+
+    setLastScanned({ name: itemName, barcode: rawBarcode, price: unitPrice });
+
+    setCartItems((prev) => {
+      const existingIdx = prev.findIndex((p) => p.barcode === rawBarcode);
+      if (existingIdx >= 0) {
+        const next = [...prev];
+        next[existingIdx].quantity += 1;
+        return next;
+      } else {
+        return [
+          {
+            barcode: rawBarcode,
+            name: itemName,
+            price: unitPrice,
+            quantity: 1,
+            inventoryItemId: invId,
+            unitOfMeasure: uom,
+          },
+          ...prev,
+        ];
+      }
+    });
+  };
+
+  const handleManualAdd = () => {
+    const code = manualInput.trim();
+    if (!code) return;
+    const matched = inventory.find(
+      (item) =>
+        (item.barcode && item.barcode.toLowerCase() === code.toLowerCase()) ||
+        (item.sku && item.sku.toLowerCase() === code.toLowerCase()) ||
+        (item.itemName && item.itemName.toLowerCase().includes(code.toLowerCase()))
+    );
+    addItemToCart(matched?.barcode || code, matched);
+    setManualInput('');
+  };
 
   // Debounce history tracker (prevents re-scanning the same barcode within 1200ms)
   const scannedHistoryRef = useRef<Map<string, number>>(new Map());
@@ -166,37 +245,11 @@ export const ContinuousBarcodeScannerModal: React.FC<ContinuousBarcodeScannerMod
       (item) =>
         (item.sku && item.sku.toLowerCase() === rawBarcode.toLowerCase()) ||
         (item._id && item._id === rawBarcode) ||
+        (item.barcode && item.barcode.toLowerCase() === rawBarcode.toLowerCase()) ||
         (item.itemName && item.itemName.toLowerCase() === rawBarcode.toLowerCase())
     );
 
-    const itemName = matchedItem ? matchedItem.itemName : `Item #${rawBarcode.slice(-4)}`;
-    const unitPrice = matchedItem ? matchedItem.retailPrice : 100;
-    const invId = matchedItem ? matchedItem._id : undefined;
-    const uom = matchedItem?.unitOfMeasure || 'pcs';
-
-    setLastScanned({ name: itemName, barcode: rawBarcode, price: unitPrice });
-
-    // Update Cart Buffer
-    setCartItems((prev) => {
-      const existingIdx = prev.findIndex((p) => p.barcode === rawBarcode);
-      if (existingIdx >= 0) {
-        const next = [...prev];
-        next[existingIdx].quantity += 1;
-        return next;
-      } else {
-        return [
-          {
-            barcode: rawBarcode,
-            name: itemName,
-            price: unitPrice,
-            quantity: 1,
-            inventoryItemId: invId,
-            unitOfMeasure: uom,
-          },
-          ...prev,
-        ];
-      }
-    });
+    addItemToCart(rawBarcode, matchedItem);
   };
 
   const totalItemsCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
@@ -247,16 +300,62 @@ export const ContinuousBarcodeScannerModal: React.FC<ContinuousBarcodeScannerMod
           </View>
         ) : (
           <View style={StyleSheet.absoluteFill}>
-            {/* Live Camera View */}
-            <CameraView
-              style={StyleSheet.absoluteFill}
-              facing="back"
-              enableTorch={torchEnabled}
-              barcodeScannerSettings={{
-                barcodeTypes: ['ean13', 'ean8', 'upc_a', 'code128', 'qr'],
-              }}
-              onBarcodeScanned={handleBarcodeScanned}
-            />
+            {/* Live Camera View with Error Boundary & Manual Fallback */}
+            <CameraErrorBoundary
+              fallback={(errorMsg) => (
+                <View style={styles.cameraErrorFallback}>
+                  <Ionicons name="camera-reverse-outline" size={54} color="#EF4444" />
+                  <Text style={styles.cameraErrorTitle}>Camera Viewfinder Offline</Text>
+                  <Text style={styles.cameraErrorSubtitle}>
+                    {errorMsg || 'Camera initialization paused. Please use manual keypad below.'}
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.manualEntryBtn}
+                    onPress={() => setManualMode(true)}
+                  >
+                    <Ionicons name="keypad" size={18} color="#0B2239" />
+                    <Text style={styles.manualEntryBtnText}>Use Manual Barcode Entry</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            >
+              {!manualMode ? (
+                <CameraView
+                  style={StyleSheet.absoluteFill}
+                  facing="back"
+                  enableTorch={torchEnabled}
+                  barcodeScannerSettings={{
+                    barcodeTypes: ['ean13', 'ean8', 'upc_a', 'code128', 'qr'],
+                  }}
+                  onBarcodeScanned={handleBarcodeScanned}
+                />
+              ) : (
+                <View style={styles.manualKeypadContainer}>
+                  <Ionicons name="barcode-outline" size={48} color="#00D2B4" />
+                  <Text style={styles.manualModeTitle}>Manual Barcode / Product Entry</Text>
+                  <Text style={styles.manualModeDesc}>
+                    دستی بارکوڈ یا پراڈکٹ کا نام درج کریں
+                  </Text>
+                  <View style={styles.manualInputRow}>
+                    <TextInput
+                      style={styles.manualTextInput}
+                      placeholder="Enter Barcode or Name..."
+                      placeholderTextColor="#64748B"
+                      value={manualInput}
+                      onChangeText={setManualInput}
+                      onSubmitEditing={handleManualAdd}
+                      autoFocus
+                      keyboardType="default"
+                      returnKeyType="done"
+                    />
+                    <TouchableOpacity style={styles.manualAddBtn} onPress={handleManualAdd}>
+                      <Ionicons name="add-circle" size={20} color="#0B2239" />
+                      <Text style={styles.manualAddBtnText}>Add</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+            </CameraErrorBoundary>
 
             {/* Top HUD Controls */}
             <View style={[styles.topHeader, { top: insets.top + 10 }]}>
@@ -265,47 +364,62 @@ export const ContinuousBarcodeScannerModal: React.FC<ContinuousBarcodeScannerMod
               </TouchableOpacity>
 
               <View style={styles.headerTitleBox}>
-                <Text style={styles.hudTitle}>Rapid Scanner (60 FPS)</Text>
+                <Text style={styles.hudTitle}>
+                  {manualMode ? 'Manual Keypad (دستی)' : 'Rapid Scanner (60 FPS)'}
+                </Text>
                 <Text style={styles.hudSubtitle}>
-                  {loadingInventory ? 'Loading inventory...' : 'Point at any grocery barcode'}
+                  {loadingInventory ? 'Loading inventory...' : manualMode ? 'Type item code or name' : 'Point at any grocery barcode'}
                 </Text>
               </View>
 
-              <TouchableOpacity
-                style={[styles.iconCircle, torchEnabled && styles.iconCircleActive]}
-                onPress={() => setTorchEnabled(!torchEnabled)}
-              >
-                <Ionicons name={torchEnabled ? 'flash' : 'flash-off'} size={20} color="#FFFFFF" />
-              </TouchableOpacity>
-            </View>
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                <TouchableOpacity
+                  style={[styles.iconCircle, manualMode && styles.iconCircleActive]}
+                  onPress={() => setManualMode(!manualMode)}
+                >
+                  <Ionicons name={manualMode ? 'camera' : 'keypad-outline'} size={20} color="#FFFFFF" />
+                </TouchableOpacity>
 
-            {/* Viewfinder Target Reticle with Animated Laser Line */}
-            <View style={styles.reticleContainer}>
-              <View style={styles.reticleBox}>
-                {/* Corner Accents */}
-                <View style={[styles.corner, styles.cornerTL]} />
-                <View style={[styles.corner, styles.cornerTR]} />
-                <View style={[styles.corner, styles.cornerBL]} />
-                <View style={[styles.corner, styles.cornerBR]} />
-
-                {/* Animated Red Laser Scan Line */}
-                <Animated.View
-                  style={[
-                    styles.laserLine,
-                    {
-                      transform: [
-                        {
-                          translateY: laserAnim.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [0, 200],
-                          }),
-                        },
-                      ],
-                    },
-                  ]}
-                />
+                {!manualMode && (
+                  <TouchableOpacity
+                    style={[styles.iconCircle, torchEnabled && styles.iconCircleActive]}
+                    onPress={() => setTorchEnabled(!torchEnabled)}
+                  >
+                    <Ionicons name={torchEnabled ? 'flash' : 'flash-off'} size={20} color="#FFFFFF" />
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
+
+            {/* Viewfinder Target Reticle with Animated Laser Line (Scanner mode only) */}
+            {!manualMode && (
+              <View style={styles.reticleContainer}>
+                <View style={styles.reticleBox}>
+                  {/* Corner Accents */}
+                  <View style={[styles.corner, styles.cornerTL]} />
+                  <View style={[styles.corner, styles.cornerTR]} />
+                  <View style={[styles.corner, styles.cornerBL]} />
+                  <View style={[styles.corner, styles.cornerBR]} />
+
+                  {/* Animated Red Laser Scan Line */}
+                  <Animated.View
+                    style={[
+                      styles.laserLine,
+                      {
+                        transform: [
+                          {
+                            translateY: laserAnim.interpolate({
+                              inputRange: [0, 1],
+                              outputRange: [0, 200],
+                            }),
+                          },
+                        ],
+                      },
+                    ]}
+                  />
+                </View>
+              </View>
+            )}
 
             {/* Floating Last Scanned Notification Card */}
             {lastScanned && (
@@ -723,5 +837,90 @@ const styles = StyleSheet.create({
     color: '#0B2239',
     fontSize: 13,
     fontWeight: '800',
+  },
+  cameraErrorFallback: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+    backgroundColor: '#070D18',
+  },
+  cameraErrorTitle: {
+    color: '#F87171',
+    fontSize: 18,
+    fontWeight: '800',
+    marginTop: 14,
+  },
+  cameraErrorSubtitle: {
+    color: '#94A3B8',
+    fontSize: 13,
+    textAlign: 'center',
+    marginTop: 8,
+    lineHeight: 18,
+  },
+  manualEntryBtn: {
+    backgroundColor: '#00D2B4',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    marginTop: 20,
+  },
+  manualEntryBtnText: {
+    color: '#0B2239',
+    fontWeight: '800',
+    fontSize: 14,
+  },
+  manualKeypadContainer: {
+    flex: 1,
+    backgroundColor: '#070D18',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  manualModeTitle: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '800',
+    marginTop: 12,
+  },
+  manualModeDesc: {
+    color: '#94A3B8',
+    fontSize: 13,
+    marginTop: 4,
+    marginBottom: 20,
+  },
+  manualInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    gap: 10,
+  },
+  manualTextInput: {
+    flex: 1,
+    backgroundColor: '#0F1D33',
+    borderWidth: 1.5,
+    borderColor: '#00D2B4',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    color: '#FFFFFF',
+    fontSize: 15,
+  },
+  manualAddBtn: {
+    backgroundColor: '#00D2B4',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  manualAddBtnText: {
+    color: '#0B2239',
+    fontWeight: '800',
+    fontSize: 14,
   },
 });

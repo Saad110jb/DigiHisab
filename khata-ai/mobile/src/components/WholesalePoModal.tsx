@@ -497,25 +497,6 @@ export const WholesalePoModal: React.FC<WholesalePoModalProps> = ({
               </View>
             </View>
 
-            {/* WhatsApp Send Button */}
-            <TouchableOpacity
-              style={[styles.whatsappBtn, submitting && { opacity: 0.6 }]}
-              onPress={handleSendWhatsAppOrder}
-              disabled={submitting}
-              activeOpacity={0.85}
-            >
-              {submitting ? (
-                <ActivityIndicator color="#FFFFFF" />
-              ) : (
-                <>
-                  <Ionicons name="logo-whatsapp" size={20} color="#FFFFFF" />
-                  <Text style={styles.whatsappBtnText}>
-                    Send Purchase Order via WhatsApp (تھوک آرڈر Bhejein)
-                  </Text>
-                </>
-              )}
-            </TouchableOpacity>
-
             {/* PERSISTENT SUB-PANEL: Collapsible Monthly Wholesale PO History */}
             <View style={styles.subPanelCard}>
               <TouchableOpacity
@@ -640,6 +621,27 @@ export const WholesalePoModal: React.FC<WholesalePoModalProps> = ({
               )}
             </View>
           </ScrollView>
+
+          {/* Sticky Bottom Action Footer (Permanently above Android Navigation Bar) */}
+          <View style={[styles.stickyFooter, { paddingBottom: Math.max(insets.bottom, 12), paddingTop: 8 }]}>
+            <TouchableOpacity
+              style={[styles.whatsappBtn, submitting && { opacity: 0.6 }]}
+              onPress={handleSendWhatsAppOrder}
+              disabled={submitting}
+              activeOpacity={0.85}
+            >
+              {submitting ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <>
+                  <Ionicons name="logo-whatsapp" size={20} color="#FFFFFF" />
+                  <Text style={styles.whatsappBtnText} numberOfLines={1} ellipsizeMode="tail">
+                    WhatsApp PO Bhejein (تھوک آرڈر بھیجیں)
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </Modal>
@@ -841,6 +843,12 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#0284C7',
   },
+  stickyFooter: {
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+    marginTop: 4,
+  },
   whatsappBtn: {
     backgroundColor: '#25D366',
     flexDirection: 'row',
@@ -850,12 +858,12 @@ const styles = StyleSheet.create({
     minHeight: 48,
     borderRadius: 12,
     gap: 8,
-    marginBottom: 16,
   },
   whatsappBtnText: {
     color: '#FFFFFF',
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '800',
+    flexShrink: 1,
   },
   /* Sub-Panel PO History Styles */
   subPanelCard: {

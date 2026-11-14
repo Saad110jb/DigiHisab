@@ -4,6 +4,7 @@ import { StockMovement } from '../models/StockMovement';
 import { Counterparty } from '../models/Counterparty';
 import { Profile } from '../models/Profile';
 import { dispatchPushNotification } from './notificationDispatcher.service';
+import { compileAndValidateDoubleEntry, JevLedgerValidation } from './jevDoubleEntry.service';
 
 export type RestockUrgency = 'CRITICAL' | 'WARNING' | 'HEALTHY';
 
@@ -229,5 +230,27 @@ export class JevRestockEngine {
         },
       });
     }
+  }
+
+  /**
+   * Previews balanced double-entry JEV voucher lines for a suggested restock order
+   */
+  static previewRestockJev(
+    prediction: JevRestockPrediction,
+    paymentMode: 'CASH' | 'BANK' | 'CREDIT' = 'CREDIT'
+  ): JevLedgerValidation {
+    const grossCost = prediction.suggested_order_units * prediction.wholesale_cost;
+    return compileAndValidateDoubleEntry({
+      transactionType: 'SUPPLIER_BILL',
+      grossAmount: grossCost,
+      advanceOffset: 0,
+      immediatePaymentAmount: paymentMode === 'CREDIT' ? 0 : grossCost,
+      paymentMode,
+      availableChannels: {
+        cashDrawer: 999999,
+        bankAccount: 999999,
+        digitalWallet: 999999,
+      },
+    });
   }
 }

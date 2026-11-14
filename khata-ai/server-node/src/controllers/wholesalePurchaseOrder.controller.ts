@@ -6,6 +6,8 @@ import { StockMovement } from '../models/StockMovement';
 import { Counterparty } from '../models/Counterparty';
 import { LedgerEntry } from '../models/LedgerEntry';
 import { AuditLog } from '../models/AuditLog';
+import { JournalVoucher } from '../models/JournalVoucher';
+import { compileAndValidateDoubleEntry } from '../services/jevDoubleEntry.service';
 
 /**
  * 1. Create a Wholesale Purchase Order (PO)
@@ -353,12 +355,55 @@ export const receivePurchaseOrder = async (req: Request, res: Response): Promise
       }
     }
 
+    // Auto compile balanced Double-Entry JEV Purchase Voucher (PV)
+    let jevVoucher: any = null;
+    try {
+      const jevValidation = compileAndValidateDoubleEntry({
+        transactionType: 'SUPPLIER_BILL',
+        grossAmount: po.grandTotal,
+        advanceOffset: 0,
+        immediatePaymentAmount: po.amountPaid || 0,
+        paymentMode: (po as any).paymentMethod || 'CASH',
+        availableChannels: {
+          cashDrawer: 9999999,
+          bankAccount: 9999999,
+          digitalWallet: 9999999,
+        },
+      });
+
+      const voucherSuffix = String(po.poNumber || '').replace(/[^0-9]/g, '').slice(-4) || String(Math.floor(1000 + Math.random() * 9000));
+      const voucherNum = `PV-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}-${voucherSuffix}`;
+
+      // Check if voucher with this number exists to prevent duplicate keys
+      const existingVoucher = await JournalVoucher.findOne({ profileId, voucherNumber: voucherNum });
+      const finalVoucherNum = existingVoucher ? `${voucherNum}-${Date.now().toString().slice(-4)}` : voucherNum;
+
+      jevVoucher = await JournalVoucher.create({
+        profileId,
+        voucherNumber: finalVoucherNum,
+        voucherType: 'PV',
+        date: new Date(),
+        lines: jevValidation.validation_details.accounts_affected,
+        totalDebit: jevValidation.validation_details.total_debits,
+        totalCredit: jevValidation.validation_details.total_credits,
+        discrepancy: jevValidation.discrepancy_amount,
+        isBalanced: jevValidation.is_balanced,
+        narration: `Wholesale Purchase Order #${po.poNumber} received - Inventory stock debited and supplier accounts credited.`,
+        referenceType: 'PURCHASE_ORDER',
+        referenceId: po._id,
+        status: 'POSTED',
+      });
+    } catch (jevErr: any) {
+      console.warn('[JevRestock] Error creating balanced journal voucher:', jevErr?.message);
+    }
+
     return res.status(200).json({
       success: true,
       message: `Purchase order #${po.poNumber} received and inventory stock restocked.`,
       data: {
         po,
         restockedMovements: restockLogs,
+        jevVoucher,
       },
     });
   } catch (error: any) {

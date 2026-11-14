@@ -33,3 +33,5 @@ export * from './HouseholdVault';
 export * from './ZakatAssessment';
 export * from './DomesticKameti';
 
+export * from './JournalVoucher';
+export * from './BankReconciliation';

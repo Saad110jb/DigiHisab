@@ -50,6 +50,8 @@ import jevDomesticRunwayRoutes from './jevDomesticRunway.routes';
 import domesticVoiceDispatchRoutes from './domesticVoiceDispatch.routes';
 import domesticAuditUpdateRoutes from './domesticAuditUpdate.routes';
 import configRoutes from './config.routes';
+import financialReportsRoutes from './financialReports.routes';
+import bankReconciliationRoutes from './bankReconciliation.routes';
 
 const router = Router();
 
@@ -122,5 +124,7 @@ router.use('/supplier-contracts', supplierContractRoutes);
 router.use('/suppliers', supplierContractRoutes);
 router.use('/purchase-orders', wholesalePurchaseOrderRoutes);
 router.use('/audit-logs', auditLogRoutes);
+router.use('/financial-reports', financialReportsRoutes);
+router.use('/bank-reconciliation', bankReconciliationRoutes);
 
 export default router;

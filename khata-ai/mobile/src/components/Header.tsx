@@ -72,12 +72,12 @@ export const Header: React.FC<HeaderProps> = ({
           </View>
         </TouchableOpacity>
 
-        {/* Top Right Locked Persona Indicator & Logout */}
+        {/* Top Right Active Persona Indicator & Logout */}
         <View style={styles.rightSection}>
           <View style={styles.lockedPersonaBadge}>
-            <Ionicons name="lock-closed" size={11} color={isGhar ? '#38BDF8' : '#00d49f'} />
+            <Ionicons name={isGhar ? 'home' : 'storefront'} size={12} color={isGhar ? '#38BDF8' : '#00d49f'} />
             <Text style={[styles.lockedPersonaText, isGhar && styles.lockedPersonaTextGhar]}>
-              {isGhar ? '🏠 Ghar (Locked)' : '🏪 Dukan (Locked)'}
+              {isGhar ? '🏠 Ghar Ka Hisab' : '🏪 Dukan (POS)'}
             </Text>
           </View>
 

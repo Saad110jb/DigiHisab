@@ -137,8 +137,33 @@ class SubscriptionService {
 
       const sub: ISubscriptionRecord = JSON.parse(raw);
 
-      // If user is on a paid plan, verify 30-day expiration
-      if (sub.planKey !== 'FREE_STARTER' && sub.expiresAt) {
+      // 0. SuperAdmin Kill-Switch Guard: If paywalls are globally OFF, never report expired
+      const paywallEnforced = await this.isPaywallEnforced();
+      if (!paywallEnforced) {
+        return {
+          subscription: sub.planKey ? sub : this.getDefaultFreeStarter(),
+          isExpired: false,
+          isExpiringSoon: false,
+          daysRemaining: 999,
+        };
+      }
+
+      // 1. Free Starter normalization: Free tier never expires
+      if (sub.planKey === 'FREE_STARTER') {
+        if (sub.status === 'EXPIRED') {
+          sub.status = 'TRIAL';
+          await AsyncStorage.setItem(STORAGE_KEY_SUBSCRIPTION, JSON.stringify(sub)).catch(() => {});
+        }
+        return {
+          subscription: sub,
+          isExpired: false,
+          isExpiringSoon: false,
+          daysRemaining: 0,
+        };
+      }
+
+      // If user is on a paid plan with an expiry date, verify 30-day expiration
+      if (sub.expiresAt) {
         const expiresTime = new Date(sub.expiresAt).getTime();
         const now = Date.now();
 

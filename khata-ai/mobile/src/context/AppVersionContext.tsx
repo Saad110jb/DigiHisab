@@ -62,21 +62,55 @@ const FLAG_TITLES: Record<string, { en: string; urdu: string }> = {
   chor_nazar_cash_skimming_guard: { en: 'Chor Nazar Till Skimming Blocker', urdu: 'چور نظر کیش دراز پروٹیکشن' },
 };
 
+// Helper to resolve device IP for Expo Go physical Wi-Fi connection
+const getHostIp = (): string | null => {
+  const hostUri = Constants.expoConfig?.hostUri || (Constants as any).manifest2?.extra?.expoGo?.developer?.tool;
+  if (hostUri) {
+    const ip = hostUri.split(':')[0];
+    if (ip && ip !== 'localhost' && ip !== '127.0.0.1') {
+      return ip;
+    }
+  }
+  return null;
+};
+
 // Function to resolve candidate endpoints across superadmin ports (3001, 3000) and Express server (5000)
 const getCandidateUrls = (): string[] => {
-  const host =
+  const hostIp = getHostIp();
+  const webHost =
     Platform.OS === 'web' && typeof window !== 'undefined' && window.location?.hostname
       ? window.location.hostname
-      : '10.0.2.2';
+      : null;
 
-  return [
-    `http://${host}:3001/api/v1/config/app-version`,
-    `http://${host}:3000/api/v1/config/app-version`,
-    `http://${host}:5000/api/v1/config/app-version`,
-    `http://127.0.0.1:3001/api/v1/config/app-version`,
-    `http://127.0.0.1:3000/api/v1/config/app-version`,
-    `http://127.0.0.1:5000/api/v1/config/app-version`,
-  ];
+  const candidates: string[] = [];
+
+  // 1. If physical device connected via Expo Go (e.g. 192.168.x.x)
+  if (hostIp) {
+    candidates.push(`http://${hostIp}:5000/api/v1/config/app-version`);
+    candidates.push(`http://${hostIp}:3001/api/v1/config/app-version`);
+    candidates.push(`http://${hostIp}:3000/api/v1/config/app-version`);
+  }
+
+  // 2. Web browser
+  if (webHost) {
+    candidates.push(`http://${webHost}:5000/api/v1/config/app-version`);
+    candidates.push(`http://${webHost}:3001/api/v1/config/app-version`);
+    candidates.push(`http://${webHost}:3000/api/v1/config/app-version`);
+  }
+
+  // 3. Android emulator loopback
+  if (Platform.OS === 'android') {
+    candidates.push(`http://10.0.2.2:5000/api/v1/config/app-version`);
+    candidates.push(`http://10.0.2.2:3001/api/v1/config/app-version`);
+    candidates.push(`http://10.0.2.2:3000/api/v1/config/app-version`);
+  }
+
+  // 4. Localhost fallback
+  candidates.push(`http://127.0.0.1:5000/api/v1/config/app-version`);
+  candidates.push(`http://127.0.0.1:3001/api/v1/config/app-version`);
+  candidates.push(`http://127.0.0.1:3000/api/v1/config/app-version`);
+
+  return candidates;
 };
 
 export const AppVersionProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -106,7 +140,17 @@ export const AppVersionProvider: React.FC<{ children: ReactNode }> = ({ children
   const [bypassMaintenance, setBypassMaintenance] = useState<boolean>(false);
   const [isSoftUpdateDismissed, setIsSoftUpdateDismissed] = useState<boolean>(false);
   const [isChecking, setIsChecking] = useState<boolean>(false);
-  const [isPaywallEnforced, setIsPaywallEnforced] = useState<boolean>(true);
+  const [isPaywallEnforced, setIsPaywallEnforced] = useState<boolean>(false);
+
+  useEffect(() => {
+    AsyncStorage.getItem('@digihisab_paywall_enforced')
+      .then((val) => {
+        if (val !== null) {
+          setIsPaywallEnforced(val === 'true');
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Transition Tracking Refs to trigger notifications upon real-time state changes
   const prevMaintenanceActive = useRef<boolean | null>(null);

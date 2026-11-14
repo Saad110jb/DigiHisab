@@ -45,10 +45,11 @@ export const UnifiedDashboard: React.FC<Props> = ({ navigation }) => {
   const loadSubscriptionInfo = async () => {
     try {
       const res = await subscriptionService.getCurrentSubscription();
+      const enforced = isPaywallEnforced && (await subscriptionService.isPaywallEnforced());
       setSubRecord(res.subscription);
-      setSubExpired(res.isExpired);
-      setSubExpiringSoon(res.isExpiringSoon);
-      setSubDaysRemaining(res.daysRemaining);
+      setSubExpired(enforced ? res.isExpired : false);
+      setSubExpiringSoon(enforced ? res.isExpiringSoon : false);
+      setSubDaysRemaining(enforced ? res.daysRemaining : 999);
       return res;
     } catch (e) {
       return null;
@@ -192,28 +193,34 @@ export const UnifiedDashboard: React.FC<Props> = ({ navigation }) => {
         onNavigateTab={handleNavigateTab}
       />
 
-      {/* SUBSCRIPTION STATUS TELEMETRY & VERIFICATION STRIP */}
+      {/* SUBSCRIPTION STATUS TELEMETRY STRIP */}
       <View style={styles.subStatusStrip}>
         <View style={styles.subStatusBadge}>
           <Ionicons
             name={
-              subExpired
+              !isPaywallEnforced
+                ? 'gift'
+                : subExpired
                 ? 'alert-circle'
                 : subRecord?.planKey && subRecord.planKey !== 'FREE_STARTER'
                 ? 'shield-checkmark'
-                : 'lock-closed'
+                : 'checkmark-circle'
             }
             size={13}
             color={
-              subExpired
+              !isPaywallEnforced
+                ? '#00d49f'
+                : subExpired
                 ? '#f43f5e'
                 : subRecord?.planKey && subRecord.planKey !== 'FREE_STARTER'
                 ? '#00d49f'
-                : '#94a3b8'
+                : '#38bdf8'
             }
           />
           <Text style={styles.subStatusText}>
-            {subExpired
+            {!isPaywallEnforced
+              ? 'مفت رسائی: تمام فیچرز غیر مقفل (All Features Unlocked)'
+              : subExpired
               ? 'پیکیج میعاد ختم (EXPIRED)'
               : subRecord?.planKey === 'DUKAN_PRO_MALIK_400'
               ? `Pro Malik Sentinel (Rs. 400 • ${subDaysRemaining}d)`
@@ -223,40 +230,11 @@ export const UnifiedDashboard: React.FC<Props> = ({ navigation }) => {
               ? `Ghar Ka Hisab Pro (Rs. 200 • ${subDaysRemaining}d)`
               : subRecord?.planKey === 'DUAL_VIP_750'
               ? `Dual-Persona VIP (Rs. 750 • ${subDaysRemaining}d)`
-              : 'فری ٹرائل (Free Starter)'}
+              : 'فری کھاتہ (Free Starter)'}
           </Text>
         </View>
 
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-          {/* Quick verification test trigger */}
-          <TouchableOpacity
-            style={styles.verifyToggleBtn}
-            onPress={() => {
-              // Cycle between: 1. Free Starter, 2. Pro Malik Active, 3. Expired
-              if (subRecord?.planKey === 'DUKAN_PRO_MALIK_400') {
-                // simulate month completed
-                subscriptionService.simulateMonthExpiry().then(() => loadSubscriptionInfo());
-              } else if (subExpired) {
-                // reset to free starter
-                subscriptionService.resetToFreeStarter().then(() => loadSubscriptionInfo());
-              } else {
-                // activate Pro Malik
-                subscriptionService
-                  .activateSubscription('DUKAN_PRO_MALIK_400', 'JAZZCASH', 400, undefined, 30)
-                  .then(() => loadSubscriptionInfo());
-              }
-            }}
-          >
-            <Ionicons name="swap-horizontal" size={12} color="#38bdf8" />
-            <Text style={styles.verifyToggleText}>
-              {subExpired
-                ? 'Reset to Free'
-                : subRecord?.planKey === 'DUKAN_PRO_MALIK_400'
-                ? 'Simulate Month End'
-                : 'Activate Pro (Rs.400)'}
-            </Text>
-          </TouchableOpacity>
-
           <TouchableOpacity
             style={styles.subManageBtn}
             onPress={() => {
@@ -285,7 +263,13 @@ export const UnifiedDashboard: React.FC<Props> = ({ navigation }) => {
                   <Text style={styles.subExpiredTitleUrdu}>پیکیج کی میعاد ختم ہو چکی ہے</Text>
                   <Text style={styles.subExpiredBadge}>غیر فعال</Text>
                 </View>
-                <TouchableOpacity onPress={() => setSubBannerDismissed(true)} style={styles.closeBtn}>
+                <TouchableOpacity
+                  onPress={() => {
+                    setSubBannerDismissed(true);
+                    subscriptionService.resetToFreeStarter().then(() => loadSubscriptionInfo());
+                  }}
+                  style={styles.closeBtn}
+                >
                   <Ionicons name="close" size={16} color="#94a3b8" />
                 </TouchableOpacity>
               </View>
@@ -318,7 +302,13 @@ export const UnifiedDashboard: React.FC<Props> = ({ navigation }) => {
                   <Text style={styles.subReminderTitleUrdu}>پیکیج تجدید کی یاد دہانی</Text>
                   <Text style={styles.subReminderBadge}>{subDaysRemaining} دن باقی</Text>
                 </View>
-                <TouchableOpacity onPress={() => setSubBannerDismissed(true)} style={styles.closeBtn}>
+                <TouchableOpacity
+                  onPress={() => {
+                    setSubBannerDismissed(true);
+                    subscriptionService.resetToFreeStarter().then(() => loadSubscriptionInfo());
+                  }}
+                  style={styles.closeBtn}
+                >
                   <Ionicons name="close" size={16} color="#94a3b8" />
                 </TouchableOpacity>
               </View>

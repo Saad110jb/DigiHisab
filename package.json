@@ -1,0 +1,29 @@
+{
+  "name": "digi_hisab",
+  "version": "1.0.0",
+  "description": "> **DigiHisab Technologies** — Smart Financial Management for Retailers, Households & Commercial Marts across Pakistan.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Saad110jb/DigiHisab.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Saad110jb/DigiHisab/issues"
+  },
+  "homepage": "https://github.com/Saad110jb/DigiHisab#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.65.1",
+    "@types/node": "^26.6.6",
+    "typescript": "^7.0.2"
+  }
+}

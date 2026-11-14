@@ -10,6 +10,8 @@ import {
   ActivityIndicator,
   Image,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -18,6 +20,7 @@ import { ledgerApi, ILedgerEntry } from '../api/ledger.api';
 import { ICounterparty } from '../api/counterparty.api';
 import { aiApi } from '../api/ai.api';
 import { wholesalePoApi } from '../api/wholesalePo.api';
+import { responsiveTextProps, fontScale } from '../theme/responsive';
 import { getImageUrl } from '../api/client';
 import { generateUniqueInvoiceNo } from '../utils/invoiceGenerator';
 import { profileApi, IPaymentChannels } from '../api/profile.api';
@@ -472,7 +475,11 @@ export const AddSupplierBillModal: React.FC<AddSupplierBillModalProps> = ({
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <View style={styles.overlay}>
-        <View style={[styles.modalCard, { paddingBottom: Math.max(insets.bottom, 14) }]}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.keyboardContainer}
+        >
+          <View style={[styles.modalCard, { paddingBottom: Math.max(insets.bottom, 14) }]}>
           {/* Header */}
           <View style={styles.header}>
             <View style={styles.headerTitleRow}>
@@ -1219,8 +1226,9 @@ export const AddSupplierBillModal: React.FC<AddSupplierBillModalProps> = ({
             </View>
           </Modal>
         </View>
-      </View>
-    </Modal>
+      </KeyboardAvoidingView>
+    </View>
+  </Modal>
   );
 };
 
@@ -1230,11 +1238,15 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(11, 34, 57, 0.65)',
     justifyContent: 'flex-end',
   },
+  keyboardContainer: {
+    width: '100%',
+    maxHeight: '94%',
+  },
   modalCard: {
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    maxHeight: '92%',
+    maxHeight: '100%',
     width: '100%',
     overflow: 'hidden',
   },

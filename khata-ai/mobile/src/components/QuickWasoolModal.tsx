@@ -9,11 +9,14 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { counterpartyApi } from '../api/counterparty.api';
 import { cashDrawerApi, ITillBalances } from '../api/cashDrawer.api';
+import { responsiveTextProps, fontScale } from '../theme/responsive';
 
 interface CustomerSummary {
   _id: string;
@@ -151,7 +154,11 @@ export const QuickWasoolModal: React.FC<QuickWasoolModalProps> = ({
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.modalOverlay}>
-        <View style={[styles.modalContent, { paddingBottom: Math.max(insets.bottom, 20) }]}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.keyboardContainer}
+        >
+          <View style={[styles.modalContent, { paddingBottom: Math.max(insets.bottom, 20) }]}>
           {/* Header & Customer Snapshot */}
           <View style={styles.modalHeader}>
             <View>
@@ -324,8 +331,9 @@ export const QuickWasoolModal: React.FC<QuickWasoolModalProps> = ({
             </TouchableOpacity>
           </ScrollView>
         </View>
-      </View>
-    </Modal>
+      </KeyboardAvoidingView>
+    </View>
+  </Modal>
   );
 };
 
@@ -335,11 +343,15 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(15, 23, 42, 0.75)',
     justifyContent: 'flex-end',
   },
+  keyboardContainer: {
+    width: '100%',
+    maxHeight: '94%',
+  },
   modalContent: {
     backgroundColor: '#0F172A',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    maxHeight: '90%',
+    maxHeight: '100%',
     paddingBottom: 24,
     borderWidth: 1,
     borderColor: '#1E293B',
@@ -438,6 +450,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#1E293B',
     borderWidth: 1,
     borderColor: '#334155',
+    flexShrink: 1,
+    minWidth: 0,
   },
   chipPillText: {
     fontSize: 11,

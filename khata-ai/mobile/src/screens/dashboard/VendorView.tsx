@@ -1440,13 +1440,13 @@ export const VendorView: React.FC = () => {
                             <View style={styles.custInitialBadgeNew}>
                               <Text style={styles.custInitialTextNew}>{cust.initial}</Text>
                             </View>
-                            <View style={{ flex: 1 }}>
+                            <View style={{ flex: 1, minWidth: 0 }}>
                               <View style={styles.custNameRow}>
-                                <Text style={styles.custNameNew} numberOfLines={1}>
+                                <Text style={styles.custNameNew} numberOfLines={1} ellipsizeMode="tail">
                                   {cust.name}
                                 </Text>
                                 {cust.urduName && (
-                                  <Text style={styles.custUrduNameNew}>{cust.urduName}</Text>
+                                  <Text style={styles.custUrduNameNew} numberOfLines={1}>{cust.urduName}</Text>
                                 )}
                               </View>
                               <Text style={styles.custPhoneNew}>{cust.phone}</Text>
@@ -3088,11 +3088,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '800',
     color: '#0B2239',
+    flexShrink: 1,
+    minWidth: 0,
   },
   custUrduNameNew: {
     fontSize: 12,
     fontWeight: '700',
     color: '#006C4E',
+    flexShrink: 1,
   },
   custPhoneNew: {
     fontSize: 11,
@@ -3106,6 +3109,8 @@ const styles = StyleSheet.create({
   },
   custBalanceCol: {
     alignItems: 'flex-end',
+    flexShrink: 0,
+    minWidth: 70,
   },
   custBalanceLabel: {
     fontSize: 9,

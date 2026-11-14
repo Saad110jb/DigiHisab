@@ -9,6 +9,8 @@ import {
   ActivityIndicator,
   ScrollView,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -18,6 +20,7 @@ import { inventoryApi, IInventoryItem } from '../api/inventory.api';
 import { ledgerApi } from '../api/ledger.api';
 import { deadStockLiquidatorApi, IHighMarginBundle } from '../api/deadStockLiquidator.api';
 import { counterpartyApi, ICounterparty } from '../api/counterparty.api';
+import { responsiveTextProps, fontScale } from '../theme/responsive';
 import { thermalPrinterService } from '../services/thermalPrinter.service';
 import {
   ContinuousBarcodeScannerModal,
@@ -410,7 +413,11 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <View style={styles.overlay}>
-        <View style={[styles.modalCard, { paddingBottom: Math.max(insets.bottom, 20) }]}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.keyboardContainer}
+        >
+          <View style={[styles.modalCard, { paddingBottom: Math.max(insets.bottom, 20) }]}>
           <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
             {/* Header */}
             <View style={styles.header}>
@@ -993,9 +1000,10 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({
             </TouchableOpacity>
           </ScrollView>
         </View>
-      </View>
+      </KeyboardAvoidingView>
+    </View>
 
-      {/* Continuous High-Velocity Camera Barcode Hardware Stream Modal */}
+    {/* Continuous High-Velocity Camera Barcode Hardware Stream Modal */}
       <ContinuousBarcodeScannerModal
         visible={showBarcodeScanner}
         onClose={() => setShowBarcodeScanner(false)}
@@ -1012,12 +1020,16 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(15, 23, 42, 0.65)',
     justifyContent: 'flex-end',
   },
+  keyboardContainer: {
+    width: '100%',
+    maxHeight: '94%',
+  },
   modalCard: {
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 20,
-    maxHeight: '90%',
+    maxHeight: '100%',
   },
   header: {
     flexDirection: 'row',

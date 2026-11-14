@@ -11,11 +11,14 @@ import {
   Platform,
   Switch,
   Alert,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Contacts from 'expo-contacts/legacy';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../theme/colors';
 import { counterpartyApi, ICounterparty } from '../api/counterparty.api';
+import { responsiveTextProps, fontScale } from '../theme/responsive';
 
 interface AddCustomerModalProps {
   visible: boolean;
@@ -35,6 +38,7 @@ export const AddCustomerModal: React.FC<AddCustomerModalProps> = ({
   onClose,
   onSuccess,
 }) => {
+  const insets = useSafeAreaInsets();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
@@ -185,7 +189,11 @@ export const AddCustomerModal: React.FC<AddCustomerModalProps> = ({
       onRequestClose={onClose}
     >
       <View style={styles.modalOverlay}>
-        <View style={styles.modalCard}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.keyboardContainer}
+        >
+          <View style={[styles.modalCard, { paddingBottom: Math.max(insets.bottom, 16) }]}>
           {/* Header */}
           <View style={styles.modalHeader}>
             <View style={styles.headerLeft}>
@@ -476,8 +484,9 @@ export const AddCustomerModal: React.FC<AddCustomerModalProps> = ({
             </TouchableOpacity>
           </View>
         </View>
-      </View>
-    </Modal>
+      </KeyboardAvoidingView>
+    </View>
+  </Modal>
   );
 };
 
@@ -487,12 +496,15 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(11, 34, 57, 0.65)',
     justifyContent: 'flex-end',
   },
+  keyboardContainer: {
+    width: '100%',
+    maxHeight: '94%',
+  },
   modalCard: {
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    maxHeight: '92%',
-    paddingBottom: Platform.OS === 'ios' ? 34 : 20,
+    maxHeight: '100%',
     ...Platform.select({
       ios: {
         shadowColor: '#000',

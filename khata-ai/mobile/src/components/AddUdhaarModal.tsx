@@ -10,11 +10,14 @@ import {
   ActivityIndicator,
   Switch,
   Image,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../theme/colors';
+import { responsiveTextProps, fontScale } from '../theme/responsive';
 import { ledgerApi, ILedgerEntry, ILedgerItem } from '../api/ledger.api';
 import { ICounterparty } from '../api/counterparty.api';
 import { parseUrduVoiceTranscript } from '../utils/urduVoiceParser';
@@ -511,7 +514,11 @@ export const AddUdhaarModal: React.FC<AddUdhaarModalProps> = ({
   return (
     <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose}>
       <View style={styles.modalOverlay}>
-        <View style={[styles.modalCard, { paddingBottom: Math.max(insets.bottom, 14) }]}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.keyboardContainer}
+        >
+          <View style={[styles.modalCard, { paddingBottom: Math.max(insets.bottom, 14) }]}>
           {/* STEP 1: CORE FAST-ENTRY HEADER */}
           {step === 1 ? (
             <View style={styles.modalHeader}>
@@ -628,11 +635,20 @@ export const AddUdhaarModal: React.FC<AddUdhaarModalProps> = ({
                               {c.name ? c.name[0].toUpperCase() : '?'}
                             </Text>
                           </View>
-                          <View>
-                            <Text style={[styles.customerChipName, isSelected && styles.customerChipNameActive]}>
+                          <View style={{ flex: 1, minWidth: 0 }}>
+                            <Text
+                              style={[styles.customerChipName, isSelected && styles.customerChipNameActive]}
+                              numberOfLines={1}
+                              ellipsizeMode="tail"
+                              {...responsiveTextProps}
+                            >
                               {c.name}
                             </Text>
-                            <Text style={[styles.customerChipPhone, isSelected && styles.customerChipPhoneActive]}>
+                            <Text
+                              style={[styles.customerChipPhone, isSelected && styles.customerChipPhoneActive]}
+                              numberOfLines={1}
+                              {...responsiveTextProps}
+                            >
                               {c.phone}
                             </Text>
                           </View>
@@ -1018,7 +1034,8 @@ export const AddUdhaarModal: React.FC<AddUdhaarModalProps> = ({
               </View>
             )}
           </ScrollView>
-        </View>
+          </View>
+        </KeyboardAvoidingView>
       </View>
 
       {/* Credit Warning Modal */}
@@ -1053,12 +1070,16 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(15, 23, 42, 0.75)',
     justifyContent: 'flex-end',
   },
+  keyboardContainer: {
+    width: '100%',
+    maxHeight: '94%',
+  },
   modalCard: {
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     overflow: 'hidden',
-    maxHeight: '92%',
+    maxHeight: '100%',
     width: '100%',
   },
   modalHeader: {
@@ -1653,6 +1674,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     height: 38,
     fontSize: 12,
+    minWidth: 0,
+    flexShrink: 1,
   },
   addItemPriceInput: {
     flex: 1,
@@ -1663,6 +1686,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     height: 38,
     fontSize: 12,
+    minWidth: 0,
+    flexShrink: 1,
   },
   addItemSubmitBtn: {
     backgroundColor: '#059669',

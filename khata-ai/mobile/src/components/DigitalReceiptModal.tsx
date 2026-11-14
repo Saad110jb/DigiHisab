@@ -163,7 +163,12 @@ export const DigitalReceiptModal: React.FC<DigitalReceiptModalProps> = ({
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <View style={styles.overlay}>
-        <View style={styles.container}>
+        <ScrollView
+          contentContainerStyle={styles.scrollWrapper}
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+        >
+          <View style={styles.container}>
           {/* Top Success Badge */}
           <View style={styles.successIconWrapper}>
             <Ionicons name="checkmark-circle-sharp" size={60} color="#10B981" />
@@ -304,8 +309,9 @@ export const DigitalReceiptModal: React.FC<DigitalReceiptModalProps> = ({
             <Text style={styles.closeBtnText}>بند کریں (Done)</Text>
           </TouchableOpacity>
         </View>
-      </View>
-    </Modal>
+      </ScrollView>
+    </View>
+  </Modal>
   );
 
 };
@@ -314,8 +320,12 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(11, 34, 57, 0.88)',
+  },
+  scrollWrapper: {
+    flexGrow: 1,
     justifyContent: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 24,
   },
   container: {
     backgroundColor: '#0B2239',
@@ -324,6 +334,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: 'rgba(0, 210, 180, 0.3)',
+    maxWidth: 420,
+    width: '100%',
+    alignSelf: 'center',
   },
   successIconWrapper: {
     marginTop: -10,
@@ -343,6 +356,7 @@ const styles = StyleSheet.create({
   },
   receiptSlip: {
     width: '100%',
+    maxWidth: 360,
     backgroundColor: '#122E48',
     borderRadius: 16,
     padding: 16,

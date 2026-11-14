@@ -393,7 +393,12 @@ export const MandiRateTrackerModal: React.FC<Props> = ({ visible, onClose }) => 
                   {/* City Selection Bar */}
                   <View style={styles.citySelectorSection}>
                     <Text style={styles.citySelectorLabel}>شہر منتخب کریں (Select District Mandi):</Text>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.cityScroll}>
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      style={styles.cityScroll}
+                      contentContainerStyle={styles.cityScrollContent}
+                    >
                       {(['Lahore', 'Karachi', 'Rawalpindi', 'Faisalabad', 'Multan'] as MandiCity[]).map((city) => (
                         <TouchableOpacity
                           key={city}
@@ -1696,6 +1701,10 @@ const styles = StyleSheet.create({
   cityScroll: {
     flexDirection: 'row',
   },
+  cityScrollContent: {
+    flexDirection: 'row',
+    paddingRight: 16,
+  },
   cityChip: {
     backgroundColor: '#0d1627',
     paddingVertical: 7,
@@ -1704,6 +1713,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
     borderWidth: 1,
     borderColor: '#17233b',
+    flexShrink: 0,
   },
   cityChipActive: {
     backgroundColor: 'rgba(0, 212, 159, 0.15)',

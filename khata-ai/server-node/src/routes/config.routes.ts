@@ -94,6 +94,26 @@ router.get('/app-version', (req: Request, res: Response) => {
       }
     });
 
+    // Check paywall enforcement state from superadmin files
+    let paywallEnforced = true;
+    try {
+      const CANDIDATE_SUB_PATHS = [
+        path.resolve(__dirname, '../../../../superadmin-frontend/.admin-subscriptions-state.json'),
+        path.resolve(__dirname, '../../../superadmin-frontend/.admin-subscriptions-state.json'),
+        path.resolve(process.cwd(), '../superadmin-frontend/.admin-subscriptions-state.json'),
+        'd:/Digi_Hisab/superadmin-frontend/.admin-subscriptions-state.json'
+      ];
+      for (const sp of CANDIDATE_SUB_PATHS) {
+        if (fs.existsSync(sp)) {
+          const subData = JSON.parse(fs.readFileSync(sp, 'utf8'));
+          if (subData.GLOBAL_SYSTEM_FLAGS?.subscriptionEnforcementActive !== undefined) {
+            paywallEnforced = Boolean(subData.GLOBAL_SYSTEM_FLAGS.subscriptionEnforcementActive);
+            break;
+          }
+        }
+      }
+    } catch (e) {}
+
     return res.json({
       success: true,
       data: {
@@ -104,6 +124,8 @@ router.get('/app-version', (req: Request, res: Response) => {
         latestVersion: latestVer,
         updateUrl: settings.playStoreUrl,
         featureFlags: flags,
+        subscriptionEnforcementActive: paywallEnforced,
+        enforcePaywalls: paywallEnforced,
       },
     });
   } catch (err: any) {

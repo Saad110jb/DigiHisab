@@ -11,6 +11,7 @@ import { CnicScannerModal } from '../../components/CnicScannerModal';
 import { SubscriptionModal } from '../../components/SubscriptionModal';
 import { subscriptionService, ISubscriptionRecord, PlanIdentifier } from '../../services/subscription.service';
 import { useAuth } from '../../store/auth.store';
+import { useAppVersion } from '../../context/AppVersionContext';
 import { COLORS } from '../../theme/colors';
 
 interface Props {
@@ -20,6 +21,8 @@ interface Props {
 export const UnifiedDashboard: React.FC<Props> = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const { user, activePersona } = useAuth();
+  const { isPaywallEnforced } = useAppVersion();
+  const isHousehold = activePersona === 'HOUSEHOLD';
   const [drawerVisible, setDrawerVisible] = useState<boolean>(false);
   const [cnicModalOpen, setCnicModalOpen] = useState<boolean>(false);
   const [cnicStatus, setCnicStatus] = useState<'NOT_SCANNED' | 'UNDER_REVIEW' | 'VERIFIED'>('NOT_SCANNED');
@@ -54,6 +57,12 @@ export const UnifiedDashboard: React.FC<Props> = ({ navigation }) => {
 
   const checkSubscriptionPromptLifecycle = async () => {
     try {
+      // 0. SuperAdmin Kill-Switch Guard: If paywall enforcement is turned OFF, never prompt or show plans
+      const enforced = await subscriptionService.isPaywallEnforced();
+      if (!enforced || isPaywallEnforced === false) {
+        return;
+      }
+
       const current = await loadSubscriptionInfo();
       const planKey = current?.subscription?.planKey;
       const isExp = current?.isExpired;
@@ -250,15 +259,21 @@ export const UnifiedDashboard: React.FC<Props> = ({ navigation }) => {
 
           <TouchableOpacity
             style={styles.subManageBtn}
-            onPress={() => setSubscriptionModalOpen(true)}
+            onPress={() => {
+              if (isPaywallEnforced) {
+                setSubscriptionModalOpen(true);
+              }
+            }}
           >
-            <Text style={styles.subManageBtnText}>پلانز</Text>
+            <Text style={styles.subManageBtnText}>
+              {isPaywallEnforced ? 'پلانز' : 'مفت فعال'}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
 
       {/* EXPIRATION NOTICE BANNER: Shown when 30-day month completed and plan disabled */}
-      {subExpired && !subBannerDismissed && (
+      {isPaywallEnforced && subExpired && !subBannerDismissed && (
         <View style={styles.subExpiredBanner}>
           <View style={styles.subBannerContent}>
             <View style={styles.subExpiredIconBox}>
@@ -291,7 +306,7 @@ export const UnifiedDashboard: React.FC<Props> = ({ navigation }) => {
       )}
 
       {/* RENEWAL REMINDER BANNER: Shown when 3 days or less remaining in active month */}
-      {subExpiringSoon && !subExpired && !subBannerDismissed && (
+      {isPaywallEnforced && subExpiringSoon && !subExpired && !subBannerDismissed && (
         <View style={styles.subReminderBanner}>
           <View style={styles.subBannerContent}>
             <View style={styles.subReminderIconBox}>
@@ -385,7 +400,8 @@ export const UnifiedDashboard: React.FC<Props> = ({ navigation }) => {
 
       {/* Dynamic Tier Subscription & Feature Paywall Modal */}
       <SubscriptionModal
-        visible={subscriptionModalOpen}
+        visible={subscriptionModalOpen && isPaywallEnforced}
+        currentPersona={isHousehold ? 'HOUSEHOLD' : 'DUKANDAR'}
         onClose={() => {
           setSubscriptionModalOpen(false);
           setFeatureTrigger({});

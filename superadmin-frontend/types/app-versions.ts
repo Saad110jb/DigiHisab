@@ -73,4 +73,6 @@ export interface IClientHandshakeResponse {
   changelogUrdu?: string;
   changelogEn?: string;
   featureFlags: Record<string, boolean>;
+  subscriptionEnforcementActive?: boolean;
+  enforcePaywalls?: boolean;
 }

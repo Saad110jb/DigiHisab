@@ -1,0 +1,47 @@
+{
+  "config": {
+    "enforcePaywalls": true,
+    "maintenanceMode": false,
+    "allowNewSignups": true,
+    "romanUrduVoice": true,
+    "freeCustomerCap": 20,
+    "chorNazarThresholdPKR": 500,
+    "managerPinLength": "4_DIGITS",
+    "bluetoothPrinting": true,
+    "paylinkExpiryHours": 72,
+    "defaultSubMeterTariffPKR": 48.5,
+    "automatedKametiDraw": true,
+    "staffAdvanceSalaryCapPercent": 50,
+    "rashanForecastCycle": "WEEKLY",
+    "paymentMode": "MANUAL",
+    "pilotJazzCashNumber": "03001234567",
+    "pilotJazzCashTitle": "DigiHisab Enterprise Pilot",
+    "pilotEasypaisaNumber": "03451234567",
+    "pilotEasypaisaTitle": "DigiHisab Solutions",
+    "freeMonthlyWhatsAppCredits": 30,
+    "paidMonthlyWhatsAppCredits": 500,
+    "grandfatherSubscribers": true,
+    "forceSuperAdmin2FA": true,
+    "sessionTimeoutMins": 30,
+    "auditLogRetentionDays": 180,
+    "maintenanceUrduMessage": "سسٹم اپ گریڈ جاری ہے: برائے مہربانی کچھ دیر بعد دوبارہ کوشش کریں۔ آپ کا کھاتہ، بیلنس اور کسٹمر ریکارڈ محفوظ ہے۔",
+    "maintenanceEnMessage": "Scheduled System Maintenance: Digi Hisab is currently upgrading database clusters. All your ledger balances and merchant records are secure. Service will resume shortly.",
+    "lastUpdated": "2026-11-14T11:29:46.775Z",
+    "updatedBy": "SYSTEM_GENESIS"
+  },
+  "sessions": {
+    "ADMIN_SESSION:ADM-101:SESS_8496ABB303E5C07F": {
+      "sessionId": "SESS_8496ABB303E5C07F",
+      "adminId": "ADM-101",
+      "nodeLabel": "SuperAdmin Master Node",
+      "ipAddress": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+      "deviceFingerprint": "DFP-FBABCD7",
+      "createdAt": "2026-11-14T12:38:57.166Z",
+      "expiresAt": 1794661737166,
+      "sessionVersion": 1
+    }
+  },
+  "globalSessionVersion": 1,
+  "timestamp": "2026-11-14T12:38:57.166Z"
+}

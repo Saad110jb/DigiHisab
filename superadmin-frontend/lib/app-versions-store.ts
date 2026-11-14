@@ -336,6 +336,25 @@ export function evaluateClientHandshake(
     }
   });
 
+  // 4. Check Global Paywall / Subscription Enforcement Status
+  let paywallEnforced = true;
+  try {
+    const subStatePath = path.join(process.cwd(), '.admin-subscriptions-state.json');
+    if (fs.existsSync(subStatePath)) {
+      const parsedSub = JSON.parse(fs.readFileSync(subStatePath, 'utf8'));
+      if (parsedSub.GLOBAL_SYSTEM_FLAGS?.subscriptionEnforcementActive !== undefined) {
+        paywallEnforced = Boolean(parsedSub.GLOBAL_SYSTEM_FLAGS.subscriptionEnforcementActive);
+      }
+    }
+    const redisStatePath = path.join(process.cwd(), '.redis-cache-state.json');
+    if (fs.existsSync(redisStatePath)) {
+      const parsedRedis = JSON.parse(fs.readFileSync(redisStatePath, 'utf8'));
+      if (parsedRedis.config?.enforcePaywalls !== undefined) {
+        paywallEnforced = Boolean(parsedRedis.config.enforcePaywalls) && paywallEnforced;
+      }
+    }
+  } catch (e) {}
+
   return {
     maintenance: { isActive: false },
     updateStatus,
@@ -345,7 +364,9 @@ export function evaluateClientHandshake(
     updateUrl: VERSION_SETTINGS_STORE.playStoreUrl,
     changelogUrdu: APP_VERSIONS_STORE[0]?.changelogUrdu,
     changelogEn: APP_VERSIONS_STORE[0]?.changelogEn,
-    featureFlags: flags
+    featureFlags: flags,
+    subscriptionEnforcementActive: paywallEnforced,
+    enforcePaywalls: paywallEnforced
   };
 }
 

@@ -40,6 +40,7 @@ export interface AppVersionContextType {
   isChecking: boolean;
   dismissSoftUpdate: () => void;
   isSoftUpdateDismissed: boolean;
+  isPaywallEnforced: boolean;
 }
 
 const AppVersionContext = createContext<AppVersionContextType | undefined>(undefined);
@@ -105,11 +106,13 @@ export const AppVersionProvider: React.FC<{ children: ReactNode }> = ({ children
   const [bypassMaintenance, setBypassMaintenance] = useState<boolean>(false);
   const [isSoftUpdateDismissed, setIsSoftUpdateDismissed] = useState<boolean>(false);
   const [isChecking, setIsChecking] = useState<boolean>(false);
+  const [isPaywallEnforced, setIsPaywallEnforced] = useState<boolean>(true);
 
   // Transition Tracking Refs to trigger notifications upon real-time state changes
   const prevMaintenanceActive = useRef<boolean | null>(null);
   const prevFeatureFlags = useRef<Record<string, boolean> | null>(null);
   const prevUpdateStatus = useRef<UpdateStatus | null>(null);
+  const prevPaywallEnforced = useRef<boolean | null>(null);
 
   const personaCode = activePersona === 'HOUSEHOLD' ? 'HOUSEHOLD' : 'DUKANDAR';
 
@@ -267,6 +270,32 @@ export const AppVersionProvider: React.FC<{ children: ReactNode }> = ({ children
       if (fetchedData.updateUrl) setUpdateUrl(fetchedData.updateUrl);
       if (fetchedData.changelogUrdu) setChangelogUrdu(fetchedData.changelogUrdu);
       if (fetchedData.changelogEn) setChangelogEn(fetchedData.changelogEn);
+
+      // 4. Check Paywall / Subscription Enforcement from SuperAdmin
+      if (fetchedData.subscriptionEnforcementActive !== undefined || fetchedData.enforcePaywalls !== undefined) {
+        const incomingPaywall = Boolean(
+          fetchedData.subscriptionEnforcementActive ?? fetchedData.enforcePaywalls
+        );
+        if (prevPaywallEnforced.current !== null && prevPaywallEnforced.current !== incomingPaywall) {
+          if (!incomingPaywall) {
+            dispatchNotification({
+              id: `paywall-unlocked-${Date.now()}`,
+              category: 'SYSTEM_BROADCAST',
+              priority: 'SUCCESS',
+              titleUrdu: '🎉 تمام فیچرز مفت دستیاب ہیں!',
+              titleEnglish: 'All Features Unlocked for Free',
+              messageUrdu: 'سپر ایڈمن کی طرف سے تمام پریمیم و اے آئی فیچرز تمام صارفین کے لیے مفت کر دیے گئے ہیں۔',
+              messageEnglish: 'SuperAdmin has unlocked all premium and AI features for free.',
+              timestamp: new Date().toISOString(),
+              actionLabel: 'شکریہ',
+              durationMs: 6000,
+            });
+          }
+        }
+        prevPaywallEnforced.current = incomingPaywall;
+        setIsPaywallEnforced(incomingPaywall);
+        AsyncStorage.setItem('@digihisab_paywall_enforced', String(incomingPaywall)).catch(() => {});
+      }
     }
     setIsChecking(false);
   }, [clientVersion, personaCode, dispatchNotification]);
@@ -311,6 +340,7 @@ export const AppVersionProvider: React.FC<{ children: ReactNode }> = ({ children
         isChecking,
         dismissSoftUpdate,
         isSoftUpdateDismissed,
+        isPaywallEnforced,
       }}
     >
       {children}

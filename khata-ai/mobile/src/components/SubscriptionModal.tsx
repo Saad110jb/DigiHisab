@@ -13,6 +13,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../store/auth.store';
+import { useAppVersion } from '../context/AppVersionContext';
 import { subscriptionService, PlanIdentifier } from '../services/subscription.service';
 import { COLORS } from '../theme/colors';
 
@@ -22,6 +23,7 @@ export interface SubscriptionModalProps {
   featureKeyRequired?: string;
   featureTitleUrdu?: string;
   onPlanSelected?: (planKey: string) => void;
+  currentPersona?: 'DUKANDAR' | 'HOUSEHOLD';
 }
 
 export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
@@ -29,15 +31,41 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
   onClose,
   featureKeyRequired,
   featureTitleUrdu,
-  onPlanSelected
+  onPlanSelected,
+  currentPersona,
 }) => {
-  const { user } = useAuth();
-  const [selectedPersona, setSelectedPersona] = useState<'DUKANDAR' | 'HOUSEHOLD' | 'DUAL'>('DUKANDAR');
-  const [selectedPlanKey, setSelectedPlanKey] = useState<string>('DUKAN_BASIC_250');
+  const { user, activePersona } = useAuth();
+  const { isPaywallEnforced } = useAppVersion();
+
+  const isHousehold = (currentPersona || activePersona) === 'HOUSEHOLD';
+
+  const [selectedPersona, setSelectedPersona] = useState<'DUKANDAR' | 'HOUSEHOLD' | 'DUAL'>(
+    isHousehold ? 'HOUSEHOLD' : 'DUKANDAR'
+  );
+  const [selectedPlanKey, setSelectedPlanKey] = useState<string>(
+    isHousehold ? 'GHAR_AI_PRO_200' : 'DUKAN_BASIC_250'
+  );
   const [promoCode, setPromoCode] = useState<string>('');
   const [discountApplied, setDiscountApplied] = useState<number>(0);
   const [promoValidated, setPromoValidated] = useState<boolean>(false);
   const [isValidatingPromo, setIsValidatingPromo] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (isHousehold && selectedPersona === 'DUKANDAR') {
+      setSelectedPersona('HOUSEHOLD');
+      setSelectedPlanKey('GHAR_AI_PRO_200');
+    } else if (!isHousehold && selectedPersona === 'HOUSEHOLD') {
+      setSelectedPersona('DUKANDAR');
+      setSelectedPlanKey('DUKAN_BASIC_250');
+    }
+  }, [isHousehold]);
+
+  // If SuperAdmin disabled Master Paywall / Subscription enforcement, close modal immediately
+  useEffect(() => {
+    if (!isPaywallEnforced && visible) {
+      onClose();
+    }
+  }, [isPaywallEnforced, visible]);
 
   useEffect(() => {
     if (featureKeyRequired) {
@@ -89,6 +117,11 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
     return Math.round(basePrice * (1 - discountApplied / 100));
   };
 
+  // If paywall enforcement is disabled by SuperAdmin, do not show any subscription plans
+  if (!visible || !isPaywallEnforced) {
+    return null;
+  }
+
   return (
     <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={handleSkip}>
       <View style={styles.modalOverlay}>
@@ -117,33 +150,37 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
             </View>
           )}
 
-          {/* Persona Segment Tabs */}
+          {/* Persona Segment Tabs (Ghar Ka Hisab only visible in Household dashboard) */}
           <View style={styles.personaTabs}>
-            <TouchableOpacity
-              style={[styles.personaTab, selectedPersona === 'DUKANDAR' && styles.personaTabActive]}
-              onPress={() => {
-                setSelectedPersona('DUKANDAR');
-                setSelectedPlanKey('DUKAN_BASIC_250');
-              }}
-            >
-              <Ionicons name="storefront" size={14} color={selectedPersona === 'DUKANDAR' ? '#0F172A' : '#94A3B8'} />
-              <Text style={[styles.personaTabText, selectedPersona === 'DUKANDAR' && styles.personaTabTextActive]}>
-                دکاندار (POS)
-              </Text>
-            </TouchableOpacity>
+            {!isHousehold && (
+              <TouchableOpacity
+                style={[styles.personaTab, selectedPersona === 'DUKANDAR' && styles.personaTabActive]}
+                onPress={() => {
+                  setSelectedPersona('DUKANDAR');
+                  setSelectedPlanKey('DUKAN_BASIC_250');
+                }}
+              >
+                <Ionicons name="storefront" size={14} color={selectedPersona === 'DUKANDAR' ? '#0F172A' : '#94A3B8'} />
+                <Text style={[styles.personaTabText, selectedPersona === 'DUKANDAR' && styles.personaTabTextActive]}>
+                  دکاندار (POS)
+                </Text>
+              </TouchableOpacity>
+            )}
 
-            <TouchableOpacity
-              style={[styles.personaTab, selectedPersona === 'HOUSEHOLD' && styles.personaTabActive]}
-              onPress={() => {
-                setSelectedPersona('HOUSEHOLD');
-                setSelectedPlanKey('GHAR_AI_PRO_200');
-              }}
-            >
-              <Ionicons name="home" size={14} color={selectedPersona === 'HOUSEHOLD' ? '#0F172A' : '#94A3B8'} />
-              <Text style={[styles.personaTabText, selectedPersona === 'HOUSEHOLD' && styles.personaTabTextActive]}>
-                گھر کا حساب
-              </Text>
-            </TouchableOpacity>
+            {isHousehold && (
+              <TouchableOpacity
+                style={[styles.personaTab, selectedPersona === 'HOUSEHOLD' && styles.personaTabActive]}
+                onPress={() => {
+                  setSelectedPersona('HOUSEHOLD');
+                  setSelectedPlanKey('GHAR_AI_PRO_200');
+                }}
+              >
+                <Ionicons name="home" size={14} color={selectedPersona === 'HOUSEHOLD' ? '#0F172A' : '#94A3B8'} />
+                <Text style={[styles.personaTabText, selectedPersona === 'HOUSEHOLD' && styles.personaTabTextActive]}>
+                  گھر کا حساب
+                </Text>
+              </TouchableOpacity>
+            )}
 
             <TouchableOpacity
               style={[styles.personaTab, selectedPersona === 'DUAL' && styles.personaTabActive]}

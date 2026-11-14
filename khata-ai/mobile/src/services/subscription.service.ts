@@ -223,6 +223,20 @@ class SubscriptionService {
   }
 
   /**
+   * Checks whether Master Paywall / Subscription Enforcement is active from SuperAdmin.
+   * If toggled OFF in SuperAdmin, all features are completely free and no plans should be shown.
+   */
+  async isPaywallEnforced(): Promise<boolean> {
+    try {
+      const stored = await AsyncStorage.getItem('@digihisab_paywall_enforced');
+      if (stored === 'false') return false;
+      return true;
+    } catch {
+      return true;
+    }
+  }
+
+  /**
    * Evaluates feature-gate access for a specific feature.
    * Returns whether access is permitted or why it is blocked.
    */
@@ -238,6 +252,19 @@ class SubscriptionService {
         featureKey,
         featureTitleUrdu: 'عمومی فیچر',
         requiredPlan: 'FREE_STARTER',
+      };
+    }
+
+    // 0. SuperAdmin Master Paywall Bypass Check:
+    // If Subscription Enforcement is turned OFF in SuperAdmin, allow everything!
+    const enforced = await this.isPaywallEnforced();
+    if (!enforced) {
+      return {
+        allowed: true,
+        featureKey,
+        featureTitleUrdu: meta.titleUrdu,
+        requiredPlan: 'FREE_STARTER',
+        daysRemaining: 999,
       };
     }
 

@@ -731,6 +731,7 @@ export const DomesticDashboardHub: React.FC = () => {
       {/* 15. Dynamic Domestic Subscription & Feature Paywall Modal */}
       <SubscriptionModal
         visible={subModalVisible}
+        currentPersona="HOUSEHOLD"
         onClose={() => {
           setSubModalVisible(false);
           setSubTrigger({});

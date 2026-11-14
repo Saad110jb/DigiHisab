@@ -1,6 +1,6 @@
 {
   "GLOBAL_SYSTEM_FLAGS": {
-    "subscriptionEnforcementActive": false,
+    "subscriptionEnforcementActive": true,
     "maintenanceMode": false,
     "allowGrandfatheredPricing": true
   },

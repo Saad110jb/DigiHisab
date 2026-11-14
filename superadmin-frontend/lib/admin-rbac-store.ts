@@ -7,6 +7,23 @@ const RBAC_STATE_PATH = path.join(process.cwd(), '.admin-rbac-state.json');
 // 1. Initial Admin Users Seed
 export let ADMIN_USERS_STORE: IAdminUser[] = [
   {
+    id: 'SA_01',
+    name: 'Root Console Sentinel',
+    label: 'Root Console Gateway (Node 00)',
+    email: 'admin.root@digihisab.pk',
+    role: 'ROOT_SUPERADMIN',
+    designation: 'Zero-Trust Sentinel',
+    department: 'Platform Architecture & Security',
+    node: 'Zero-Trust Master Console',
+    passwordText: 'Root@Sentinel#2026',
+    totpSecret: 'JBSWY3DPEHPK3PXP',
+    status: 'ACTIVE',
+    lastLoginAt: '2026-11-14 15:30 PKT',
+    lastLoginIp: '39.40.112.5 (Lahore, PK)',
+    twoFactorEnforced: true,
+    totalActionsLogged: 320,
+  },
+  {
     id: 'ADM-101',
     name: 'SuperAdmin Account #01',
     label: 'SuperAdmin Master Node',

@@ -1,5 +1,29 @@
 [
   {
+    "id": "AUDIT-2026-27178",
+    "timestamp": "2026-11-14T10:07:12.054Z",
+    "adminId": "ADM-101",
+    "adminName": "SuperAdmin Account #01",
+    "adminEmail": "admin.node01@digihisab.pk",
+    "adminRole": "ROOT_SUPERADMIN",
+    "actionType": "MASTER_SUBSCRIPTION_KILLSWITCH_TOGGLED",
+    "deskModule": "SUBSCRIPTION_ENGINE",
+    "targetEntityId": "SYS_FLAG:SUBSCRIPTION_ENFORCEMENT",
+    "targetEntityName": "Master System Paywall Enforcement",
+    "previousState": {
+      "enforcementActive": false
+    },
+    "newState": {
+      "enforcementActive": true
+    },
+    "ipAddress": "39.40.112.5",
+    "geoLocation": "Lahore, Punjab, Pakistan",
+    "userAgent": "SuperAdmin-Console/2.4 (Enterprise RBAC Audit Sentinel)",
+    "severity": "INFO",
+    "sha256Hash": "86922c12b482371eb4b2d870f81af5d0425aa6f3d25ffb055b68648b43d5452e",
+    "previousHash": "6dd13b541a8c4f92cc95b26af2ef05b57d689651e9a7fa771c54c9e539a59e5d"
+  },
+  {
     "id": "AUDIT-2026-99709",
     "timestamp": "2026-11-05T16:19:19.895Z",
     "adminId": "ADM-101",

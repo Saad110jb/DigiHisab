@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import {
   Database,
@@ -23,7 +23,7 @@ import { performOmniSearch, MASTER_SEARCH_RECORDS } from '@/lib/explorer-store';
 
 type ExplorerTab = 'SEARCH' | 'JEV' | 'DATABASE' | 'SBP';
 
-export default function ForensicExplorerPage() {
+function ForensicExplorerContent() {
   const searchParams = useSearchParams();
   const initialTabParam = searchParams.get('tab');
   const initialVoucherParam = searchParams.get('voucher') || '';
@@ -319,5 +319,13 @@ export default function ForensicExplorerPage() {
       />
 
     </div>
+  );
+}
+
+export default function ForensicExplorerPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-xs font-mono text-slate-400">Loading Explorer...</div>}>
+      <ForensicExplorerContent />
+    </Suspense>
   );
 }

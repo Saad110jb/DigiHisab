@@ -55,6 +55,12 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
 
 function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+
+  // If login page, render full-bleed standalone Zero-Trust vault without admin sidebar
+  if (pathname === '/admin/login') {
+    return <>{children}</>;
+  }
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
   const [identityModalOpen, setIdentityModalOpen] = useState(false);

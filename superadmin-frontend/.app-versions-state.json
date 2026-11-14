@@ -1,0 +1,225 @@
+{
+  "APP_VERSIONS_STORE": [
+    {
+      "id": "BUILD-241",
+      "versionString": "2.4.1",
+      "versionCode": 241,
+      "releaseDate": "2026-10-25",
+      "persona": "ALL",
+      "platform": "ANDROID",
+      "activeInstallsCount": 5410,
+      "adoptionPercentage": 64.2,
+      "status": "ACTIVE",
+      "changelogUrdu": "نئی سمارٹ شناختی کارڈ تصدیق، تیز رفتار کلاؤڈ سنک اور LESCO سب میٹر بلنگ کا اضافہ۔",
+      "changelogEn": "Smart CNIC OCR verification, enhanced offline SQLite ledger synchronization, and NEPRA-compliant LESCO sub-meter billing.",
+      "apkDownloadUrl": "https://cdn.digihisab.pk/apk/digi-hisab-v2.4.1.apk"
+    },
+    {
+      "id": "BUILD-230",
+      "versionString": "2.3.0",
+      "versionCode": 230,
+      "releaseDate": "2026-09-10",
+      "persona": "ALL",
+      "platform": "ANDROID",
+      "activeInstallsCount": 1920,
+      "adoptionPercentage": 22.8,
+      "status": "ACTIVE",
+      "changelogUrdu": "جاز کیش کیو آر اسکینر کی رفتار میں بہتری اور اردو آواز کے ذریعے اندراج کا ابتدائی فیچر۔",
+      "changelogEn": "JazzCash Dynamic QR scanner latency improvements and initial Urdu Voice AI Khata beta.",
+      "apkDownloadUrl": "https://cdn.digihisab.pk/apk/digi-hisab-v2.3.0.apk"
+    },
+    {
+      "id": "BUILD-210",
+      "versionString": "2.1.0",
+      "versionCode": 210,
+      "releaseDate": "2026-06-15",
+      "persona": "DUKANDAR",
+      "platform": "ANDROID",
+      "activeInstallsCount": 715,
+      "adoptionPercentage": 8.5,
+      "status": "DEPRECATED",
+      "changelogUrdu": "پرانا ورژن: اسٹیٹ بینک کے نئے سیکیورٹی رولز کے لیے فوری اپ ڈیٹ تجویز کی جاتی ہے۔",
+      "changelogEn": "Legacy POS engine. Security update recommended for SBP 2026 cryptographic audit compliance.",
+      "apkDownloadUrl": "https://cdn.digihisab.pk/apk/digi-hisab-v2.1.0.apk"
+    },
+    {
+      "id": "BUILD-190",
+      "versionString": "1.9.0",
+      "versionCode": 190,
+      "releaseDate": "2026-01-20",
+      "persona": "ALL",
+      "platform": "ANDROID",
+      "activeInstallsCount": 380,
+      "adoptionPercentage": 4.5,
+      "status": "BLOCKED",
+      "changelogUrdu": "ناکارہ ورژن: یہ ورژن بلاک کر دیا گیا ہے۔ نیا ورژن لازمی انسٹال کریں۔",
+      "changelogEn": "Hard Deprecated. Legacy REST endpoints permanently decommissioned. App update strictly required.",
+      "apkDownloadUrl": "https://cdn.digihisab.pk/apk/digi-hisab-v2.4.1.apk"
+    }
+  ],
+  "VERSION_SETTINGS_STORE": {
+    "dukanMinVersion": "2.2.0",
+    "dukanLatestVersion": "2.4.1",
+    "gharMinVersion": "1.8.0",
+    "gharLatestVersion": "2.4.1",
+    "playStoreUrl": "https://play.google.com/store/apps/details?id=pk.digihisab.app",
+    "apkDirectUrl": "https://cdn.digihisab.pk/apk/digi-hisab-latest.apk"
+  },
+  "FEATURE_FLAGS_STORE": [
+    {
+      "key": "jazzcash_qr_scanner",
+      "title": "JazzCash QR Payment Gateway",
+      "description": "Enables 1-tap customer checkout via dynamic merchant QR codes on Android POS.",
+      "descriptionUrdu": "کاؤنٹر سیل پر جاز کیش کیو آر اسکین کے ذریعے فوری ڈیجیٹل وصولی",
+      "category": "PAYMENTS",
+      "isEnabled": true,
+      "rolloutPercentage": 100,
+      "affectedPersonas": [
+        "DUKANDAR"
+      ],
+      "lastModifiedBy": "SuperAdmin Sentinel",
+      "lastModifiedAt": "11:45:51 pm PKT"
+    },
+    {
+      "key": "offline_local_sync",
+      "title": "Offline Local SQLite Sync Mode",
+      "description": "Caches vouchers locally and queues sync for rural stores with intermittent 2G/3G connectivity in Sindh & Southern Punjab.",
+      "descriptionUrdu": "کمزور انٹرنیٹ والے علاقوں کے لیے آف لائن کھاتہ اندراج اور بعد میں خودکار سنک",
+      "category": "CONNECTIVITY",
+      "isEnabled": true,
+      "rolloutPercentage": 100,
+      "affectedPersonas": [
+        "DUKANDAR",
+        "HOUSEHOLD"
+      ],
+      "lastModifiedBy": "Network Sentinel",
+      "lastModifiedAt": "2026-11-04 10:30 PKT"
+    },
+    {
+      "key": "urdu_voice_khata_ai",
+      "title": "Urdu AI Voice-based Ledger Input",
+      "description": "Allows merchants to dictate udhaar transactions verbally in Urdu (Whisper-v3 fine-tuned on Pakistani dialects).",
+      "descriptionUrdu": "اردو آواز کے ذریعے کھاتہ لکھوانے کی سہولت (مثال: اکرم کو 500 کا گھی ادھار دیا)",
+      "category": "AI_FEATURES",
+      "isEnabled": true,
+      "rolloutPercentage": 35,
+      "affectedPersonas": [
+        "DUKANDAR"
+      ],
+      "lastModifiedBy": "AI Product Lead",
+      "lastModifiedAt": "2026-11-04 16:15 PKT"
+    },
+    {
+      "key": "submeter_lesco_ocr",
+      "title": "LESCO/K-Electric Sub-Meter OCR Scanner",
+      "description": "Extracts WAPDA bill units and consumer numbers from camera snapshots for automated household splits.",
+      "descriptionUrdu": "بجلی کے بل کی تصویر سے خودکار یونٹس اور میٹر ریڈنگ کی شناخت",
+      "category": "UTILITIES",
+      "isEnabled": true,
+      "rolloutPercentage": 100,
+      "affectedPersonas": [
+        "HOUSEHOLD"
+      ],
+      "lastModifiedBy": "Utility Desk",
+      "lastModifiedAt": "2026-11-04 14:00 PKT"
+    },
+    {
+      "key": "easypaisa_merchant_gateway",
+      "title": "EasyPaisa Dynamic QR & USSD API",
+      "description": "Telenor Microfinance Bank QR gateway, direct till checkout, and USSD mobile push debits.",
+      "descriptionUrdu": "کاؤنٹر سیل پر ایزی پیسہ کیو آر کوڈ اور یو ایس ایس ڈی کے ذریعے رقم کی وصولی",
+      "category": "PAYMENTS",
+      "isEnabled": true,
+      "rolloutPercentage": 100,
+      "affectedPersonas": [
+        "DUKANDAR"
+      ],
+      "lastModifiedBy": "Payment Sentinel",
+      "lastModifiedAt": "2026-11-04 20:00 PKT"
+    },
+    {
+      "key": "raast_p2m_instant_rail",
+      "title": "SBP Raast Instant P2M Payments",
+      "description": "Zero-fee National Payment Rail (State Bank of Pakistan) merchant QR scans via 1-Link interoperability.",
+      "descriptionUrdu": "اسٹیٹ بینک راست فوری ادائیگی ریل (بغیر کسی اضافی چارجز کے فوری بینک ٹرانسفر)",
+      "category": "PAYMENTS",
+      "isEnabled": true,
+      "rolloutPercentage": 100,
+      "affectedPersonas": [
+        "DUKANDAR",
+        "HOUSEHOLD"
+      ],
+      "lastModifiedBy": "SBP Compliance Desk",
+      "lastModifiedAt": "2026-11-04 20:30 PKT"
+    },
+    {
+      "key": "fbr_pos_digital_invoicing",
+      "title": "FBR Tier-1 POS e-Invoicing (PRAL)",
+      "description": "Live PRAL fiscal invoice stamping, sales tax verification QR code printing, and daily tax ledger sync.",
+      "descriptionUrdu": "ایف بی آر کمپیوٹرائزڈ سیلز ٹیکس انوائسنگ اور پرال کیو آر کوڈ کی تصدیق",
+      "category": "TAX_LEGAL",
+      "isEnabled": true,
+      "rolloutPercentage": 100,
+      "affectedPersonas": [
+        "DUKANDAR"
+      ],
+      "lastModifiedBy": "Tax Compliance Lead",
+      "lastModifiedAt": "2026-11-04 21:00 PKT"
+    },
+    {
+      "key": "whatsapp_invoice_messenger",
+      "title": "WhatsApp Cloud Automated Tagaza & Receipts",
+      "description": "Meta Business Cloud API for automated customer balance reminders, payment links, and PDF thermal receipts.",
+      "descriptionUrdu": "گاہکوں کو بقایا جات کا خودکار واٹس ایپ میسج اور رسیدیں بھیجنے کی سہولت",
+      "category": "MESSAGING",
+      "isEnabled": true,
+      "rolloutPercentage": 100,
+      "affectedPersonas": [
+        "DUKANDAR"
+      ],
+      "lastModifiedBy": "Growth Sentinel",
+      "lastModifiedAt": "2026-11-04 21:15 PKT"
+    },
+    {
+      "key": "kameti_auto_debit_ledger",
+      "title": "Domestic Kameti Auto-Debit Scheduler",
+      "description": "Auto-deducts monthly kameti pool dues into domestic balance ledgers with SMS receipt broadcasting.",
+      "descriptionUrdu": "گھریلو کمیٹی اقساط کا خودکار کھاتہ اندراج اور ممبران کو ایس ایم ایس الرٹ",
+      "category": "HOUSEHOLD",
+      "isEnabled": true,
+      "rolloutPercentage": 100,
+      "affectedPersonas": [
+        "HOUSEHOLD"
+      ],
+      "lastModifiedBy": "Domestic Product Lead",
+      "lastModifiedAt": "2026-11-04 21:30 PKT"
+    },
+    {
+      "key": "chor_nazar_cash_skimming_guard",
+      "title": "Chor Nazar Till Skimming Blocker",
+      "description": "Real-time transaction freeze and supervisor OTP lock when cash drawer discrepancy exceeds 5%.",
+      "descriptionUrdu": "کیش دراز میں چوری یا 5 فیصد سے زیادہ کمی پر فوری کاؤنٹر لاک اور الرٹ",
+      "category": "FRAUD_PREVENTION",
+      "isEnabled": true,
+      "rolloutPercentage": 100,
+      "affectedPersonas": [
+        "DUKANDAR"
+      ],
+      "lastModifiedBy": "SuperAdmin Sentinel",
+      "lastModifiedAt": "11:50:20 pm PKT"
+    }
+  ],
+  "MAINTENANCE_CONFIG_STORE": {
+    "isActive": false,
+    "scheduledStartTime": "2026-11-04T23:00:00.000Z",
+    "durationMinutes": 45,
+    "urduMessage": "سسٹم اپ گریڈ جاری ہے...",
+    "englishMessage": "Scheduled System Maintenance: Digi Hisab is currently upgrading database clusters. All your ledger balances and merchant records are secure. Service will resume shortly.",
+    "allowedIpWhitelist": [
+      "39.40.112.5"
+    ],
+    "allowAdminBypass": true,
+    "lastToggledBy": "SuperAdmin Root",
+    "lastToggledAt": "11:33:15 pm PKT"
+  }
+}

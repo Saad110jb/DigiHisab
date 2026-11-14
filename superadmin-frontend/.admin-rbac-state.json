@@ -1,0 +1,73 @@
+{
+  "ADMIN_USERS_STORE": [
+    {
+      "id": "ADM-101",
+      "name": "SuperAdmin Account #01",
+      "label": "SuperAdmin Master Node",
+      "email": "admin.node01@digihisab.pk",
+      "role": "ROOT_SUPERADMIN",
+      "designation": "SuperAdmin",
+      "department": "Platform Architecture & SBP Core",
+      "node": "Platform Architecture & SBP Core",
+      "passwordText": "dGh$92!kM99#xP04",
+      "totpSecret": "JBSWY3DPEHPK3PXP",
+      "status": "ACTIVE",
+      "lastLoginAt": "2026-11-05 19:30 PKT",
+      "lastLoginIp": "39.40.112.5 (Lahore, PK)",
+      "twoFactorEnforced": true,
+      "totalActionsLogged": 149
+    },
+    {
+      "id": "ADM-102",
+      "name": "SuperAdmin Account #02",
+      "label": "SuperAdmin Node #02",
+      "email": "admin.node02@digihisab.pk",
+      "role": "ROOT_SUPERADMIN",
+      "designation": "SuperAdmin",
+      "department": "Regulatory Compliance & Verification",
+      "node": "Regulatory Compliance & Verification",
+      "passwordText": "testSecretPassword!99",
+      "totpSecret": "HXDMVJECJJWSRZ3U",
+      "status": "ACTIVE",
+      "lastLoginAt": "2026-11-05 18:45 PKT",
+      "lastLoginIp": "182.185.130.4 (Islamabad, PK)",
+      "twoFactorEnforced": true,
+      "totalActionsLogged": 87
+    },
+    {
+      "id": "ADM-103",
+      "name": "SuperAdmin Account #03",
+      "label": "SuperAdmin Node #03",
+      "email": "admin.node03@digihisab.pk",
+      "role": "ROOT_SUPERADMIN",
+      "designation": "SuperAdmin",
+      "department": "Khata Drop-off & Customer Care",
+      "node": "Merchant Settlement & Reconciliation",
+      "passwordText": "wQ4#vN81!kP5$xL9",
+      "totpSecret": "27P45QYYHVXPM2CX",
+      "status": "ACTIVE",
+      "lastLoginAt": "2026-11-05 17:20 PKT",
+      "lastLoginIp": "175.107.240.12 (Karachi, PK)",
+      "twoFactorEnforced": true,
+      "totalActionsLogged": 64
+    },
+    {
+      "id": "ADM-104",
+      "name": "SuperAdmin Account #04",
+      "label": "SuperAdmin Node #04",
+      "email": "admin.node04@digihisab.pk",
+      "role": "ROOT_SUPERADMIN",
+      "designation": "SuperAdmin",
+      "department": "Treasury, Raast IPN & Utility Audit",
+      "node": "Treasury, Raast IPN & Utility Audit",
+      "passwordText": "jR7$bT39&mX2#vK6",
+      "totpSecret": "ORSXG5BAMJXXK2LU",
+      "status": "ACTIVE",
+      "lastLoginAt": "2026-11-05 16:15 PKT",
+      "lastLoginIp": "39.40.112.90 (Faisalabad, PK)",
+      "twoFactorEnforced": true,
+      "totalActionsLogged": 39
+    }
+  ],
+  "ACTIVE_ADMIN_ID": "ADM-101"
+}

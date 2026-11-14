@@ -1,0 +1,332 @@
+[
+  {
+    "id": "AUDIT-2026-99709",
+    "timestamp": "2026-11-05T16:19:19.895Z",
+    "adminId": "ADM-101",
+    "adminName": "SuperAdmin Account #01",
+    "adminEmail": "admin.node01@digihisab.pk",
+    "adminRole": "ROOT_SUPERADMIN",
+    "actionType": "ADMIN_ROLE_CHANGED",
+    "deskModule": "RBAC_MANAGEMENT",
+    "targetEntityId": "ADM-103",
+    "targetEntityName": "SuperAdmin Node #03 (ADM-103)",
+    "previousState": {
+      "totpRegenerated": false
+    },
+    "newState": {
+      "totpRegenerated": true
+    },
+    "ipAddress": "39.40.112.5",
+    "geoLocation": "Lahore, Punjab, Pakistan",
+    "userAgent": "SuperAdmin-Console/2.4 (Enterprise RBAC Audit Sentinel)",
+    "severity": "CRITICAL",
+    "sha256Hash": "6dd13b541a8c4f92cc95b26af2ef05b57d689651e9a7fa771c54c9e539a59e5d",
+    "previousHash": "76fea6399212009b455eb03acba9f06600c274a759ed71483bfb1e6a60667017"
+  },
+  {
+    "id": "AUDIT-2026-97218",
+    "timestamp": "2026-11-05T16:10:10.911Z",
+    "adminId": "ADM-101",
+    "adminName": "SuperAdmin Account #01",
+    "adminEmail": "admin.node01@digihisab.pk",
+    "adminRole": "ROOT_SUPERADMIN",
+    "actionType": "ADMIN_ROLE_CHANGED",
+    "deskModule": "RBAC_MANAGEMENT",
+    "targetEntityId": "ADM-102",
+    "targetEntityName": "SuperAdmin Node #02 (ADM-102)",
+    "previousState": {
+      "passwordRotated": false
+    },
+    "newState": {
+      "passwordRotated": true
+    },
+    "ipAddress": "39.40.112.5",
+    "geoLocation": "Lahore, Punjab, Pakistan",
+    "userAgent": "SuperAdmin-Console/2.4 (Enterprise RBAC Audit Sentinel)",
+    "severity": "CRITICAL",
+    "sha256Hash": "76fea6399212009b455eb03acba9f06600c274a759ed71483bfb1e6a60667017",
+    "previousHash": "b4730f2bc3205d06e41838bbc65eb1646dac63d2f1153012f74bcc86d80a6f43"
+  },
+  {
+    "id": "AUDIT-2026-20122",
+    "timestamp": "2026-11-05T15:06:10.661Z",
+    "adminId": "ADM-101",
+    "adminName": "Hamza Malik",
+    "adminEmail": "hamza.malik@digihisab.pk",
+    "adminRole": "ROOT_SUPERADMIN",
+    "actionType": "MASTER_SUBSCRIPTION_KILLSWITCH_TOGGLED",
+    "deskModule": "SUBSCRIPTION_ENGINE",
+    "targetEntityId": "SYS_FLAG:SUBSCRIPTION_ENFORCEMENT",
+    "targetEntityName": "Master System Paywall Enforcement",
+    "previousState": {
+      "enforcementActive": true
+    },
+    "newState": {
+      "enforcementActive": false
+    },
+    "ipAddress": "39.40.112.5",
+    "geoLocation": "Lahore, Punjab, Pakistan",
+    "userAgent": "SuperAdmin-Console/2.4 (Enterprise RBAC Audit Sentinel)",
+    "severity": "CRITICAL",
+    "sha256Hash": "b4730f2bc3205d06e41838bbc65eb1646dac63d2f1153012f74bcc86d80a6f43",
+    "previousHash": "44c062666f455efbb35628e735a9dc5e8ea990fc0baea9041744cfc865465b3d"
+  },
+  {
+    "id": "AUDIT-2026-63847",
+    "timestamp": "2026-11-05T13:52:03.827Z",
+    "adminId": "ADM-101",
+    "adminName": "Hamza Malik",
+    "adminEmail": "hamza.malik@digihisab.pk",
+    "adminRole": "ROOT_SUPERADMIN",
+    "actionType": "BTL_COMMISSION_PAYOUT_SETTLED",
+    "deskModule": "MARKETING_INTELLIGENCE",
+    "targetEntityId": "AGT-03",
+    "targetEntityName": "Mian Rafiq (MULTAN_AGRO_15)",
+    "previousState": {
+      "payoutStatus": "PENDING"
+    },
+    "newState": {
+      "payoutStatus": "DISBURSED",
+      "earnedCommissionPKR": 23700
+    },
+    "ipAddress": "39.40.112.5",
+    "geoLocation": "Lahore, Punjab, Pakistan",
+    "userAgent": "SuperAdmin-Console/2.4 (Enterprise RBAC Audit Sentinel)",
+    "severity": "INFO",
+    "sha256Hash": "44c062666f455efbb35628e735a9dc5e8ea990fc0baea9041744cfc865465b3d",
+    "previousHash": "3a55375db22b712033a8546e8d16d12e0758007ee584ff1c95aa9b69eb1d5756"
+  },
+  {
+    "id": "AUDIT-2026-35159",
+    "timestamp": "2026-11-05T13:52:02.105Z",
+    "adminId": "ADM-101",
+    "adminName": "Hamza Malik",
+    "adminEmail": "hamza.malik@digihisab.pk",
+    "adminRole": "ROOT_SUPERADMIN",
+    "actionType": "SBP_AUDIT_REPORT_EXPORTED",
+    "deskModule": "MARKETING_INTELLIGENCE",
+    "targetEntityId": "MER-4821",
+    "targetEntityName": "Chaudhry Akram (Akram Cloth House)",
+    "previousState": {
+      "freeMonthsGranted": 3
+    },
+    "newState": {
+      "freeMonthsGranted": 4,
+      "reward": "1_MONTH_FREE_PRO"
+    },
+    "ipAddress": "39.40.112.5",
+    "geoLocation": "Lahore, Punjab, Pakistan",
+    "userAgent": "SuperAdmin-Console/2.4 (Enterprise RBAC Audit Sentinel)",
+    "severity": "INFO",
+    "sha256Hash": "3a55375db22b712033a8546e8d16d12e0758007ee584ff1c95aa9b69eb1d5756",
+    "previousHash": "492cb632e94b5ccbb021bece40450b575c27e719a3549c22a5d1a9e482bbcc81"
+  },
+  {
+    "id": "AUDIT-2026-10555",
+    "timestamp": "2026-11-05T11:51:14.865Z",
+    "adminId": "ADM-101",
+    "adminName": "Hamza Malik",
+    "adminEmail": "hamza.malik@digihisab.pk",
+    "adminRole": "ROOT_SUPERADMIN",
+    "actionType": "BTL_COMMISSION_PAYOUT_SETTLED",
+    "deskModule": "MARKETING_INTELLIGENCE",
+    "targetEntityId": "MULTAN_AGRO_15",
+    "targetEntityName": "Mian Rafiq (Ghalla Mandi & Chowk Bazaar)",
+    "previousState": {
+      "settlementStatus": "PENDING",
+      "totalEarnedPKR": 28500
+    },
+    "newState": {
+      "settlementStatus": "PAID",
+      "lastPayoutDate": "2026-11-05"
+    },
+    "ipAddress": "39.40.112.5",
+    "geoLocation": "Lahore, Punjab, Pakistan",
+    "userAgent": "SuperAdmin-Console/2.4 (Enterprise RBAC Audit Sentinel)",
+    "severity": "INFO",
+    "sha256Hash": "492cb632e94b5ccbb021bece40450b575c27e719a3549c22a5d1a9e482bbcc81",
+    "previousHash": "1be17d45cffada5bd32e8689c8bc0caa39a3d1eaa32063fb08b04c8dc52846c4"
+  },
+  {
+    "id": "AUDIT-2026-51488",
+    "timestamp": "2026-11-04T19:04:52.960Z",
+    "adminId": "ADM-101",
+    "adminName": "Hamza Malik",
+    "adminEmail": "hamza.malik@digihisab.pk",
+    "adminRole": "ROOT_SUPERADMIN",
+    "actionType": "SBP_AUDIT_REPORT_EXPORTED",
+    "deskModule": "AUDIT_LOGS",
+    "targetEntityId": "SBP-FORENSIC-EXPORT",
+    "targetEntityName": "State Bank Regulatory CSV Export (6 records)",
+    "previousState": null,
+    "newState": {
+      "exportedRecordsCount": 6,
+      "exportFormat": "CSV"
+    },
+    "ipAddress": "39.40.112.5",
+    "geoLocation": "Lahore, Punjab, Pakistan",
+    "userAgent": "SuperAdmin-Console/2.4 (Enterprise RBAC Audit Sentinel)",
+    "severity": "INFO",
+    "sha256Hash": "1be17d45cffada5bd32e8689c8bc0caa39a3d1eaa32063fb08b04c8dc52846c4",
+    "previousHash": "a4b1c8f3099bce8920194bc0281ef84218a93902bb147829ac20190184b2c891"
+  },
+  {
+    "id": "AUDIT-2026-98101",
+    "timestamp": "2026-11-04T18:45:51.000Z",
+    "adminId": "ADM-101",
+    "adminName": "Hamza Malik",
+    "adminEmail": "hamza.malik@digihisab.pk",
+    "adminRole": "ROOT_SUPERADMIN",
+    "actionType": "FEATURE_FLAG_RESTORED",
+    "deskModule": "APP_VERSIONING",
+    "targetEntityId": "FLAG-jazzcash_qr_scanner",
+    "targetEntityName": "JazzCash QR Payment Gateway",
+    "previousState": {
+      "isEnabled": false,
+      "status": "KILLED"
+    },
+    "newState": {
+      "isEnabled": true,
+      "status": "ENABLED",
+      "lastModifiedAt": "11:45:51 pm PKT"
+    },
+    "ipAddress": "39.40.112.5",
+    "geoLocation": "Lahore, Punjab, Pakistan",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) SuperAdmin-Console/2.4",
+    "severity": "INFO",
+    "sha256Hash": "a4b1c8f3099bce8920194bc0281ef84218a93902bb147829ac20190184b2c891",
+    "previousHash": "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
+  },
+  {
+    "id": "AUDIT-2026-98094",
+    "timestamp": "2026-11-04T18:45:22.000Z",
+    "adminId": "ADM-101",
+    "adminName": "Hamza Malik",
+    "adminEmail": "hamza.malik@digihisab.pk",
+    "adminRole": "ROOT_SUPERADMIN",
+    "actionType": "FEATURE_FLAG_KILLED",
+    "deskModule": "APP_VERSIONING",
+    "targetEntityId": "FLAG-jazzcash_qr_scanner",
+    "targetEntityName": "JazzCash QR Payment Gateway",
+    "previousState": {
+      "isEnabled": true,
+      "status": "ENABLED"
+    },
+    "newState": {
+      "isEnabled": false,
+      "status": "KILLED",
+      "outageReason": "Simulated Gateway Outage"
+    },
+    "ipAddress": "39.40.112.5",
+    "geoLocation": "Lahore, Punjab, Pakistan",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) SuperAdmin-Console/2.4",
+    "severity": "WARNING",
+    "sha256Hash": "b5c2d9e4100cde9031205cd1392fa95329b04013cc258930bd31201295c3d902",
+    "previousHash": "a4b1c8f3099bce8920194bc0281ef84218a93902bb147829ac20190184b2c891"
+  },
+  {
+    "id": "AUDIT-2026-98080",
+    "timestamp": "2026-11-04T18:25:55.000Z",
+    "adminId": "ADM-101",
+    "adminName": "Hamza Malik",
+    "adminEmail": "hamza.malik@digihisab.pk",
+    "adminRole": "ROOT_SUPERADMIN",
+    "actionType": "EMERGENCY_MAINTENANCE_TRIGGER",
+    "deskModule": "APP_VERSIONING",
+    "targetEntityId": "MAINTENANCE_SENTINEL",
+    "targetEntityName": "All Pakistan POS Terminals",
+    "previousState": {
+      "isActive": false
+    },
+    "newState": {
+      "isActive": true,
+      "durationMinutes": 45,
+      "estEndTime": "2026-11-04T19:10:55.815Z"
+    },
+    "ipAddress": "39.40.112.5",
+    "geoLocation": "Lahore, Punjab, Pakistan",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) SuperAdmin-Console/2.4",
+    "severity": "CRITICAL",
+    "sha256Hash": "c6d3e0f5211def0142316de2403fb06430c15124dd369041ce42312306d4e013",
+    "previousHash": "b5c2d9e4100cde9031205cd1392fa95329b04013cc258930bd31201295c3d902"
+  },
+  {
+    "id": "AUDIT-2026-98045",
+    "timestamp": "2026-11-04T17:15:30.000Z",
+    "adminId": "ADM-102",
+    "adminName": "Ayesha Khan",
+    "adminEmail": "ayesha.khan@digihisab.pk",
+    "adminRole": "COMPLIANCE_OFFICER",
+    "actionType": "CNIC_MANUAL_VERIFY",
+    "deskModule": "KYC_DOCUMENTS",
+    "targetEntityId": "CNIC-35201-1928374-1",
+    "targetEntityName": "Muhammad Saad (Al-Madina Karyana)",
+    "previousState": {
+      "kycStatus": "PENDING_AUDIT",
+      "nadraVerified": false
+    },
+    "newState": {
+      "kycStatus": "VERIFIED",
+      "nadraVerified": true,
+      "verisysAuditRef": "NADRA-PK-2026-904"
+    },
+    "ipAddress": "182.185.130.4",
+    "geoLocation": "Islamabad, ICT, Pakistan",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) SBP-Compliance/2.4",
+    "severity": "INFO",
+    "sha256Hash": "d7e4f1a6322ef01253427ef3514ac17541d26235ee470152df53423417e5f124",
+    "previousHash": "c6d3e0f5211def0142316de2403fb06430c15124dd369041ce42312306d4e013"
+  },
+  {
+    "id": "AUDIT-2026-98010",
+    "timestamp": "2026-11-04T16:30:12.000Z",
+    "adminId": "ADM-103",
+    "adminName": "Bilal Tariq",
+    "adminEmail": "bilal.tariq@digihisab.pk",
+    "adminRole": "DISPUTE_RESOLVER",
+    "actionType": "DISPUTE_RESOLVED_REFUND",
+    "deskModule": "DISPUTES_COMPLAINTS",
+    "targetEntityId": "TICKET-9081",
+    "targetEntityName": "Sub-meter Water Pump Dispute #9081",
+    "previousState": {
+      "status": "OPEN",
+      "disputedAmountPKR": 4500
+    },
+    "newState": {
+      "status": "RESOLVED",
+      "adjustedAmountPKR": 2250,
+      "resolutionNote": "Tenant portion split 50/50 approved"
+    },
+    "ipAddress": "175.107.240.12",
+    "geoLocation": "Karachi, Sindh, Pakistan",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/129.0.0.0",
+    "severity": "WARNING",
+    "sha256Hash": "e8f5a2b7433fa12364538fa4625bd28652e37346ff581263ea64534528f6a235",
+    "previousHash": "d7e4f1a6322ef01253427ef3514ac17541d26235ee470152df53423417e5f124"
+  },
+  {
+    "id": "AUDIT-2026-97990",
+    "timestamp": "2026-11-04T14:45:00.000Z",
+    "adminId": "ADM-101",
+    "adminName": "Hamza Malik",
+    "adminEmail": "hamza.malik@digihisab.pk",
+    "adminRole": "ROOT_SUPERADMIN",
+    "actionType": "DISCO_SLAB_RATE_MUTATION",
+    "deskModule": "SUB_METERS_TARIFFS",
+    "targetEntityId": "DISCO-LESCO-UNPROTECTED",
+    "targetEntityName": "LESCO 201-300 Unit Base Slab",
+    "previousState": {
+      "baseUnitRatePKR": 32.1
+    },
+    "newState": {
+      "baseUnitRatePKR": 33.1,
+      "gazetteSro": "S.R.O. 279(I)/2026"
+    },
+    "ipAddress": "39.40.112.5",
+    "geoLocation": "Lahore, Punjab, Pakistan",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) SuperAdmin-Console/2.4",
+    "severity": "CRITICAL",
+    "sha256Hash": "f9a6b3c8544ab23475649ab5736ce39763f48457aa692374fb75645639a7b346",
+    "previousHash": "e8f5a2b7433fa12364538fa4625bd28652e37346ff581263ea64534528f6a235"
+  }
+]

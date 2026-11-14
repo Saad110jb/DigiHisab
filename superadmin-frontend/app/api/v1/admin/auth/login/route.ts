@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { ADMIN_USERS_STORE } from '@/lib/admin-rbac-store';
+import { ADMIN_USERS_STORE, getAdminUsers } from '@/lib/admin-rbac-store';
 import { verifyTotpToken } from '@/lib/auth/totp';
 import { recordAdminAction } from '@/lib/admin-audit-store';
 import { redisSessionStore } from '@/lib/redis-session-store';
@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
 
     // 2. Lookup Admin Account
     const cleanEmail = String(email).trim().toLowerCase();
-    const admin = ADMIN_USERS_STORE.find(
+    const admin = getAdminUsers().find(
       (u) =>
         u.email.toLowerCase() === cleanEmail ||
         u.id.toLowerCase() === cleanEmail ||

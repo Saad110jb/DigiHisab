@@ -1,6 +1,23 @@
 {
   "ADMIN_USERS_STORE": [
     {
+      "id": "SA_01",
+      "name": "Root Console Sentinel",
+      "label": "Root Console Gateway (Node 00)",
+      "email": "admin.root@digihisab.pk",
+      "role": "ROOT_SUPERADMIN",
+      "designation": "Zero-Trust Sentinel",
+      "department": "Platform Architecture & Security",
+      "node": "Zero-Trust Master Console",
+      "passwordText": "Root@Sentinel#2026",
+      "totpSecret": "JBSWY3DPEHPK3PXP",
+      "status": "ACTIVE",
+      "lastLoginAt": "2026-11-14 15:30 PKT",
+      "lastLoginIp": "39.40.112.5 (Lahore, PK)",
+      "twoFactorEnforced": true,
+      "totalActionsLogged": 320
+    },
+    {
       "id": "ADM-101",
       "name": "SuperAdmin Account #01",
       "label": "SuperAdmin Master Node",
@@ -15,7 +32,7 @@
       "lastLoginAt": "2026-11-05 19:30 PKT",
       "lastLoginIp": "39.40.112.5 (Lahore, PK)",
       "twoFactorEnforced": true,
-      "totalActionsLogged": 157
+      "totalActionsLogged": 176
     },
     {
       "id": "ADM-102",

@@ -40,6 +40,11 @@ android/app/build
 ios/Pods
 ios/build
 
+# Testing
+test-results/
+playwright-report/
+.last-run.json
+
 # Logs
 logs
 *.log

@@ -18,12 +18,14 @@ export default defineConfig({
     baseURL: process.env.SUPERADMIN_URL || 'http://localhost:3000',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
+    video: 'off',
   },
   projects: [
     {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      name: 'msedge',
+      use: {
+        channel: 'msedge',
+      },
     },
   ],
 });

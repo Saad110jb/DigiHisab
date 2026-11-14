@@ -52,6 +52,8 @@ import domesticAuditUpdateRoutes from './domesticAuditUpdate.routes';
 import configRoutes from './config.routes';
 import financialReportsRoutes from './financialReports.routes';
 import bankReconciliationRoutes from './bankReconciliation.routes';
+import paymentsRoutes from './payments.routes';
+import jevRoutes from './jev.routes';
 
 const router = Router();
 
@@ -124,6 +126,10 @@ router.use('/supplier-contracts', supplierContractRoutes);
 router.use('/suppliers', supplierContractRoutes);
 router.use('/purchase-orders', wholesalePurchaseOrderRoutes);
 router.use('/audit-logs', auditLogRoutes);
+router.use('/wholesale-po', wholesalePurchaseOrderRoutes);
+router.use('/till', cashDrawerRoutes);
+router.use('/payments', paymentsRoutes);
+router.use('/jev', jevRoutes);
 router.use('/financial-reports', financialReportsRoutes);
 router.use('/bank-reconciliation', bankReconciliationRoutes);
 

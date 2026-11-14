@@ -1,5 +1,487 @@
 [
   {
+    "id": "AUDIT-2026-62851",
+    "timestamp": "2026-11-14T19:33:39.313Z",
+    "adminId": "ADM-101",
+    "adminName": "SuperAdmin Account #01",
+    "adminEmail": "admin.node01@digihisab.pk",
+    "adminRole": "ROOT_SUPERADMIN",
+    "actionType": "SUBSCRIPTION_GRANT_MUTATION",
+    "deskModule": "SUBSCRIPTION_ENGINE",
+    "targetEntityId": "TID_1794684788911",
+    "targetEntityName": "Manual Pilot Subscription Approved [TID_1794684788911]",
+    "previousState": {
+      "status": "PENDING_APPROVAL"
+    },
+    "newState": {
+      "status": "APPROVED",
+      "verifiedAt": "2026-11-14T19:33:39.310Z"
+    },
+    "ipAddress": "39.40.112.5",
+    "geoLocation": "Lahore, Punjab, Pakistan",
+    "userAgent": "SuperAdmin-Console/2.4 (Enterprise RBAC Audit Sentinel)",
+    "severity": "INFO",
+    "sha256Hash": "77fa1b354dfc264a9d366bc693725fb31e32a70db9391d7b399faf3c44d59075",
+    "previousHash": "315bbb475ba460595eb453e518cdbdc8ba35013f222740a75b4918ec45772a8f"
+  },
+  {
+    "id": "AUDIT-2026-75035",
+    "timestamp": "2026-11-14T19:33:36.846Z",
+    "adminId": "ADM-101",
+    "adminName": "SuperAdmin Account #01",
+    "adminEmail": "admin.node01@digihisab.pk",
+    "adminRole": "ROOT_SUPERADMIN",
+    "actionType": "SUBSCRIPTION_PRICE_MUTATION",
+    "deskModule": "SUBSCRIPTION_ENGINE",
+    "targetEntityId": "TIER-DUKAN-250",
+    "targetEntityName": "Dukandar Retail Standard (DUKAN_BASIC_250)",
+    "previousState": {
+      "pricePKR": 300
+    },
+    "newState": {
+      "pricePKR": 300,
+      "isActive": true
+    },
+    "ipAddress": "39.40.112.5",
+    "geoLocation": "Lahore, Punjab, Pakistan",
+    "userAgent": "SuperAdmin-Console/2.4 (Enterprise RBAC Audit Sentinel)",
+    "severity": "WARNING",
+    "sha256Hash": "315bbb475ba460595eb453e518cdbdc8ba35013f222740a75b4918ec45772a8f",
+    "previousHash": "993282d93ff81b566917e4537f0749b346d2e1861c256c282a06e73961941d9d"
+  },
+  {
+    "id": "AUDIT-2026-77875",
+    "timestamp": "2026-11-14T19:33:31.382Z",
+    "adminId": "ADM-101",
+    "adminName": "SuperAdmin Account #01",
+    "adminEmail": "admin.node01@digihisab.pk",
+    "adminRole": "ROOT_SUPERADMIN",
+    "actionType": "SUPERADMIN_LOGIN_SUCCESS",
+    "deskModule": "FORENSIC_SECURITY",
+    "targetEntityId": "SA_01",
+    "targetEntityName": "Root Console Sentinel (Root Console Gateway (Node 00))",
+    "previousState": null,
+    "newState": {
+      "adminId": "SA_01",
+      "sessionId": "SESS_70F380F629924EC8",
+      "sessionVersion": 1,
+      "status": "SUCCESS",
+      "ipAddress": "::1",
+      "deviceFingerprint": "DFP-FBABCD7",
+      "authMethod": "CREDENTIALS_AND_TOTP_2FA"
+    },
+    "ipAddress": "::1",
+    "geoLocation": "Lahore, Punjab, Pakistan",
+    "userAgent": "SuperAdmin-Console/2.4 (Enterprise RBAC Audit Sentinel)",
+    "severity": "INFO",
+    "sha256Hash": "993282d93ff81b566917e4537f0749b346d2e1861c256c282a06e73961941d9d",
+    "previousHash": "2aed6989f4fc8b86a12599c30b7e182718b0caf79798434d48b4ad39d76b59d9"
+  },
+  {
+    "id": "AUDIT-2026-11453",
+    "timestamp": "2026-11-14T19:33:27.283Z",
+    "adminId": "ADM-101",
+    "adminName": "SuperAdmin Account #01",
+    "adminEmail": "admin.node01@digihisab.pk",
+    "adminRole": "ROOT_SUPERADMIN",
+    "actionType": "SUPERADMIN_LOGIN_SUCCESS",
+    "deskModule": "FORENSIC_SECURITY",
+    "targetEntityId": "SA_01",
+    "targetEntityName": "Root Console Sentinel (Root Console Gateway (Node 00))",
+    "previousState": null,
+    "newState": {
+      "adminId": "SA_01",
+      "sessionId": "SESS_1441482D4E67A55A",
+      "sessionVersion": 1,
+      "status": "SUCCESS",
+      "ipAddress": "::1",
+      "deviceFingerprint": "DFP-FBABCD7",
+      "authMethod": "CREDENTIALS_AND_TOTP_2FA"
+    },
+    "ipAddress": "::1",
+    "geoLocation": "Lahore, Punjab, Pakistan",
+    "userAgent": "SuperAdmin-Console/2.4 (Enterprise RBAC Audit Sentinel)",
+    "severity": "INFO",
+    "sha256Hash": "2aed6989f4fc8b86a12599c30b7e182718b0caf79798434d48b4ad39d76b59d9",
+    "previousHash": "da7e082081afd9664cbdbfd2513654fd35c839754736b3bb3ca704cbe0f45be0"
+  },
+  {
+    "id": "AUDIT-2026-15340",
+    "timestamp": "2026-11-14T19:33:23.000Z",
+    "adminId": "ADM-101",
+    "adminName": "SuperAdmin Account #01",
+    "adminEmail": "admin.node01@digihisab.pk",
+    "adminRole": "ROOT_SUPERADMIN",
+    "actionType": "ADMIN_LOGIN_FAILED",
+    "deskModule": "FORENSIC_SECURITY",
+    "targetEntityId": "SA_01",
+    "targetEntityName": "Root Console Sentinel",
+    "previousState": null,
+    "newState": {
+      "adminId": "SA_01",
+      "reason": "TOTP_INVALID",
+      "remainingAttempts": 2
+    },
+    "ipAddress": "::1",
+    "geoLocation": "Lahore, Punjab, Pakistan",
+    "userAgent": "SuperAdmin-Console/2.4 (Enterprise RBAC Audit Sentinel)",
+    "severity": "CRITICAL",
+    "sha256Hash": "da7e082081afd9664cbdbfd2513654fd35c839754736b3bb3ca704cbe0f45be0",
+    "previousHash": "64573185b74705abf740f4198a31af3ec8d41b4671081cc032ba6e625bc0039d"
+  },
+  {
+    "id": "AUDIT-2026-87251",
+    "timestamp": "2026-11-14T19:32:12.103Z",
+    "adminId": "ADM-101",
+    "adminName": "SuperAdmin Account #01",
+    "adminEmail": "admin.node01@digihisab.pk",
+    "adminRole": "ROOT_SUPERADMIN",
+    "actionType": "SUBSCRIPTION_GRANT_MUTATION",
+    "deskModule": "SUBSCRIPTION_ENGINE",
+    "targetEntityId": "TID_1794684726419",
+    "targetEntityName": "Manual Pilot Subscription Approved [TID_1794684726419]",
+    "previousState": {
+      "status": "PENDING_APPROVAL"
+    },
+    "newState": {
+      "status": "APPROVED",
+      "verifiedAt": "2026-11-14T19:32:12.100Z"
+    },
+    "ipAddress": "39.40.112.5",
+    "geoLocation": "Lahore, Punjab, Pakistan",
+    "userAgent": "SuperAdmin-Console/2.4 (Enterprise RBAC Audit Sentinel)",
+    "severity": "INFO",
+    "sha256Hash": "64573185b74705abf740f4198a31af3ec8d41b4671081cc032ba6e625bc0039d",
+    "previousHash": "cd8fba384614ab2439fb37c5fc359e6d645e85791466fa62072ae780a5dd2ca8"
+  },
+  {
+    "id": "AUDIT-2026-95079",
+    "timestamp": "2026-11-14T19:32:03.111Z",
+    "adminId": "ADM-101",
+    "adminName": "SuperAdmin Account #01",
+    "adminEmail": "admin.node01@digihisab.pk",
+    "adminRole": "ROOT_SUPERADMIN",
+    "actionType": "SUBSCRIPTION_PRICE_MUTATION",
+    "deskModule": "SUBSCRIPTION_ENGINE",
+    "targetEntityId": "TIER-DUKAN-250",
+    "targetEntityName": "Dukandar Retail Standard (DUKAN_BASIC_250)",
+    "previousState": {
+      "pricePKR": 300
+    },
+    "newState": {
+      "pricePKR": 300,
+      "isActive": true
+    },
+    "ipAddress": "39.40.112.5",
+    "geoLocation": "Lahore, Punjab, Pakistan",
+    "userAgent": "SuperAdmin-Console/2.4 (Enterprise RBAC Audit Sentinel)",
+    "severity": "WARNING",
+    "sha256Hash": "cd8fba384614ab2439fb37c5fc359e6d645e85791466fa62072ae780a5dd2ca8",
+    "previousHash": "d58aa715115f26545139ee47b535d27f40a2e5d8a27cc4798a37bf491e8240f5"
+  },
+  {
+    "id": "AUDIT-2026-66113",
+    "timestamp": "2026-11-14T19:31:50.838Z",
+    "adminId": "ADM-101",
+    "adminName": "SuperAdmin Account #01",
+    "adminEmail": "admin.node01@digihisab.pk",
+    "adminRole": "ROOT_SUPERADMIN",
+    "actionType": "SUPERADMIN_LOGIN_SUCCESS",
+    "deskModule": "FORENSIC_SECURITY",
+    "targetEntityId": "SA_01",
+    "targetEntityName": "Root Console Sentinel (Root Console Gateway (Node 00))",
+    "previousState": null,
+    "newState": {
+      "adminId": "SA_01",
+      "sessionId": "SESS_942C77FEBC94A296",
+      "sessionVersion": 1,
+      "status": "SUCCESS",
+      "ipAddress": "::1",
+      "deviceFingerprint": "DFP-FBABCD7",
+      "authMethod": "CREDENTIALS_AND_TOTP_2FA"
+    },
+    "ipAddress": "::1",
+    "geoLocation": "Lahore, Punjab, Pakistan",
+    "userAgent": "SuperAdmin-Console/2.4 (Enterprise RBAC Audit Sentinel)",
+    "severity": "INFO",
+    "sha256Hash": "d58aa715115f26545139ee47b535d27f40a2e5d8a27cc4798a37bf491e8240f5",
+    "previousHash": "c40d3bd28195467b3c31f73266e8acd4b46b941d76d42b622b5d65252e92d42c"
+  },
+  {
+    "id": "AUDIT-2026-67075",
+    "timestamp": "2026-11-14T19:31:37.723Z",
+    "adminId": "ADM-101",
+    "adminName": "SuperAdmin Account #01",
+    "adminEmail": "admin.node01@digihisab.pk",
+    "adminRole": "ROOT_SUPERADMIN",
+    "actionType": "ADMIN_LOGIN_FAILED",
+    "deskModule": "FORENSIC_SECURITY",
+    "targetEntityId": "SA_01",
+    "targetEntityName": "Root Console Sentinel",
+    "previousState": null,
+    "newState": {
+      "adminId": "SA_01",
+      "reason": "TOTP_INVALID",
+      "remainingAttempts": 2
+    },
+    "ipAddress": "::1",
+    "geoLocation": "Lahore, Punjab, Pakistan",
+    "userAgent": "SuperAdmin-Console/2.4 (Enterprise RBAC Audit Sentinel)",
+    "severity": "CRITICAL",
+    "sha256Hash": "c40d3bd28195467b3c31f73266e8acd4b46b941d76d42b622b5d65252e92d42c",
+    "previousHash": "79df29d161cb6bd94932081e2b7cbe1d7811e061eb0dcf409403ef4bef02ce29"
+  },
+  {
+    "id": "AUDIT-2026-22496",
+    "timestamp": "2026-11-14T19:29:42.551Z",
+    "adminId": "ADM-101",
+    "adminName": "SuperAdmin Account #01",
+    "adminEmail": "admin.node01@digihisab.pk",
+    "adminRole": "ROOT_SUPERADMIN",
+    "actionType": "SUBSCRIPTION_GRANT_MUTATION",
+    "deskModule": "SUBSCRIPTION_ENGINE",
+    "targetEntityId": "TID_1794684581577",
+    "targetEntityName": "Manual Pilot Subscription Approved [TID_1794684581577]",
+    "previousState": {
+      "status": "PENDING_APPROVAL"
+    },
+    "newState": {
+      "status": "APPROVED",
+      "verifiedAt": "2026-11-14T19:29:42.548Z"
+    },
+    "ipAddress": "39.40.112.5",
+    "geoLocation": "Lahore, Punjab, Pakistan",
+    "userAgent": "SuperAdmin-Console/2.4 (Enterprise RBAC Audit Sentinel)",
+    "severity": "INFO",
+    "sha256Hash": "79df29d161cb6bd94932081e2b7cbe1d7811e061eb0dcf409403ef4bef02ce29",
+    "previousHash": "736dd246d2bd6e393b539c30b014d79bbf1a1a8ec698d34a04ad351c9fe58cc4"
+  },
+  {
+    "id": "AUDIT-2026-95652",
+    "timestamp": "2026-11-14T19:29:26.413Z",
+    "adminId": "ADM-101",
+    "adminName": "SuperAdmin Account #01",
+    "adminEmail": "admin.node01@digihisab.pk",
+    "adminRole": "ROOT_SUPERADMIN",
+    "actionType": "SUBSCRIPTION_PRICE_MUTATION",
+    "deskModule": "SUBSCRIPTION_ENGINE",
+    "targetEntityId": "TIER-DUKAN-250",
+    "targetEntityName": "Dukandar Retail Standard (DUKAN_BASIC_250)",
+    "previousState": {
+      "pricePKR": 300
+    },
+    "newState": {
+      "pricePKR": 300,
+      "isActive": true
+    },
+    "ipAddress": "39.40.112.5",
+    "geoLocation": "Lahore, Punjab, Pakistan",
+    "userAgent": "SuperAdmin-Console/2.4 (Enterprise RBAC Audit Sentinel)",
+    "severity": "WARNING",
+    "sha256Hash": "736dd246d2bd6e393b539c30b014d79bbf1a1a8ec698d34a04ad351c9fe58cc4",
+    "previousHash": "f486479ee0bf19cddc2b5f0a67545a9511ff9e5404e8b18872e17babd1908bd8"
+  },
+  {
+    "id": "AUDIT-2026-69976",
+    "timestamp": "2026-11-14T19:23:56.820Z",
+    "adminId": "ADM-101",
+    "adminName": "SuperAdmin Account #01",
+    "adminEmail": "admin.node01@digihisab.pk",
+    "adminRole": "ROOT_SUPERADMIN",
+    "actionType": "SUPERADMIN_LOGIN_SUCCESS",
+    "deskModule": "FORENSIC_SECURITY",
+    "targetEntityId": "SA_01",
+    "targetEntityName": "Root Console Sentinel (Root Console Gateway (Node 00))",
+    "previousState": null,
+    "newState": {
+      "adminId": "SA_01",
+      "sessionId": "SESS_5356BBDA0F00A47B",
+      "sessionVersion": 1,
+      "status": "SUCCESS",
+      "ipAddress": "::1",
+      "deviceFingerprint": "DFP_VERIFIED",
+      "authMethod": "CREDENTIALS_AND_TOTP_2FA"
+    },
+    "ipAddress": "::1",
+    "geoLocation": "Lahore, Punjab, Pakistan",
+    "userAgent": "SuperAdmin-Console/2.4 (Enterprise RBAC Audit Sentinel)",
+    "severity": "INFO",
+    "sha256Hash": "f486479ee0bf19cddc2b5f0a67545a9511ff9e5404e8b18872e17babd1908bd8",
+    "previousHash": "e87bbb19762d304f12e111cf5c5bb13a28aef6afd548845d080616723f3f5ca9"
+  },
+  {
+    "id": "AUDIT-2026-45185",
+    "timestamp": "2026-11-14T19:23:25.188Z",
+    "adminId": "ADM-101",
+    "adminName": "SuperAdmin Account #01",
+    "adminEmail": "admin.node01@digihisab.pk",
+    "adminRole": "ROOT_SUPERADMIN",
+    "actionType": "ADMIN_LOGIN_FAILED",
+    "deskModule": "FORENSIC_SECURITY",
+    "targetEntityId": "SECURITY_GATEWAY",
+    "targetEntityName": "SuperAdmin Zero-Trust Edge",
+    "previousState": null,
+    "newState": {
+      "attemptedHandle": "admin.root@digihisab.pk",
+      "reason": "USER_NOT_FOUND",
+      "remainingAttempts": 2
+    },
+    "ipAddress": "::1",
+    "geoLocation": "Lahore, Punjab, Pakistan",
+    "userAgent": "SuperAdmin-Console/2.4 (Enterprise RBAC Audit Sentinel)",
+    "severity": "WARNING",
+    "sha256Hash": "e87bbb19762d304f12e111cf5c5bb13a28aef6afd548845d080616723f3f5ca9",
+    "previousHash": "e52ef0e9e011fd7de3891c87e376ba20b9c8293de662eb269fae8ee2e8e6e1dc"
+  },
+  {
+    "id": "AUDIT-2026-99268",
+    "timestamp": "2026-11-14T19:21:44.533Z",
+    "adminId": "ADM-101",
+    "adminName": "SuperAdmin Account #01",
+    "adminEmail": "admin.node01@digihisab.pk",
+    "adminRole": "ROOT_SUPERADMIN",
+    "actionType": "SUBSCRIPTION_GRANT_MUTATION",
+    "deskModule": "SUBSCRIPTION_ENGINE",
+    "targetEntityId": "TID_1794684103349",
+    "targetEntityName": "Manual Pilot Subscription Approved [TID_1794684103349]",
+    "previousState": {
+      "status": "PENDING_APPROVAL"
+    },
+    "newState": {
+      "status": "APPROVED",
+      "verifiedAt": "2026-11-14T19:21:44.529Z"
+    },
+    "ipAddress": "39.40.112.5",
+    "geoLocation": "Lahore, Punjab, Pakistan",
+    "userAgent": "SuperAdmin-Console/2.4 (Enterprise RBAC Audit Sentinel)",
+    "severity": "INFO",
+    "sha256Hash": "e52ef0e9e011fd7de3891c87e376ba20b9c8293de662eb269fae8ee2e8e6e1dc",
+    "previousHash": "4572449cd12f6cf7ff2f2b892be97e913cc7d7c8b2496eaa6a131e32213682b9"
+  },
+  {
+    "id": "AUDIT-2026-80666",
+    "timestamp": "2026-11-14T19:21:23.641Z",
+    "adminId": "ADM-101",
+    "adminName": "SuperAdmin Account #01",
+    "adminEmail": "admin.node01@digihisab.pk",
+    "adminRole": "ROOT_SUPERADMIN",
+    "actionType": "SUBSCRIPTION_PRICE_MUTATION",
+    "deskModule": "SUBSCRIPTION_ENGINE",
+    "targetEntityId": "TIER-DUKAN-250",
+    "targetEntityName": "Dukandar Retail Standard (DUKAN_BASIC_250)",
+    "previousState": {
+      "pricePKR": 300
+    },
+    "newState": {
+      "pricePKR": 300,
+      "isActive": true
+    },
+    "ipAddress": "39.40.112.5",
+    "geoLocation": "Lahore, Punjab, Pakistan",
+    "userAgent": "SuperAdmin-Console/2.4 (Enterprise RBAC Audit Sentinel)",
+    "severity": "WARNING",
+    "sha256Hash": "4572449cd12f6cf7ff2f2b892be97e913cc7d7c8b2496eaa6a131e32213682b9",
+    "previousHash": "30c845841d584314f6c866c0e36f6b2b66b2fbbaece7673a42545f05174e8e31"
+  },
+  {
+    "id": "AUDIT-2026-98434",
+    "timestamp": "2026-11-14T19:20:55.167Z",
+    "adminId": "ADM-101",
+    "adminName": "SuperAdmin Account #01",
+    "adminEmail": "admin.node01@digihisab.pk",
+    "adminRole": "ROOT_SUPERADMIN",
+    "actionType": "ADMIN_LOGIN_FAILED",
+    "deskModule": "FORENSIC_SECURITY",
+    "targetEntityId": "SECURITY_GATEWAY",
+    "targetEntityName": "SuperAdmin Zero-Trust Edge",
+    "previousState": null,
+    "newState": {
+      "attemptedHandle": "admin.root@digihisab.pk",
+      "reason": "USER_NOT_FOUND",
+      "remainingAttempts": 2
+    },
+    "ipAddress": "::1",
+    "geoLocation": "Lahore, Punjab, Pakistan",
+    "userAgent": "SuperAdmin-Console/2.4 (Enterprise RBAC Audit Sentinel)",
+    "severity": "WARNING",
+    "sha256Hash": "30c845841d584314f6c866c0e36f6b2b66b2fbbaece7673a42545f05174e8e31",
+    "previousHash": "c4d74f11f264ca8d92d221ddf89fc3dad5218cf92b5c89e72a7bf6a28e6af1c2"
+  },
+  {
+    "id": "AUDIT-2026-31606",
+    "timestamp": "2026-11-14T19:19:08.901Z",
+    "adminId": "ADM-101",
+    "adminName": "SuperAdmin Account #01",
+    "adminEmail": "admin.node01@digihisab.pk",
+    "adminRole": "ROOT_SUPERADMIN",
+    "actionType": "SUBSCRIPTION_GRANT_MUTATION",
+    "deskModule": "SUBSCRIPTION_ENGINE",
+    "targetEntityId": "TEST_999",
+    "targetEntityName": "Manual Pilot Subscription Approved [TEST_999]",
+    "previousState": {
+      "status": "PENDING_APPROVAL"
+    },
+    "newState": {
+      "status": "APPROVED",
+      "verifiedAt": "2026-11-14T19:19:08.897Z"
+    },
+    "ipAddress": "39.40.112.5",
+    "geoLocation": "Lahore, Punjab, Pakistan",
+    "userAgent": "SuperAdmin-Console/2.4 (Enterprise RBAC Audit Sentinel)",
+    "severity": "INFO",
+    "sha256Hash": "c4d74f11f264ca8d92d221ddf89fc3dad5218cf92b5c89e72a7bf6a28e6af1c2",
+    "previousHash": "48f7bcdea5d16b1d7ca5f0b84f4236ff61b8f4d996ed6560d2087cb47e5a2add"
+  },
+  {
+    "id": "AUDIT-2026-86477",
+    "timestamp": "2026-11-14T19:12:33.375Z",
+    "adminId": "ADM-101",
+    "adminName": "SuperAdmin Account #01",
+    "adminEmail": "admin.node01@digihisab.pk",
+    "adminRole": "ROOT_SUPERADMIN",
+    "actionType": "SUBSCRIPTION_PRICE_MUTATION",
+    "deskModule": "SUBSCRIPTION_ENGINE",
+    "targetEntityId": "TIER-DUKAN-250",
+    "targetEntityName": "Dukandar Retail Standard (DUKAN_BASIC_250)",
+    "previousState": {
+      "pricePKR": 250
+    },
+    "newState": {
+      "pricePKR": 300,
+      "isActive": true
+    },
+    "ipAddress": "39.40.112.5",
+    "geoLocation": "Lahore, Punjab, Pakistan",
+    "userAgent": "SuperAdmin-Console/2.4 (Enterprise RBAC Audit Sentinel)",
+    "severity": "WARNING",
+    "sha256Hash": "48f7bcdea5d16b1d7ca5f0b84f4236ff61b8f4d996ed6560d2087cb47e5a2add",
+    "previousHash": "1250e26c85287241adc19912fe61684baf8a3e93256bcda375f7ae8b2e78d616"
+  },
+  {
+    "id": "AUDIT-2026-35267",
+    "timestamp": "2026-11-14T12:52:46.660Z",
+    "adminId": "ADM-101",
+    "adminName": "SuperAdmin Account #01",
+    "adminEmail": "admin.node01@digihisab.pk",
+    "adminRole": "ROOT_SUPERADMIN",
+    "actionType": "MASTER_SUBSCRIPTION_KILLSWITCH_TOGGLED",
+    "deskModule": "SUBSCRIPTION_ENGINE",
+    "targetEntityId": "SYS_FLAG:SUBSCRIPTION_ENFORCEMENT",
+    "targetEntityName": "Master System Paywall Enforcement",
+    "previousState": {
+      "enforcementActive": true
+    },
+    "newState": {
+      "enforcementActive": false
+    },
+    "ipAddress": "39.40.112.5",
+    "geoLocation": "Lahore, Punjab, Pakistan",
+    "userAgent": "SuperAdmin-Console/2.4 (Enterprise RBAC Audit Sentinel)",
+    "severity": "CRITICAL",
+    "sha256Hash": "1250e26c85287241adc19912fe61684baf8a3e93256bcda375f7ae8b2e78d616",
+    "previousHash": "df3810b5ea08e3696f164c975c51f38e55bb5f4c685b6c9926d292fab6a2b486"
+  },
+  {
     "id": "AUDIT-2026-30408",
     "timestamp": "2026-11-14T12:38:57.168Z",
     "adminId": "ADM-101",

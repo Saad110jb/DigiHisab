@@ -49,7 +49,8 @@ export const createCounterparty = async (req: Request, res: Response): Promise<R
       email,
       address,
       cnic,
-      relationType,
+      relationType: rawRelationType,
+      type,
       creditLimit,
       defaultReturnDays,
       isCreditBlocked,
@@ -59,6 +60,7 @@ export const createCounterparty = async (req: Request, res: Response): Promise<R
       tradeCreditTerms,
       notes,
     } = req.body;
+    const relationType = rawRelationType || type;
 
     if (!name || !phone || !relationType) {
       return res.status(400).json({
@@ -115,7 +117,8 @@ export const createCounterparty = async (req: Request, res: Response): Promise<R
       email: email ? email.trim().toLowerCase() : undefined,
       address: address ? address.trim() : undefined,
       cnic: formattedCnic,
-      relationType,
+      relationType: rawRelationType,
+      type,
       creditLimit: creditLimit !== undefined ? Number(creditLimit) : 5000.0,
       defaultReturnDays: defaultReturnDays !== undefined ? Number(defaultReturnDays) : 7,
       currentBalance: 0.0,
@@ -274,7 +277,8 @@ export const updateCounterparty = async (req: Request, res: Response): Promise<R
       email,
       address,
       cnic,
-      relationType,
+      relationType: rawRelationType,
+      type,
       creditLimit,
       defaultReturnDays,
       isCreditBlocked,

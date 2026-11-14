@@ -26,22 +26,59 @@
     "auditLogRetentionDays": 180,
     "maintenanceUrduMessage": "سسٹم اپ گریڈ جاری ہے: برائے مہربانی کچھ دیر بعد دوبارہ کوشش کریں۔ آپ کا کھاتہ، بیلنس اور کسٹمر ریکارڈ محفوظ ہے۔",
     "maintenanceEnMessage": "Scheduled System Maintenance: Digi Hisab is currently upgrading database clusters. All your ledger balances and merchant records are secure. Service will resume shortly.",
-    "lastUpdated": "2026-11-14T11:29:46.775Z",
-    "updatedBy": "SYSTEM_GENESIS"
+    "lastUpdated": "2026-11-14T19:33:40.057Z",
+    "updatedBy": "Root SuperAdmin Control",
+    "chorNazarThreshold": 1000,
+    "submeterTariff": 52,
+    "enforceSubscriptionPaywalls": true,
+    "platformMaintenanceMode": false
   },
   "sessions": {
-    "ADMIN_SESSION:ADM-101:SESS_8496ABB303E5C07F": {
-      "sessionId": "SESS_8496ABB303E5C07F",
-      "adminId": "ADM-101",
-      "nodeLabel": "SuperAdmin Master Node",
+    "ADMIN_SESSION:SA_01:SESS_5356BBDA0F00A47B": {
+      "sessionId": "SESS_5356BBDA0F00A47B",
+      "adminId": "SA_01",
+      "nodeLabel": "Root Console Gateway (Node 00)",
       "ipAddress": "::1",
-      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+      "userAgent": "Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.19041.6456",
+      "deviceFingerprint": "DFP_SYNTH_VERIFIED",
+      "createdAt": "2026-11-14T19:23:56.809Z",
+      "expiresAt": 1794686036809,
+      "sessionVersion": 1
+    },
+    "ADMIN_SESSION:SA_01:SESS_942C77FEBC94A296": {
+      "sessionId": "SESS_942C77FEBC94A296",
+      "adminId": "SA_01",
+      "nodeLabel": "Root Console Gateway (Node 00)",
+      "ipAddress": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
       "deviceFingerprint": "DFP-FBABCD7",
-      "createdAt": "2026-11-14T12:38:57.166Z",
-      "expiresAt": 1794661737166,
+      "createdAt": "2026-11-14T19:31:50.834Z",
+      "expiresAt": 1794686510834,
+      "sessionVersion": 1
+    },
+    "ADMIN_SESSION:SA_01:SESS_1441482D4E67A55A": {
+      "sessionId": "SESS_1441482D4E67A55A",
+      "adminId": "SA_01",
+      "nodeLabel": "Root Console Gateway (Node 00)",
+      "ipAddress": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+      "deviceFingerprint": "DFP-FBABCD7",
+      "createdAt": "2026-11-14T19:33:27.209Z",
+      "expiresAt": 1794686607209,
+      "sessionVersion": 1
+    },
+    "ADMIN_SESSION:SA_01:SESS_70F380F629924EC8": {
+      "sessionId": "SESS_70F380F629924EC8",
+      "adminId": "SA_01",
+      "nodeLabel": "Root Console Gateway (Node 00)",
+      "ipAddress": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+      "deviceFingerprint": "DFP-FBABCD7",
+      "createdAt": "2026-11-14T19:33:31.380Z",
+      "expiresAt": 1794686611380,
       "sessionVersion": 1
     }
   },
   "globalSessionVersion": 1,
-  "timestamp": "2026-11-14T12:38:57.166Z"
+  "timestamp": "2026-11-14T19:33:40.057Z"
 }

@@ -1,6 +1,6 @@
 {
   "GLOBAL_SYSTEM_FLAGS": {
-    "subscriptionEnforcementActive": true,
+    "subscriptionEnforcementActive": false,
     "maintenanceMode": false,
     "allowGrandfatheredPricing": true
   },
@@ -211,7 +211,7 @@
       "name": "Dukandar Retail Standard",
       "nameUrdu": "دکاندار بنیادی ریٹیل کھاتہ",
       "personaScope": "DUKANDAR_ONLY",
-      "pricePKR": 250,
+      "pricePKR": 300,
       "billingCycle": "MONTHLY",
       "trialDays": 14,
       "isActive": true,
@@ -266,8 +266,8 @@
         }
       ],
       "activeSubscribers": 510,
-      "mrrContributionPKR": 127500,
-      "updatedAt": "2026-11-05"
+      "mrrContributionPKR": 153000,
+      "updatedAt": "2026-11-14"
     },
     {
       "id": "TIER-DUKAN-400",
@@ -401,6 +401,76 @@
     }
   ],
   "PRICING_AUDIT_LOGS_STORE": [
+    {
+      "id": "PAUDIT-007",
+      "tierId": "TIER-DUKAN-250",
+      "tierPlanKey": "DUKAN_BASIC_250",
+      "tierName": "Dukandar Retail Standard",
+      "oldPricePKR": 300,
+      "newPricePKR": 300,
+      "changedBy": "Chaudhry SuperAdmin",
+      "role": "ROOT_SUPERADMIN",
+      "timestamp": "2026-11-14 19:33 PKT",
+      "grandfatheredSubscribers": 510,
+      "sha256Hash": "2a0d02e86c4006cb22afa60dabe53797b789124ae5ae1ef0038f6ce244ef8570",
+      "reason": "Direct SuperAdmin price override from PKR 300 to PKR 300"
+    },
+    {
+      "id": "PAUDIT-006",
+      "tierId": "TIER-DUKAN-250",
+      "tierPlanKey": "DUKAN_BASIC_250",
+      "tierName": "Dukandar Retail Standard",
+      "oldPricePKR": 300,
+      "newPricePKR": 300,
+      "changedBy": "Chaudhry SuperAdmin",
+      "role": "ROOT_SUPERADMIN",
+      "timestamp": "2026-11-14 19:32 PKT",
+      "grandfatheredSubscribers": 510,
+      "sha256Hash": "2a0d02e86c4006cb22afa60dabe53797b789124ae5ae1ef0038f6ce244ef8570",
+      "reason": "Direct SuperAdmin price override from PKR 300 to PKR 300"
+    },
+    {
+      "id": "PAUDIT-005",
+      "tierId": "TIER-DUKAN-250",
+      "tierPlanKey": "DUKAN_BASIC_250",
+      "tierName": "Dukandar Retail Standard",
+      "oldPricePKR": 300,
+      "newPricePKR": 300,
+      "changedBy": "Chaudhry SuperAdmin",
+      "role": "ROOT_SUPERADMIN",
+      "timestamp": "2026-11-14 19:29 PKT",
+      "grandfatheredSubscribers": 510,
+      "sha256Hash": "2a0d02e86c4006cb22afa60dabe53797b789124ae5ae1ef0038f6ce244ef8570",
+      "reason": "Direct SuperAdmin price override from PKR 300 to PKR 300"
+    },
+    {
+      "id": "PAUDIT-004",
+      "tierId": "TIER-DUKAN-250",
+      "tierPlanKey": "DUKAN_BASIC_250",
+      "tierName": "Dukandar Retail Standard",
+      "oldPricePKR": 300,
+      "newPricePKR": 300,
+      "changedBy": "Chaudhry SuperAdmin",
+      "role": "ROOT_SUPERADMIN",
+      "timestamp": "2026-11-14 19:21 PKT",
+      "grandfatheredSubscribers": 510,
+      "sha256Hash": "2a0d02e86c4006cb22afa60dabe53797b789124ae5ae1ef0038f6ce244ef8570",
+      "reason": "Direct SuperAdmin price override from PKR 300 to PKR 300"
+    },
+    {
+      "id": "PAUDIT-003",
+      "tierId": "TIER-DUKAN-250",
+      "tierPlanKey": "DUKAN_BASIC_250",
+      "tierName": "Dukandar Retail Standard",
+      "oldPricePKR": 250,
+      "newPricePKR": 300,
+      "changedBy": "Chaudhry SuperAdmin",
+      "role": "ROOT_SUPERADMIN",
+      "timestamp": "2026-11-14 19:12 PKT",
+      "grandfatheredSubscribers": 510,
+      "sha256Hash": "b15771f961ffa619c654f21bac8a3e7e7f5b3ee7954b402c0769d7169e5af08d",
+      "reason": "Direct SuperAdmin price override from PKR 250 to PKR 300"
+    },
     {
       "id": "PAUDIT-001",
       "tierId": "TIER-DUKAN-250",

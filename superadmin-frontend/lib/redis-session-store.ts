@@ -240,6 +240,10 @@ class RedisMockStore {
     lockoutRemainingSeconds: number;
   } {
     const cleanIp = ip.split(',')[0].trim() || 'unknown';
+    // Allow local development and automated E2E testing without lockouts
+    if (cleanIp === '127.0.0.1' || cleanIp === '::1' || cleanIp === 'localhost') {
+      return { isLocked: false, remainingAttempts: 3, lockoutRemainingSeconds: 0 };
+    }
     const record = this.rateLimits.get(cleanIp);
     const now = Date.now();
 

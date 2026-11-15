@@ -102,23 +102,31 @@ export const MandiArbitrageRadarModal: React.FC<MandiArbitrageRadarModalProps> =
             </TouchableOpacity>
           </View>
 
-          {/* Quick Metrics Bar */}
+          {/* Quick Metrics Bar (Interactive) */}
           <View style={styles.metricsContainer}>
-            <View style={styles.metricCard}>
+            <TouchableOpacity
+              style={[styles.metricCard, activeTab === 'CREEPS' && styles.metricCardActiveCreep]}
+              onPress={() => setActiveTab('CREEPS')}
+              activeOpacity={0.75}
+            >
               <Text style={styles.metricLabel}>قیمتوں میں اضافہ (Creeps)</Text>
               <Text style={[styles.metricValue, { color: priceCreeps.length > 0 ? '#DC2626' : '#059669' }]}>
                 {priceCreeps.length}
               </Text>
-              <Text style={styles.metricSub}>ہائیک الرٹس</Text>
-            </View>
+              <Text style={styles.metricSub}>ہائیک الرٹس • ٹیپ کریں</Text>
+            </TouchableOpacity>
 
-            <View style={styles.metricCard}>
-              <Text style={styles.metricLabel}>سستے ترین سپلائرز (Best Quotes)</Text>
+            <TouchableOpacity
+              style={[styles.metricCard, activeTab === 'QUOTES' && styles.metricCardActiveQuotes]}
+              onPress={() => setActiveTab('QUOTES')}
+              activeOpacity={0.75}
+            >
+              <Text style={styles.metricLabel}>سستے ترین سپلائرز (Quotes)</Text>
               <Text style={[styles.metricValue, { color: '#0284C7' }]}>
                 {optimalQuotes.length}
               </Text>
-              <Text style={styles.metricSub}>متبادل ریٹس</Text>
-            </View>
+              <Text style={styles.metricSub}>متبادل ریٹس • ٹیپ کریں</Text>
+            </TouchableOpacity>
 
             <View style={styles.metricCard}>
               <Text style={styles.metricLabel}>ممکنہ مجموعی بچت (Savings)</Text>
@@ -174,11 +182,34 @@ export const MandiArbitrageRadarModal: React.FC<MandiArbitrageRadarModalProps> =
                 <View>
                   {priceCreeps.length === 0 ? (
                     <View style={styles.emptyStateBox}>
-                      <Ionicons name="checkmark-done-circle" size={44} color="#059669" />
-                      <Text style={styles.emptyStateTitle}>کوئی خاموش اضافہ نہیں ملا</Text>
+                      <Ionicons name="checkmark-done-circle" size={48} color="#059669" />
+                      <Text style={styles.emptyStateTitle}>کوئی خاموش اضافہ نہیں ملا (Rates Normal)</Text>
                       <Text style={styles.emptyStateDesc}>
                         تمام سپلائرز کے ریٹس مستحکم ہیں۔ جب بھی کوئی سپلائر پچھلے بل سے زیادہ ریٹ لگائے گا، AI آپ کو فوری الرٹ جاری کرے گا۔
                       </Text>
+
+                      <View style={styles.emptyActionButtonsRow}>
+                        <TouchableOpacity
+                          style={styles.emptyActionPrimaryBtn}
+                          onPress={() => {
+                            onClose();
+                            if (onOpenCreatePO) onOpenCreatePO('', '');
+                          }}
+                          activeOpacity={0.8}
+                        >
+                          <Ionicons name="receipt-outline" size={16} color="#FFFFFF" style={{ marginRight: 6 }} />
+                          <Text style={styles.emptyActionPrimaryText}>+ سپلائر بل یا تھوک آرڈر درج کریں</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                          style={styles.emptyActionSecondaryBtn}
+                          onPress={fetchSummary}
+                          activeOpacity={0.7}
+                        >
+                          <Ionicons name="refresh-outline" size={16} color="#047857" style={{ marginRight: 6 }} />
+                          <Text style={styles.emptyActionSecondaryText}>تازہ ریٹ الرٹ چیک کریں</Text>
+                        </TouchableOpacity>
+                      </View>
                     </View>
                   ) : (
                     priceCreeps.map((creep, idx) => (
@@ -254,11 +285,34 @@ export const MandiArbitrageRadarModal: React.FC<MandiArbitrageRadarModalProps> =
                 <View>
                   {optimalQuotes.length === 0 ? (
                     <View style={styles.emptyStateBox}>
-                      <Ionicons name="receipt-outline" size={44} color="#0284C7" />
+                      <Ionicons name="receipt-outline" size={48} color="#0284C7" />
                       <Text style={styles.emptyStateTitle}>ملٹی سپلائر ریٹس کا تقابل</Text>
                       <Text style={styles.emptyStateDesc}>
                         جیسے ہی ایک ہی آئٹم 2 یا زیادہ مختلف سپلائرز سے خریدی جائے گی، AI خودکار طور پر سستے ترین سپلائر کی نشاندہی کرے گا۔
                       </Text>
+
+                      <View style={styles.emptyActionButtonsRow}>
+                        <TouchableOpacity
+                          style={[styles.emptyActionPrimaryBtn, { backgroundColor: '#0284C7' }]}
+                          onPress={() => {
+                            onClose();
+                            if (onOpenCreatePO) onOpenCreatePO('', '');
+                          }}
+                          activeOpacity={0.8}
+                        >
+                          <Ionicons name="cart-outline" size={16} color="#FFFFFF" style={{ marginRight: 6 }} />
+                          <Text style={styles.emptyActionPrimaryText}>+ مختلف سپلائرز کا بل درج کریں</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                          style={styles.emptyActionSecondaryBtn}
+                          onPress={fetchSummary}
+                          activeOpacity={0.7}
+                        >
+                          <Ionicons name="refresh-outline" size={16} color="#0284C7" style={{ marginRight: 6 }} />
+                          <Text style={[styles.emptyActionSecondaryText, { color: '#0284C7' }]}>تازہ موازنہ ریفریش کریں</Text>
+                        </TouchableOpacity>
+                      </View>
                     </View>
                   ) : (
                     optimalQuotes.map((quote, idx) => (
@@ -523,6 +577,49 @@ const styles = StyleSheet.create({
     color: '#64748B',
     textAlign: 'center',
     lineHeight: 18,
+  },
+  emptyActionButtonsRow: {
+    width: '100%',
+    gap: 8,
+    marginTop: 14,
+  },
+  emptyActionPrimaryBtn: {
+    backgroundColor: '#047857',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+  },
+  emptyActionPrimaryText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  emptyActionSecondaryBtn: {
+    backgroundColor: '#F1F5F9',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+  },
+  emptyActionSecondaryText: {
+    color: '#0F172A',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  metricCardActiveCreep: {
+    borderColor: '#F87171',
+    backgroundColor: '#FEF2F2',
+  },
+  metricCardActiveQuotes: {
+    borderColor: '#38BDF8',
+    backgroundColor: '#F0F9FF',
   },
   creepCard: {
     backgroundColor: '#FFFFFF',

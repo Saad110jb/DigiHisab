@@ -27,12 +27,16 @@ interface RecoveryRadarModalProps {
   visible: boolean;
   onClose: () => void;
   onSendTagaza: (name: string, phone: string, amount: number, id?: string, overdueDays?: number, riskTier?: string) => void;
+  onOpenAddUdhaar?: () => void;
+  onOpenCustomerLedger?: () => void;
 }
 
 export const RecoveryRadarModal: React.FC<RecoveryRadarModalProps> = ({
   visible,
   onClose,
   onSendTagaza,
+  onOpenAddUdhaar,
+  onOpenCustomerLedger,
 }) => {
   const insets = useSafeAreaInsets();
   const [activeFilter, setActiveFilter] = useState<'ALL' | '0-7d' | '8-15d' | '16-30d' | '30+d'>('ALL');
@@ -168,9 +172,52 @@ export const RecoveryRadarModal: React.FC<RecoveryRadarModalProps> = ({
           ) : (
             <ScrollView contentContainerStyle={styles.debtorList}>
               {filtered.length === 0 ? (
-                <Text style={{ textAlign: 'center', color: '#64748B', marginVertical: 30, fontSize: 13 }}>
-                  Koi taakheer shuda khata nahi mila.
-                </Text>
+                <View style={styles.emptyRecoveryCard}>
+                  <View style={styles.emptyRecoveryIconCircle}>
+                    <Ionicons name="shield-checkmark" size={38} color="#059669" />
+                  </View>
+                  <Text style={styles.emptyRecoveryTitle}>
+                    تمام ادھار وصولیاں بروقت ہیں (Zero Overdue Debt)
+                  </Text>
+                  <Text style={styles.emptyRecoverySubtitle}>
+                    ماشاءاللہ! فی الوقت کسی بھی گاہک کی ادائیگی کی تاریخ پر تاخیر نہیں ہے۔ جب بھی کسی گاہک کا وعدہ پورا ہونے میں تاخیر ہوگی، AI خودکار طور پر اس ریڈار میں لسٹ جاری کرے گا۔
+                  </Text>
+
+                  <View style={styles.emptyActionsContainer}>
+                    <TouchableOpacity
+                      style={styles.emptyActionPrimaryBtn}
+                      onPress={() => {
+                        onClose();
+                        if (onOpenAddUdhaar) onOpenAddUdhaar();
+                      }}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons name="receipt-outline" size={16} color="#FFFFFF" style={{ marginRight: 6 }} />
+                      <Text style={styles.emptyActionPrimaryText}>+ Naya Udhaar Darj Karein (نیا ادھار)</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={styles.emptyActionSecondaryBtn}
+                      onPress={() => {
+                        onClose();
+                        if (onOpenCustomerLedger) onOpenCustomerLedger();
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="people-outline" size={16} color="#0F172A" style={{ marginRight: 6 }} />
+                      <Text style={styles.emptyActionSecondaryText}>گاہکوں کا کھاتہ و بیلنس دیکھیں</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={styles.refreshBtnRow}
+                      onPress={fetchRadarData}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="refresh-outline" size={14} color="#E11D48" style={{ marginRight: 4 }} />
+                      <Text style={styles.refreshBtnText}>تازہ ریکاوری رپورٹ ریفریش کریں</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
               ) : (
                 filtered.map((d) => (
                   <View key={d.id} style={styles.debtorRowCard}>
@@ -454,6 +501,97 @@ const styles = StyleSheet.create({
   },
   tagazaBtnText: {
     color: '#FFF',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  emptyRecoveryCard: {
+    alignItems: 'center',
+    paddingVertical: 36,
+    paddingHorizontal: 20,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 16,
+    marginVertical: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  emptyRecoveryIconCircle: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    backgroundColor: '#ECFDF5',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+    borderWidth: 2,
+    borderColor: '#A7F3D0',
+  },
+  emptyRecoveryTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0F172A',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  emptyRecoverySubtitle: {
+    fontSize: 12,
+    color: '#64748B',
+    textAlign: 'center',
+    lineHeight: 18,
+    marginBottom: 20,
+    maxWidth: 420,
+  },
+  emptyActionsContainer: {
+    width: '100%',
+    maxWidth: 380,
+    alignItems: 'center',
+    gap: 10,
+  },
+  emptyActionPrimaryBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#E11D48',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    width: '100%',
+    shadowColor: '#E11D48',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  emptyActionPrimaryText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  emptyActionSecondaryBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    paddingVertical: 11,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    width: '100%',
+  },
+  emptyActionSecondaryText: {
+    color: '#0F172A',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  refreshBtnRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    marginTop: 4,
+  },
+  refreshBtnText: {
+    color: '#059669',
     fontSize: 12,
     fontWeight: '700',
   },

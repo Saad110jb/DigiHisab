@@ -764,7 +764,7 @@ export const VendorView: React.FC = () => {
     },
     {
       id: 'naya_udhaar',
-      title: '+ Naya Udhaar',
+      title: 'Naya Udhaar',
       titleUrdu: 'نیا ادھار',
       icon: 'receipt-outline',
       iconColor: '#006C4E',
@@ -773,7 +773,7 @@ export const VendorView: React.FC = () => {
     },
     {
       id: 'naya_gahak',
-      title: '+ Naya Gahak',
+      title: 'Naya Gahak',
       titleUrdu: 'نیا گاہک',
       icon: 'person-add',
       iconColor: '#0D9488',
@@ -782,7 +782,7 @@ export const VendorView: React.FC = () => {
     },
     {
       id: 'naya_supplier',
-      title: '+ Naya Supplier',
+      title: 'Naya Supplier',
       titleUrdu: 'نیا سپلائر',
       icon: 'business',
       iconColor: '#0284C7',
@@ -796,13 +796,13 @@ export const VendorView: React.FC = () => {
     },
     {
       id: 'manage_till',
-      title: 'Manage Till',
-      titleUrdu: 'گلہ کنٹرول',
+      title: 'Till Balances',
+      titleUrdu: 'گلہ و بینک بیلنس',
       icon: 'wallet-outline',
       iconColor: '#0284C7',
       iconBg: '#E0F2FE',
       roleRequired: 'MANAGER',
-      onPress: () => enforceRoleAccess('MANAGER', 'گلہ کنٹرول') && setManageTillModalVisible(true),
+      onPress: () => enforceRoleAccess('MANAGER', 'گلہ و بینک بیلنس') && setManageTillModalVisible(true),
     },
     {
       id: 'add_bill',
@@ -827,12 +827,12 @@ export const VendorView: React.FC = () => {
     {
       id: 'galla_bandi',
       title: 'Galla Bandi',
-      titleUrdu: 'گلہ بندی',
+      titleUrdu: 'شام گلہ حساب',
       icon: 'calculator',
       iconColor: '#0284C7',
       iconBg: '#E0F2FE',
       roleRequired: 'MANAGER',
-      onPress: () => enforceRoleAccess('MANAGER', 'گلہ بندی') && setGallaBandiModalVisible(true),
+      onPress: () => enforceRoleAccess('MANAGER', 'شام گلہ حساب') && setGallaBandiModalVisible(true),
     },
     {
       id: 'stock_control',
@@ -2181,6 +2181,8 @@ export const VendorView: React.FC = () => {
       <RecoveryRadarModal
         visible={recoveryRadarModalVisible}
         onClose={() => setRecoveryRadarModalVisible(false)}
+        onOpenAddUdhaar={() => handleOpenAddUdhaar()}
+        onOpenCustomerLedger={() => setActiveTab('khata')}
         onSendTagaza={(name, phone, amt, id, overdueDays, riskTier) => {
           setRecoveryRadarModalVisible(false);
           handleSendWhatsAppTagaza(name, phone, amt, id, undefined, {

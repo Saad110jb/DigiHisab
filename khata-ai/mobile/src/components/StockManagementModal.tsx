@@ -1010,24 +1010,24 @@ export const StockManagementModal: React.FC<StockManagementModalProps> = ({
                         </Text>
                       </View>
 
-                      {/* Dual Action Buttons: 1-Tap WhatsApp PO and Wholesale PO */}
+                      {/* Streamlined Action Buttons: Wholesale PO & Direct WhatsApp */}
                       <View style={styles.alertActionButtonsRow}>
                         <TouchableOpacity
-                          style={styles.itemWhatsAppBtnHalf}
-                          onPress={() => handleSendPredictedWhatsAppOrder(pred)}
-                          activeOpacity={0.85}
-                        >
-                          <Ionicons name="logo-whatsapp" size={16} color="#FFF" style={{ marginRight: 6 }} />
-                          <Text style={styles.itemWhatsAppBtnText}>WhatsApp PO (واٹس ایپ)</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                          style={styles.itemWholesalePoBtnHalf}
+                          style={[styles.itemWholesalePoBtnHalf, { flex: 1.4 }]}
                           onPress={() => handleOpenWholesalePoFromPrediction(pred)}
                           activeOpacity={0.85}
                         >
                           <Ionicons name="receipt-outline" size={16} color="#FFF" style={{ marginRight: 6 }} />
                           <Text style={styles.itemWholesalePoBtnText}>Wholesale PO (تھوک آرڈر)</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                          style={[styles.itemWhatsAppBtnHalf, { flex: 1 }]}
+                          onPress={() => handleSendPredictedWhatsAppOrder(pred)}
+                          activeOpacity={0.85}
+                        >
+                          <Ionicons name="logo-whatsapp" size={16} color="#FFF" style={{ marginRight: 6 }} />
+                          <Text style={styles.itemWhatsAppBtnText}>WhatsApp</Text>
                         </TouchableOpacity>
                       </View>
                     </View>

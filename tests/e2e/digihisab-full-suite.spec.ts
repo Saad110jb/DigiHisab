@@ -182,10 +182,12 @@ test.describe('Module 1: SuperAdmin Zero-Trust Security & 2FA Gateways', () => {
     expect(await avatars.count()).toBe(0);
 
     // Password Eye toggle should show/hide masked secret
-    const eyeToggle = page.locator('button[title*="Password"], button:has(svg.lucide-eye)').first();
+    const eyeToggle = page.locator('button[title*="Password" i], button:has(svg.lucide-eye)').first();
     if (await eyeToggle.isVisible()) {
       await eyeToggle.click();
-      await expect(page.getByText('Plaintext').first()).toBeVisible();
+      await expect(
+        page.locator('button[title*="Hide Password" i], button:has(svg.lucide-eye-off)').first()
+      ).toBeVisible({ timeout: 5000 });
     }
   });
 

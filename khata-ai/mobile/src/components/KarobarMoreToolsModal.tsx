@@ -153,7 +153,7 @@ export const KarobarMoreToolsModal: React.FC<KarobarMoreToolsModalProps> = ({
                         styles.catalogCard,
                         isPinned && styles.catalogCardPinned,
                         tool.isHelpCard && styles.catalogCardHelp,
-                        isDesktop ? { width: '31.3%' } : isTablet ? { width: '48.2%' } : { width: '100%' },
+                        isDesktop || isTablet ? { width: '48.8%' } : { width: '100%' },
                       ]}
                       activeOpacity={0.8}
                       onPress={() => {
@@ -200,7 +200,7 @@ export const KarobarMoreToolsModal: React.FC<KarobarMoreToolsModalProps> = ({
                           <View style={styles.titleWithBadgeRow}>
                             <Text
                               style={[styles.toolTitle, tool.isHelpCard && { color: '#FFFFFF' }]}
-                              numberOfLines={1}
+                              numberOfLines={2}
                             >
                               {tool.title}
                             </Text>
@@ -439,33 +439,38 @@ const styles = StyleSheet.create({
   catalogCardInner: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    paddingRight: 60, // give space for pin button on top right
+    gap: 12,
+    paddingRight: 64, // give space for pin button on top right
   },
   toolIconCircle: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
   },
   toolMetaCol: {
     flex: 1,
+    justifyContent: 'center',
   },
   titleWithBadgeRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    flexWrap: 'wrap',
   },
   toolTitle: {
     fontSize: 13,
     fontWeight: '800',
     color: '#0F172A',
+    flexShrink: 1,
+    lineHeight: 17,
   },
   toolUrduTitle: {
     fontSize: 11,
     color: '#64748B',
     marginTop: 2,
+    lineHeight: 15,
   },
   badgeLocked: {
     backgroundColor: '#FFE4E6',

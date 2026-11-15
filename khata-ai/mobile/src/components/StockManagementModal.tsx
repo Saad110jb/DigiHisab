@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../theme/colors';
 import { inventoryApi, IInventoryItem, UnitOfMeasure } from '../api/inventory.api';
 import { JevRestockEngine, JevRestockPrediction, RestockUrgency } from '../services/jevRestock.service';
+import { ContinuousBarcodeScannerModal } from './ContinuousBarcodeScannerModal';
 
 export interface StockManagementModalProps {
   visible: boolean;
@@ -61,8 +62,15 @@ export const StockManagementModal: React.FC<StockManagementModalProps> = ({
   const [unitOfMeasure, setUnitOfMeasure] = useState<UnitOfMeasure>('PCS');
   const [lowStockThreshold, setLowStockThreshold] = useState('5');
   const [barcode, setBarcode] = useState('');
+  const [showScannerForInput, setShowScannerForInput] = useState(false);
   const [supplierName, setSupplierName] = useState('');
   const [supplierPhone, setSupplierPhone] = useState('');
+
+  const handleAutoGenerateBarcode = () => {
+    // 20 prefix is the international standard for in-store loose / unbranded products
+    const randomDigits = Math.floor(1000000000 + Math.random() * 9000000000).toString();
+    setBarcode(`20${randomDigits}`);
+  };
 
   const computeLocalPredictions = (
     itemList: (IInventoryItem & { supplierName?: string; supplierPhone?: string })[]
@@ -508,6 +516,50 @@ export const StockManagementModal: React.FC<StockManagementModalProps> = ({
                 onChangeText={setItemName}
               />
 
+              {/* Barcode Section with Camera Scan & Auto-Gen Buttons */}
+              <View style={styles.barcodeLabelRow}>
+                <Text style={styles.inputLabel}>Barcode (بارکوڈ نمبر)</Text>
+                <View style={styles.barcodeActionsRow}>
+                  <TouchableOpacity
+                    style={styles.barcodeScanBtn}
+                    onPress={() => setShowScannerForInput(true)}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="barcode-outline" size={13} color="#10B981" />
+                    <Text style={styles.barcodeScanBtnText}>📷 Scan</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.barcodeAutoBtn}
+                    onPress={handleAutoGenerateBarcode}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="flash-outline" size={12} color="#38BDF8" />
+                    <Text style={styles.barcodeAutoBtnText}>⚡ Auto-Gen</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <View style={styles.barcodeInputWrapper}>
+                <TextInput
+                  style={[styles.inputField, { paddingRight: 38, marginBottom: 0 }]}
+                  placeholder="e.g. 896400012345 (optional)"
+                  placeholderTextColor="#64748B"
+                  value={barcode}
+                  onChangeText={setBarcode}
+                  keyboardType="numeric"
+                />
+                {barcode ? (
+                  <TouchableOpacity
+                    style={styles.clearBarcodeBtn}
+                    onPress={() => setBarcode('')}
+                  >
+                    <Ionicons name="close-circle" size={18} color="#64748B" />
+                  </TouchableOpacity>
+                ) : null}
+              </View>
+              <View style={{ marginBottom: 12 }} />
+
               <Text style={styles.inputLabel}>Category (زمرہ)</Text>
               <TextInput
                 style={styles.inputField}
@@ -712,7 +764,24 @@ export const StockManagementModal: React.FC<StockManagementModalProps> = ({
                       <View style={styles.itemHeaderRow}>
                         <View style={{ flex: 1 }}>
                           <Text style={styles.itemNameText}>{item.itemName}</Text>
-                          <Text style={styles.itemCategoryText}>{item.category || 'General'}</Text>
+                          <View style={styles.itemCategoryBarcodeRow}>
+                            <Text style={styles.itemCategoryText}>{item.category || 'General'}</Text>
+                            {item.barcode ? (
+                              <View style={styles.itemBarcodeBadge}>
+                                <Ionicons name="barcode-outline" size={11} color="#10B981" />
+                                <Text style={styles.itemBarcodeBadgeText}>{item.barcode}</Text>
+                              </View>
+                            ) : (
+                              <TouchableOpacity
+                                style={styles.itemAddBarcodePill}
+                                onPress={() => handleOpenEdit(item)}
+                                activeOpacity={0.7}
+                              >
+                                <Ionicons name="add-circle-outline" size={11} color="#F59E0B" />
+                                <Text style={styles.itemAddBarcodePillText}>+ Barcode</Text>
+                              </TouchableOpacity>
+                            )}
+                          </View>
                         </View>
 
                         {/* Health Badge */}
@@ -969,6 +1038,17 @@ export const StockManagementModal: React.FC<StockManagementModalProps> = ({
           </View>
         )}
       </View>
+      {/* Quick Scanner Modal to capture barcode directly into the form */}
+      <ContinuousBarcodeScannerModal
+        visible={showScannerForInput}
+        mode="SINGLE_CAPTURE"
+        title="Scan Barcode for Product (بارکوڈ)"
+        onClose={() => setShowScannerForInput(false)}
+        onScanBarcode={(scannedCode) => {
+          setBarcode(scannedCode);
+          setShowScannerForInput(false);
+        }}
+      />
     </Modal>
   );
 };
@@ -1615,5 +1695,98 @@ const styles = StyleSheet.create({
   saveFormText: {
     color: '#FFF',
     fontWeight: '700',
+  },
+  barcodeLabelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+    marginTop: 8,
+  },
+  barcodeActionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  barcodeScanBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    borderWidth: 1,
+    borderColor: '#10B981',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  barcodeScanBtnText: {
+    color: '#10B981',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  barcodeAutoBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(56, 189, 248, 0.15)',
+    borderWidth: 1,
+    borderColor: '#38BDF8',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  barcodeAutoBtnText: {
+    color: '#38BDF8',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  barcodeInputWrapper: {
+    position: 'relative',
+    justifyContent: 'center',
+  },
+  clearBarcodeBtn: {
+    position: 'absolute',
+    right: 10,
+    padding: 4,
+  },
+  itemCategoryBarcodeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 2,
+    flexWrap: 'wrap',
+  },
+  itemBarcodeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    borderWidth: 0.5,
+    borderColor: 'rgba(16, 185, 129, 0.3)',
+  },
+  itemBarcodeBadgeText: {
+    color: '#10B981',
+    fontSize: 10,
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    fontWeight: '600',
+  },
+  itemAddBarcodePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: 'rgba(245, 158, 11, 0.12)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    borderWidth: 0.5,
+    borderColor: 'rgba(245, 158, 11, 0.3)',
+  },
+  itemAddBarcodePillText: {
+    color: '#F59E0B',
+    fontSize: 10,
+    fontWeight: '600',
   },
 });

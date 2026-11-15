@@ -57,6 +57,7 @@ const InventoryItemSchema = new Schema<IInventoryItem>(
 );
 
 InventoryItemSchema.index({ profileId: 1, sku: 1 }, { unique: true });
+InventoryItemSchema.index({ profileId: 1, barcode: 1 }, { sparse: true });
 InventoryItemSchema.index({ profileId: 1, itemName: 'text' });
 
 export const InventoryItem = model<IInventoryItem>('InventoryItem', InventoryItemSchema);

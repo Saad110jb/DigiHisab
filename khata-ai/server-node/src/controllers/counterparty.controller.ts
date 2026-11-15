@@ -289,6 +289,8 @@ export const updateCounterparty = async (req: Request, res: Response): Promise<R
       notes,
     } = req.body;
 
+    const relationType = (rawRelationType || type) as RelationType | undefined;
+
     const counterparty = await Counterparty.findOne({ _id: id, profileId });
     if (!counterparty) {
       return res.status(404).json({ success: false, message: 'Counterparty not found.' });

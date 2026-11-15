@@ -66,11 +66,14 @@ export interface ScannedCartItem {
   unitOfMeasure?: string;
 }
 
-interface ContinuousBarcodeScannerModalProps {
+export interface ContinuousBarcodeScannerModalProps {
   visible: boolean;
   onClose: () => void;
-  onCheckout: (items: ScannedCartItem[], totalAmount: number) => void;
+  onCheckout?: (items: ScannedCartItem[], totalAmount: number) => void;
   inventoryList?: IInventoryItem[];
+  mode?: 'CART_CHECKOUT' | 'SINGLE_CAPTURE';
+  onScanBarcode?: (scannedCode: string) => void;
+  title?: string;
 }
 
 export const ContinuousBarcodeScannerModal: React.FC<ContinuousBarcodeScannerModalProps> = ({
@@ -78,6 +81,9 @@ export const ContinuousBarcodeScannerModal: React.FC<ContinuousBarcodeScannerMod
   onClose,
   onCheckout,
   inventoryList: propInventoryList,
+  mode = 'CART_CHECKOUT',
+  onScanBarcode,
+  title,
 }) => {
   const insets = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
@@ -123,6 +129,17 @@ export const ContinuousBarcodeScannerModal: React.FC<ContinuousBarcodeScannerMod
   const handleManualAdd = () => {
     const code = manualInput.trim();
     if (!code) return;
+
+    if (mode === 'SINGLE_CAPTURE') {
+      triggerAudioHapticFeedback();
+      if (onScanBarcode) {
+        onScanBarcode(code);
+      }
+      setManualInput('');
+      onClose();
+      return;
+    }
+
     const matched = inventory.find(
       (item) =>
         (item.barcode && item.barcode.toLowerCase() === code.toLowerCase()) ||
@@ -234,6 +251,14 @@ export const ContinuousBarcodeScannerModal: React.FC<ContinuousBarcodeScannerMod
     // Audio & Haptic confirmation
     triggerAudioHapticFeedback();
 
+    if (mode === 'SINGLE_CAPTURE') {
+      if (onScanBarcode) {
+        onScanBarcode(rawBarcode);
+      }
+      onClose();
+      return;
+    }
+
     // Visual Flash Animation
     Animated.sequence([
       Animated.timing(pulseAnim, { toValue: 1.15, duration: 80, useNativeDriver: true }),
@@ -260,7 +285,9 @@ export const ContinuousBarcodeScannerModal: React.FC<ContinuousBarcodeScannerMod
       onClose();
       return;
     }
-    onCheckout(cartItems, totalCartAmount);
+    if (onCheckout) {
+      onCheckout(cartItems, totalCartAmount);
+    }
     onClose();
   };
 
@@ -365,10 +392,16 @@ export const ContinuousBarcodeScannerModal: React.FC<ContinuousBarcodeScannerMod
 
               <View style={styles.headerTitleBox}>
                 <Text style={styles.hudTitle}>
-                  {manualMode ? 'Manual Keypad (دستی)' : 'Rapid Scanner (60 FPS)'}
+                  {title || (manualMode ? 'Manual Keypad (دستی)' : mode === 'SINGLE_CAPTURE' ? 'Scan Barcode (بارکوڈ)' : 'Rapid Scanner (60 FPS)')}
                 </Text>
                 <Text style={styles.hudSubtitle}>
-                  {loadingInventory ? 'Loading inventory...' : manualMode ? 'Type item code or name' : 'Point at any grocery barcode'}
+                  {mode === 'SINGLE_CAPTURE'
+                    ? 'Align barcode inside frame to capture'
+                    : loadingInventory
+                    ? 'Loading inventory...'
+                    : manualMode
+                    ? 'Type item code or name'
+                    : 'Point at any grocery barcode'}
                 </Text>
               </View>
 
@@ -436,88 +469,105 @@ export const ContinuousBarcodeScannerModal: React.FC<ContinuousBarcodeScannerMod
               </Animated.View>
             )}
 
-            {/* Floating Mini-Cart Bottom Pill */}
-            <View style={[styles.bottomTray, { paddingBottom: Math.max(insets.bottom, 16) }]}>
-              {/* Expandable Cart Drawer (if opened) */}
-              {showCartDrawer && (
-                <View style={styles.drawerSheet}>
-                  <View style={styles.drawerHeader}>
-                    <Text style={styles.drawerTitle}>Scanned Items ({cartItems.length})</Text>
-                    <TouchableOpacity onPress={() => setShowCartDrawer(false)}>
-                      <Ionicons name="chevron-down" size={22} color="#94A3B8" />
-                    </TouchableOpacity>
+            {/* Bottom Tray Area */}
+            {mode === 'SINGLE_CAPTURE' ? (
+              <View style={[styles.bottomTray, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+                <View style={styles.singleScanCard}>
+                  <Ionicons name="barcode-outline" size={24} color="#10B981" style={{ marginRight: 10 }} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.singleScanTitle}>Scan Product Barcode (بارکوڈ)</Text>
+                    <Text style={styles.singleScanSubtitle}>
+                      {manualMode
+                        ? 'Type the barcode digits above and tap Add.'
+                        : 'Align the barcode inside the red laser frame.'}
+                    </Text>
                   </View>
-                  <ScrollView style={styles.drawerList} nestedScrollEnabled>
-                    {cartItems.map((item) => (
-                      <View key={item.barcode} style={styles.cartRow}>
-                        <View style={{ flex: 1 }}>
-                          <Text style={styles.cartItemName} numberOfLines={1}>
-                            {item.name}
-                          </Text>
-                          <Text style={styles.cartItemPrice}>
-                            Rs. {item.price.toLocaleString()} each
-                          </Text>
-                        </View>
-                        <View style={styles.qtyControl}>
-                          <TouchableOpacity
-                            style={styles.qtyBtn}
-                            onPress={() => handleUpdateItemQty(item.barcode, -1)}
-                          >
-                            <Ionicons name="remove" size={14} color="#FFFFFF" />
-                          </TouchableOpacity>
-                          <Text style={styles.qtyText}>{item.quantity}</Text>
-                          <TouchableOpacity
-                            style={styles.qtyBtn}
-                            onPress={() => handleUpdateItemQty(item.barcode, 1)}
-                          >
-                            <Ionicons name="add" size={14} color="#FFFFFF" />
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                    ))}
-                  </ScrollView>
                 </View>
-              )}
-
-              {/* Main Sticky Pill Action Bar */}
-              <View style={styles.cartPillContainer}>
-                <TouchableOpacity
-                  style={styles.cartSummarySection}
-                  onPress={() => setShowCartDrawer(!showCartDrawer)}
-                  activeOpacity={0.8}
-                >
-                  <View style={styles.cartBadge}>
-                    <Ionicons name="cart" size={18} color="#0B2239" />
-                    <Text style={styles.cartBadgeText}>{totalItemsCount}</Text>
-                  </View>
-                  <View style={{ marginLeft: 10 }}>
-                    <Text style={styles.cartAmountText}>
-                      PKR {totalCartAmount.toLocaleString()}
-                    </Text>
-                    <Text style={styles.cartItemsCountText}>
-                      {totalItemsCount} {totalItemsCount === 1 ? 'item' : 'items'} in cart
-                    </Text>
-                  </View>
-                  <Ionicons
-                    name={showCartDrawer ? 'chevron-down' : 'chevron-up'}
-                    size={18}
-                    color="#94A3B8"
-                    style={{ marginLeft: 6 }}
-                  />
-                </TouchableOpacity>
-
-                {/* Done & Charge Button */}
-                <TouchableOpacity
-                  style={[styles.chargeBtn, cartItems.length === 0 && styles.chargeBtnDisabled]}
-                  onPress={handleDoneAndCharge}
-                  disabled={cartItems.length === 0}
-                  activeOpacity={0.85}
-                >
-                  <Text style={styles.chargeBtnText}>Done & Charge Galla</Text>
-                  <Ionicons name="arrow-forward" size={18} color="#0B2239" style={{ marginLeft: 6 }} />
-                </TouchableOpacity>
               </View>
-            </View>
+            ) : (
+              /* Floating Mini-Cart Bottom Pill */
+              <View style={[styles.bottomTray, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+                {/* Expandable Cart Drawer (if opened) */}
+                {showCartDrawer && (
+                  <View style={styles.drawerSheet}>
+                    <View style={styles.drawerHeader}>
+                      <Text style={styles.drawerTitle}>Scanned Items ({cartItems.length})</Text>
+                      <TouchableOpacity onPress={() => setShowCartDrawer(false)}>
+                        <Ionicons name="chevron-down" size={22} color="#94A3B8" />
+                      </TouchableOpacity>
+                    </View>
+                    <ScrollView style={styles.drawerList} nestedScrollEnabled>
+                      {cartItems.map((item) => (
+                        <View key={item.barcode} style={styles.cartRow}>
+                          <View style={{ flex: 1 }}>
+                            <Text style={styles.cartItemName} numberOfLines={1}>
+                              {item.name}
+                            </Text>
+                            <Text style={styles.cartItemPrice}>
+                              Rs. {item.price.toLocaleString()} each
+                            </Text>
+                          </View>
+                          <View style={styles.qtyControl}>
+                            <TouchableOpacity
+                              style={styles.qtyBtn}
+                              onPress={() => handleUpdateItemQty(item.barcode, -1)}
+                            >
+                              <Ionicons name="remove" size={14} color="#FFFFFF" />
+                            </TouchableOpacity>
+                            <Text style={styles.qtyText}>{item.quantity}</Text>
+                            <TouchableOpacity
+                              style={styles.qtyBtn}
+                              onPress={() => handleUpdateItemQty(item.barcode, 1)}
+                            >
+                              <Ionicons name="add" size={14} color="#FFFFFF" />
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
+
+                {/* Main Sticky Pill Action Bar */}
+                <View style={styles.cartPillContainer}>
+                  <TouchableOpacity
+                    style={styles.cartSummarySection}
+                    onPress={() => setShowCartDrawer(!showCartDrawer)}
+                    activeOpacity={0.8}
+                  >
+                    <View style={styles.cartBadge}>
+                      <Ionicons name="cart" size={18} color="#0B2239" />
+                      <Text style={styles.cartBadgeText}>{totalItemsCount}</Text>
+                    </View>
+                    <View style={{ marginLeft: 10 }}>
+                      <Text style={styles.cartAmountText}>
+                        PKR {totalCartAmount.toLocaleString()}
+                      </Text>
+                      <Text style={styles.cartItemsCountText}>
+                        {totalItemsCount} {totalItemsCount === 1 ? 'item' : 'items'} in cart
+                      </Text>
+                    </View>
+                    <Ionicons
+                      name={showCartDrawer ? 'chevron-down' : 'chevron-up'}
+                      size={18}
+                      color="#94A3B8"
+                      style={{ marginLeft: 6 }}
+                    />
+                  </TouchableOpacity>
+
+                  {/* Done & Charge Button */}
+                  <TouchableOpacity
+                    style={[styles.chargeBtn, cartItems.length === 0 && styles.chargeBtnDisabled]}
+                    onPress={handleDoneAndCharge}
+                    disabled={cartItems.length === 0}
+                    activeOpacity={0.85}
+                  >
+                    <Text style={styles.chargeBtnText}>Done & Charge Galla</Text>
+                    <Ionicons name="arrow-forward" size={18} color="#0B2239" style={{ marginLeft: 6 }} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
           </View>
         )}
       </View>
@@ -922,5 +972,32 @@ const styles = StyleSheet.create({
     color: '#0B2239',
     fontWeight: '800',
     fontSize: 14,
+  },
+  singleScanCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(15, 29, 51, 0.95)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(0, 210, 180, 0.4)',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    width: '100%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  singleScanTitle: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  singleScanSubtitle: {
+    color: '#94A3B8',
+    fontSize: 11,
+    marginTop: 2,
+    lineHeight: 15,
   },
 });

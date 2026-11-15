@@ -252,26 +252,15 @@ function SuperAdminLoginContent() {
   // Handle OTP digit box input
   const handleDigitChange = (index: number, val: string) => {
     const clean = val.replace(/\D/g, '').slice(-1);
-    let nextDigits: string[] = [];
     setTotpDigits((prev) => {
       const newDigits = [...prev];
       newDigits[index] = clean;
-      nextDigits = newDigits;
       return newDigits;
     });
 
     // Auto-advance to next box if character entered
     if (clean && index < 5) {
       otpInputsRef.current[index + 1]?.focus();
-    }
-
-    // Auto-submit if 6th digit entered
-    if (clean && index === 5) {
-      setTimeout(() => {
-        if (nextDigits.length === 6 && nextDigits.every((d) => d !== '')) {
-          handleTotpSubmit(undefined, nextDigits.join(''));
-        }
-      }, 80);
     }
   };
 

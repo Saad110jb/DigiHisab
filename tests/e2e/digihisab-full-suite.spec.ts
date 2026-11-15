@@ -116,7 +116,7 @@ async function loginAdmin(page: any) {
   if (await submitBtn.isEnabled()) {
     await submitBtn.click();
   }
-  await page.waitForURL((url) => !url.pathname.includes('/admin/login'), { timeout: 15000 });
+  await expect(page).not.toHaveURL(new RegExp('/admin/login'), { timeout: 15000 });
 }
 
 // ============================================================================
@@ -149,28 +149,24 @@ test.describe('Module 1: SuperAdmin Zero-Trust Security & 2FA Gateways', () => {
       await otpInputs.nth(i).fill(invalidDigits[i]);
     }
     const invalidSubmitBtn = page.locator('button[type="submit"]');
-    if (await invalidSubmitBtn.isEnabled()) {
-      await invalidSubmitBtn.click();
-    }
+    await expect(invalidSubmitBtn).toBeEnabled({ timeout: 5000 });
+    await invalidSubmitBtn.click();
     await expect(page.getByText(/Invalid/i)).toBeVisible({ timeout: 8000 });
 
-    // Submitting valid TOTP should grant access and navigate to /admin
-    await page.goto(`${SUPERADMIN_BASE}/admin/login`);
-    await page.locator('input[placeholder*="admin.root"]').fill(ROOT_ADMIN.email);
-    await page.locator('input[type="password"]').fill(ROOT_ADMIN.password);
-    await page.click('button[type="submit"]');
+    // The form clears inputs on invalid token and stays on the TOTP challenge screen.
+    // Wait for the inputs to reset completely before typing valid code
+    await expect(otpInputs.first()).toHaveValue('', { timeout: 4000 });
+    await page.waitForTimeout(300);
 
+    // Now supply valid TOTP to complete verification and enter /admin
     const validDigits = ROOT_ADMIN.validTotp.split('');
-    const validOtpInputs = page.locator('input[inputmode="numeric"]');
-    await expect(validOtpInputs.first()).toBeVisible({ timeout: 10000 });
     for (let i = 0; i < validDigits.length; i++) {
-      await validOtpInputs.nth(i).fill(validDigits[i]);
+      await otpInputs.nth(i).fill(validDigits[i]);
     }
     const submitBtn = page.locator('button[type="submit"]');
-    if (await submitBtn.isEnabled()) {
-      await submitBtn.click();
-    }
-    await page.waitForURL((url) => !url.pathname.includes('/admin/login'), { timeout: 15000 });
+    await expect(submitBtn).toBeEnabled({ timeout: 5000 });
+    await submitBtn.click();
+    await expect(page).not.toHaveURL(new RegExp('/admin/login'), { timeout: 15000 });
   });
 
   test('1.3 Anonymous Directory & Credential Visibility Safeguards', async ({ page }) => {

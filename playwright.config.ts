@@ -16,6 +16,7 @@ export default defineConfig({
   reporter: [['list'], ['html', { open: 'never' }]],
   use: {
     baseURL: process.env.SUPERADMIN_URL || 'http://localhost:3000',
+    channel: 'msedge',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'off',

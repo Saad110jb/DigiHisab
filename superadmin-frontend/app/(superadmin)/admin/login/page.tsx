@@ -198,9 +198,9 @@ function SuperAdminLoginContent() {
   };
 
   // Handle Step 2: 6-Digit TOTP Submission
-  const handleTotpSubmit = async (e?: React.FormEvent) => {
+  const handleTotpSubmit = async (e?: React.FormEvent, tokenOverride?: string) => {
     if (e) e.preventDefault();
-    const token = totpDigits.join('');
+    const token = tokenOverride || totpDigits.join('');
     if (token.length !== 6) {
       setErrorMsg('Please enter the full 6-digit authenticator code.');
       return;
@@ -252,24 +252,26 @@ function SuperAdminLoginContent() {
   // Handle OTP digit box input
   const handleDigitChange = (index: number, val: string) => {
     const clean = val.replace(/\D/g, '').slice(-1);
-    const newDigits = [...totpDigits];
-    newDigits[index] = clean;
-    setTotpDigits(newDigits);
+    let nextDigits: string[] = [];
+    setTotpDigits((prev) => {
+      const newDigits = [...prev];
+      newDigits[index] = clean;
+      nextDigits = newDigits;
+      return newDigits;
+    });
 
     // Auto-advance to next box if character entered
     if (clean && index < 5) {
       otpInputsRef.current[index + 1]?.focus();
     }
 
-    // Auto-submit if all 6 digits populated
-    if (clean && index === 5 && newDigits.every((d) => d !== '')) {
-      // Trigger submission
+    // Auto-submit if 6th digit entered
+    if (clean && index === 5) {
       setTimeout(() => {
-        const full = newDigits.join('');
-        if (full.length === 6) {
-          handleTotpSubmit();
+        if (nextDigits.length === 6 && nextDigits.every((d) => d !== '')) {
+          handleTotpSubmit(undefined, nextDigits.join(''));
         }
-      }, 50);
+      }, 80);
     }
   };
 
@@ -286,7 +288,7 @@ function SuperAdminLoginContent() {
     const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
     if (!pasted) return;
 
-    const newDigits = [...totpDigits];
+    const newDigits = ['', '', '', '', '', ''];
     for (let i = 0; i < pasted.length; i++) {
       newDigits[i] = pasted[i];
     }
@@ -296,7 +298,7 @@ function SuperAdminLoginContent() {
     otpInputsRef.current[focusIdx]?.focus();
 
     if (pasted.length === 6) {
-      setTimeout(() => handleTotpSubmit(), 50);
+      setTimeout(() => handleTotpSubmit(undefined, pasted), 50);
     }
   };
 

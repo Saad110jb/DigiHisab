@@ -93,6 +93,32 @@ test.afterAll(async () => {
   }
 });
 
+// Helper for SuperAdmin login with TOTP
+async function loginAdmin(page: any) {
+  await page.goto(`${SUPERADMIN_BASE}/admin`);
+  // If already authenticated and not at login page
+  if (!page.url().includes('/admin/login')) {
+    return;
+  }
+
+  await page.locator('input[placeholder*="admin.root"]').fill(ROOT_ADMIN.email);
+  await page.locator('input[type="password"]').fill(ROOT_ADMIN.password);
+  await page.click('button[type="submit"]');
+
+  const validDigits = ROOT_ADMIN.validTotp.split('');
+  const otpInputs = page.locator('input[inputmode="numeric"]');
+  await expect(otpInputs.first()).toBeVisible({ timeout: 10000 });
+  for (let i = 0; i < validDigits.length; i++) {
+    await otpInputs.nth(i).fill(validDigits[i]);
+  }
+
+  const submitBtn = page.locator('button[type="submit"]');
+  if (await submitBtn.isEnabled()) {
+    await submitBtn.click();
+  }
+  await page.waitForURL((url) => !url.pathname.includes('/admin/login'), { timeout: 15000 });
+}
+
 // ============================================================================
 // MODULE 1: SUPERADMIN AUTHENTICATION & ZERO-TRUST SECURITY
 // ============================================================================
@@ -122,7 +148,10 @@ test.describe('Module 1: SuperAdmin Zero-Trust Security & 2FA Gateways', () => {
     for (let i = 0; i < invalidDigits.length; i++) {
       await otpInputs.nth(i).fill(invalidDigits[i]);
     }
-    await page.click('button[type="submit"]');
+    const invalidSubmitBtn = page.locator('button[type="submit"]');
+    if (await invalidSubmitBtn.isEnabled()) {
+      await invalidSubmitBtn.click();
+    }
     await expect(page.getByText(/Invalid/i)).toBeVisible({ timeout: 8000 });
 
     // Submitting valid TOTP should grant access and navigate to /admin
@@ -141,30 +170,16 @@ test.describe('Module 1: SuperAdmin Zero-Trust Security & 2FA Gateways', () => {
     if (await submitBtn.isEnabled()) {
       await submitBtn.click();
     }
-    await expect(page).toHaveURL(new RegExp('/admin'), { timeout: 15000 });
+    await page.waitForURL((url) => !url.pathname.includes('/admin/login'), { timeout: 15000 });
   });
 
   test('1.3 Anonymous Directory & Credential Visibility Safeguards', async ({ page }) => {
     // 1. Authenticate via Zero-Trust gateway
-    await page.goto(`${SUPERADMIN_BASE}/admin/login`);
-    await page.locator('input[placeholder*="admin.root"]').fill(ROOT_ADMIN.email);
-    await page.locator('input[type="password"]').fill(ROOT_ADMIN.password);
-    await page.click('button[type="submit"]');
-
-    const validDigits = ROOT_ADMIN.validTotp.split('');
-    const otpInputs = page.locator('input[inputmode="numeric"]');
-    await expect(otpInputs.first()).toBeVisible({ timeout: 10000 });
-    for (let i = 0; i < validDigits.length; i++) {
-      await otpInputs.nth(i).fill(validDigits[i]);
-    }
-    const submitBtn = page.locator('button[type="submit"]');
-    if (await submitBtn.isEnabled()) {
-      await submitBtn.click();
-    }
-    await expect(page).toHaveURL(new RegExp('/admin'), { timeout: 15000 });
+    await loginAdmin(page);
 
     // 2. Navigate to Administrator Security Directory on /admin/rbac
     await page.goto(`${SUPERADMIN_BASE}/admin/rbac`);
+    await expect(page).toHaveURL(new RegExp('/admin/rbac'));
 
     // Must enforce anonymous identity (No consumer headshots or consumer names)
     const avatars = page.locator('img[alt*="avatar"], img[alt*="profile"]');
@@ -174,11 +189,12 @@ test.describe('Module 1: SuperAdmin Zero-Trust Security & 2FA Gateways', () => {
     const eyeToggle = page.locator('button[title*="Password"], button:has(svg.lucide-eye)').first();
     if (await eyeToggle.isVisible()) {
       await eyeToggle.click();
-      await expect(page.locator('text=Plaintext, svg.text-amber-400').first()).toBeVisible();
+      await expect(page.getByText('Plaintext').first()).toBeVisible();
     }
   });
 
   test('1.4 Emergency Global Session Invalidation', async ({ page, context }) => {
+    await loginAdmin(page);
     await page.goto(`${SUPERADMIN_BASE}/admin/settings`);
     const securityTab = page.locator('button:has-text("Security"), button:has-text("سیکیورٹی")');
     if (await securityTab.isVisible()) {

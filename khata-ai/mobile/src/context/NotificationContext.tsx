@@ -149,7 +149,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
     let sseSource: any = null;
     let xhr: XMLHttpRequest | null = null;
     let isMounted = true;
-    let reconnectTimeout: NodeJS.Timeout | null = null;
+    let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
 
     const connectSseStream = async () => {
       try {

@@ -42,7 +42,7 @@ export const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [showPin, setShowPin] = useState(false);
 
   // Hidden TextInput ref for 4-digit PIN boxes
-  const pinInputRef = useRef<TextInput>(null);
+  const pinInputRef = useRef<any>(null);
 
   // Remembered User for 1-Tap Google / Android Fingerprint Direct Login
   const [rememberedUser, setRememberedUser] = useState<RememberedUser | null>(null);

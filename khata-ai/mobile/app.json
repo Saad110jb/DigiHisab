@@ -32,7 +32,9 @@
         {
           "faceIDPermission": "Allow Digi Hisab to use biometric verification (Fingerprint / Face ID) for direct 1-tap login."
         }
-      ]
+      ],
+      "expo-sharing",
+      "expo-status-bar"
     ]
   }
 }

@@ -267,7 +267,7 @@
       ],
       "activeSubscribers": 510,
       "mrrContributionPKR": 153000,
-      "updatedAt": "2026-11-15"
+      "updatedAt": "2026-11-16"
     },
     {
       "id": "TIER-DUKAN-400",
@@ -401,6 +401,20 @@
     }
   ],
   "PRICING_AUDIT_LOGS_STORE": [
+    {
+      "id": "PAUDIT-017",
+      "tierId": "TIER-DUKAN-250",
+      "tierPlanKey": "DUKAN_BASIC_250",
+      "tierName": "Dukandar Retail Standard",
+      "oldPricePKR": 300,
+      "newPricePKR": 300,
+      "changedBy": "Chaudhry SuperAdmin",
+      "role": "ROOT_SUPERADMIN",
+      "timestamp": "2026-11-16 14:45 PKT",
+      "grandfatheredSubscribers": 510,
+      "sha256Hash": "2a0d02e86c4006cb22afa60dabe53797b789124ae5ae1ef0038f6ce244ef8570",
+      "reason": "Direct SuperAdmin price override from PKR 300 to PKR 300"
+    },
     {
       "id": "PAUDIT-016",
       "tierId": "TIER-DUKAN-250",

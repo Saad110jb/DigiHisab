@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -6,8 +6,10 @@ import {
   TouchableOpacity,
   ScrollView,
   Modal,
+  Alert,
   useWindowDimensions,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DailyProvisionRegisterModal } from './DailyProvisionRegisterModal';
@@ -26,23 +28,19 @@ import { DomesticKitchenRunwayModal } from './DomesticKitchenRunwayModal';
 import { DomesticVoiceAssistantModal } from './DomesticVoiceAssistantModal';
 import { DomesticAuditAndCorrectionModal } from './DomesticAuditAndCorrectionModal';
 import { SubscriptionModal } from './SubscriptionModal';
+import { GharanaMoreToolsModal, GharanaToolItem } from './GharanaMoreToolsModal';
 import { subscriptionService } from '../services/subscription.service';
 
 export type DomesticCategory = 'HOUSEHOLD';
 
-export interface DomesticServiceTile {
-  id: string;
-  modalKey: string;
-  title: string;
-  titleUrdu: string;
-  icon: keyof typeof Ionicons.glyphMap;
-  iconBg: string;
-  iconColor: string;
-  badge?: string;
-  badgeColor?: string;
-  badgeBg?: string;
-  category: DomesticCategory;
-}
+const GHARANA_PINNED_STORAGE_KEY = '@digihisab_gharana_pinned_tools';
+const DEFAULT_GHARANA_PINNED_IDS = [
+  'rozana_kharcha',
+  'smart_rashan',
+  'sub_meter',
+  'kameti',
+  'maid_staff',
+];
 
 export const DomesticDashboardHub: React.FC = () => {
   const insets = useSafeAreaInsets();
@@ -80,128 +78,221 @@ export const DomesticDashboardHub: React.FC = () => {
     setActiveModal(modalKey);
   };
 
-  // Household 3x3 Grid Services (9 Core Items)
-  const householdTiles: DomesticServiceTile[] = [
+  const [pinnedToolIds, setPinnedToolIds] = useState<string[]>(DEFAULT_GHARANA_PINNED_IDS);
+  const [gharanaMoreModalVisible, setGharanaMoreModalVisible] = useState<boolean>(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const stored = await AsyncStorage.getItem(GHARANA_PINNED_STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setPinnedToolIds(parsed.slice(0, 5));
+          }
+        }
+      } catch (e) {}
+    })();
+  }, []);
+
+  const handleTogglePinTool = async (toolId: string) => {
+    let next: string[];
+    if (pinnedToolIds.includes(toolId)) {
+      if (pinnedToolIds.length <= 1) {
+        Alert.alert('کم از کم ایک ٹول', 'ڈیش بورڈ پر کم از کم 1 ٹول پن رہنا ضروری ہے۔');
+        return;
+      }
+      next = pinnedToolIds.filter((id) => id !== toolId);
+    } else {
+      if (pinnedToolIds.length >= 5) {
+        Alert.alert(
+          'پن کی حد مکمل (Pin Limit Reached)',
+          'ڈیش بورڈ پر زیادہ سے زیادہ 5 ٹولز پن کیے جا سکتے ہیں۔ کسی دوسرے ٹول کو ان پن کر کے دوبارہ کوشش کریں۔'
+        );
+        return;
+      }
+      next = [...pinnedToolIds, toolId];
+    }
+    setPinnedToolIds(next);
+    try {
+      await AsyncStorage.setItem(GHARANA_PINNED_STORAGE_KEY, JSON.stringify(next));
+    } catch (e) {}
+  };
+
+  // Complete Catalog of 15 Domestic (Gharana) Services
+  const allGharanaTools: GharanaToolItem[] = useMemo(() => [
     {
-      id: 'rashan',
-      modalKey: 'MonthlyRashanPlannerModal',
-      title: 'Rashan Planner',
-      titleUrdu: 'ماہانہ راشن لسٹ',
+      id: 'rozana_kharcha',
+      title: 'Rozana Kharcha',
+      titleUrdu: 'روزانہ گھریلو خرچہ',
+      icon: 'receipt',
+      iconBg: '#FFE4E6',
+      iconColor: '#E11D48',
+      onPress: () => setActiveModal('kitchen_runway'),
+    },
+    {
+      id: 'smart_rashan',
+      title: 'Smart Rashan',
+      titleUrdu: 'راشن لسٹ اور بجٹ',
       icon: 'cart',
-      iconBg: 'rgba(16, 185, 129, 0.16)',
-      iconColor: '#34D399',
+      iconBg: 'rgba(0, 212, 159, 0.12)',
+      iconColor: '#00d49f',
       badge: '38 اشیاء',
-      badgeColor: '#34D399',
-      badgeBg: 'rgba(16, 185, 129, 0.15)',
-      category: 'HOUSEHOLD',
+      badgeColor: '#00d49f',
+      badgeBg: 'rgba(0, 212, 159, 0.15)',
+      onPress: () => handleProtectedModal('rashan'),
     },
     {
-      id: 'milk_bread',
-      modalKey: 'DailyMilkBreadRegisterModal',
-      title: 'Milk & Bread',
-      titleUrdu: 'دودھ و نان بائی',
-      icon: 'pint',
-      iconBg: 'rgba(56, 189, 248, 0.16)',
-      iconColor: '#38BDF8',
-      badge: 'Daily POS',
-      badgeColor: '#38BDF8',
-      badgeBg: 'rgba(56, 189, 248, 0.15)',
-      category: 'HOUSEHOLD',
-    },
-    {
-      id: 'utility',
-      modalKey: 'UtilityBillsTrackerModal',
-      title: 'Utility Bills',
-      titleUrdu: 'بجلی و گیس کے بل',
+      id: 'sub_meter',
+      title: 'Sub-Meter Bill',
+      titleUrdu: 'بجلی سب میٹر حساب',
       icon: 'flash',
-      iconBg: 'rgba(245, 158, 11, 0.16)',
-      iconColor: '#FBBF24',
-      badge: '🚨 3 دن الرٹ',
+      iconBg: '#E0F2FE',
+      iconColor: '#0284C7',
+      badge: 'الرٹ',
       badgeColor: '#EF4444',
-      badgeBg: 'rgba(239, 68, 68, 0.15)',
-      category: 'HOUSEHOLD',
+      badgeBg: '#FEE2E2',
+      onPress: () => setActiveModal('utility'),
     },
     {
       id: 'kameti',
-      modalKey: 'KametiCommitteeModal',
-      title: 'Kameti / BC',
-      titleUrdu: 'کمیٹی کھاتہ',
+      title: 'Kameti Tracker',
+      titleUrdu: 'کمیٹی و اقساط',
       icon: 'people',
-      iconBg: 'rgba(168, 85, 247, 0.16)',
-      iconColor: '#C084FC',
+      iconBg: '#F3E8FF',
+      iconColor: '#9333EA',
       badge: 'Month 2/5',
-      badgeColor: '#C084FC',
-      badgeBg: 'rgba(168, 85, 247, 0.15)',
-      category: 'HOUSEHOLD',
+      badgeColor: '#9333EA',
+      badgeBg: '#F3E8FF',
+      onPress: () => handleProtectedModal('kameti'),
     },
     {
-      id: 'seasonal_repair',
-      modalKey: 'SeasonalHomeRepairModal',
-      title: 'Home & AC Repair',
-      titleUrdu: 'گھر کی مرمت و سروسنگ',
-      icon: 'construct',
-      iconBg: 'rgba(56, 189, 248, 0.16)',
-      iconColor: '#38BDF8',
-      badge: '⚡ پری سیزن',
-      badgeColor: '#38BDF8',
-      badgeBg: 'rgba(56, 189, 248, 0.15)',
-      category: 'HOUSEHOLD',
-    },
-    {
-      id: 'staff_maid',
-      modalKey: 'DomesticStaffSalaryModal',
-      title: 'Staff & Maid',
-      titleUrdu: 'ملازمہ تنخواہ',
+      id: 'maid_staff',
+      title: 'Maid & Staff',
+      titleUrdu: 'ملازمین تنخواہ',
       icon: 'person',
-      iconBg: 'rgba(14, 165, 233, 0.16)',
-      iconColor: '#38BDF8',
-      badge: 'پیشگی و تنخواہ',
+      iconBg: '#EEF2FF',
+      iconColor: '#4F46E5',
+      badge: 'تنخواہ',
       badgeColor: '#F59E0B',
-      badgeBg: 'rgba(245, 158, 11, 0.15)',
-      category: 'HOUSEHOLD',
+      badgeBg: '#FEF3C7',
+      onPress: () => setActiveModal('staff_maid'),
     },
     {
-      id: 'mandi_budget',
-      modalKey: 'MandiRateTrackerModal',
+      id: 'doodh_roti',
+      title: 'Milk & Bread',
+      titleUrdu: 'دودھ و نان بائی',
+      icon: 'pint',
+      iconBg: '#E0F2FE',
+      iconColor: '#0284C7',
+      badge: 'Daily POS',
+      badgeColor: '#0284C7',
+      badgeBg: '#E0F2FE',
+      onPress: () => setActiveModal('milk_bread'),
+    },
+    {
+      id: 'repair_ac',
+      title: 'Home & AC Repair',
+      titleUrdu: 'گھر مرمت و سروس',
+      icon: 'construct',
+      iconBg: '#FEF3C7',
+      iconColor: '#D97706',
+      badge: 'پری سیزن',
+      badgeColor: '#D97706',
+      badgeBg: '#FEF3C7',
+      onPress: () => setActiveModal('seasonal_repair'),
+    },
+    {
+      id: 'mandi_sabzi',
       title: 'Sabzi & Gosht',
       titleUrdu: 'سبزی و گوشت منڈی',
       icon: 'basket',
-      iconBg: 'rgba(0, 212, 159, 0.16)',
+      iconBg: 'rgba(0, 212, 159, 0.12)',
       iconColor: '#00d49f',
-      badge: 'ہفتہ وار بجٹ',
-      badgeColor: '#00d49f',
-      badgeBg: 'rgba(0, 212, 159, 0.15)',
-      category: 'HOUSEHOLD',
+      onPress: () => setActiveModal('mandi_budget'),
     },
     {
-      id: 'zakat',
-      modalKey: 'ZakatSadqahCalculatorModal',
+      id: 'medical_rx',
+      title: 'Medical & Rx',
+      titleUrdu: 'بزرگوں کی ادویات',
+      icon: 'medkit',
+      iconBg: '#FFE4E6',
+      iconColor: '#E11D48',
+      onPress: () => setActiveModal('medical'),
+    },
+    {
+      id: 'zakat_sadqah',
       title: 'Zakat & Sadqah',
       titleUrdu: 'زکوٰۃ و صدقات',
       icon: 'heart',
-      iconBg: 'rgba(45, 212, 191, 0.16)',
-      iconColor: '#2DD4BF',
+      iconBg: '#CCFBF1',
+      iconColor: '#0D9488',
       badge: '2.5% نصاب',
-      badgeColor: '#2DD4BF',
-      badgeBg: 'rgba(45, 212, 191, 0.15)',
-      category: 'HOUSEHOLD',
+      badgeColor: '#0D9488',
+      badgeBg: '#CCFBF1',
+      onPress: () => setActiveModal('zakat'),
     },
     {
-      id: 'more',
-      modalKey: 'DomesticMoreToolsModal',
-      title: 'More Features',
-      titleUrdu: 'مزید سہولیات',
-      icon: 'ellipsis-horizontal',
-      iconBg: 'rgba(148, 163, 184, 0.16)',
-      iconColor: '#CBD5E1',
-      badge: '+3 Tools',
-      badgeColor: '#CBD5E1',
-      badgeBg: 'rgba(148, 163, 184, 0.15)',
-      category: 'HOUSEHOLD',
+      id: 'school_fee',
+      title: 'School Fees',
+      titleUrdu: 'بچوں کی اسکول فیس',
+      icon: 'school',
+      iconBg: '#F1F5F9',
+      iconColor: '#475569',
+      onPress: () => setActiveModal('school_fee'),
     },
-  ];
+    {
+      id: 'income_vault',
+      title: 'Income & Vault',
+      titleUrdu: 'آمدن، والٹ و بچت',
+      icon: 'wallet',
+      iconBg: '#ECFDF5',
+      iconColor: '#059669',
+      onPress: () => setActiveModal('income_vault'),
+    },
+    {
+      id: 'jev_guardian',
+      title: 'JEV Guardian',
+      titleUrdu: 'JEV والٹ گارڈین',
+      icon: 'shield-checkmark',
+      iconBg: '#EFF6FF',
+      iconColor: '#2563EB',
+      badge: 'تحفظ',
+      badgeColor: '#2563EB',
+      badgeBg: '#DBEAFE',
+      onPress: () => setActiveModal('jev_guardian'),
+    },
+    {
+      id: 'voice_assistant',
+      title: 'Voice Assistant',
+      titleUrdu: 'رومن اردو صوتی معاون',
+      icon: 'mic',
+      iconBg: 'rgba(0, 212, 159, 0.12)',
+      iconColor: '#00d49f',
+      badge: 'بولیں',
+      badgeColor: '#00d49f',
+      badgeBg: 'rgba(0, 212, 159, 0.15)',
+      onPress: () => handleProtectedModal('voice_assistant'),
+    },
+    {
+      id: 'domestic_audit',
+      title: 'Audit & Log',
+      titleUrdu: 'گھریلو حساب آڈٹ',
+      icon: 'document-text',
+      iconBg: '#F3E8FF',
+      iconColor: '#7E22CE',
+      badge: 'آڈٹ',
+      badgeColor: '#7E22CE',
+      badgeBg: '#F3E8FF',
+      onPress: () => setActiveModal('domestic_audit'),
+    },
+  ], []);
 
-  const currentTiles = householdTiles;
+  const displayedPinnedTools = useMemo(() => {
+    return pinnedToolIds
+      .map((id) => allGharanaTools.find((t) => t.id === id))
+      .filter(Boolean) as GharanaToolItem[];
+  }, [pinnedToolIds, allGharanaTools]);
 
   return (
     <View
@@ -377,32 +468,48 @@ export const DomesticDashboardHub: React.FC = () => {
           </TouchableOpacity>
         </View>
 
-        {/* ================= 2. THE EXPANDED 3x3 SERVICE GRID (FLEX-1) ================= */}
+        {/* ================= 2. GHARANA HUB (PINNED 5 ACTIONS + 6TH MORE TOOLS TILE) ================= */}
         <View style={styles.gridSection}>
           <View style={styles.gridHeaderRow}>
-            <Text style={styles.gridSectionTitle}>🏡 گھریلو سہولیات (Domestic Services)</Text>
-            <Text style={styles.gridCounter}>9 سروسز مکمل فعال</Text>
+            <View style={styles.gharanaTitleLeft}>
+              <View style={styles.mintBarStripe} />
+              <Text style={styles.gridSectionTitle}>Gharana Hub (گھریلو ٹولز)</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.allToolsHeaderPill}
+              onPress={() => setGharanaMoreModalVisible(true)}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="apps-outline" size={13} color="#00d49f" />
+              <Text style={styles.servicesCountText}>
+                {allGharanaTools.length} Services ({allGharanaTools.length - displayedPinnedTools.length} More)
+              </Text>
+            </TouchableOpacity>
           </View>
 
           <View style={styles.gridMatrix}>
-            {currentTiles.map((tile) => (
+            {/* First 5 Slots: Pinned Square Cards */}
+            {displayedPinnedTools.map((tile) => (
               <TouchableOpacity
                 key={tile.id}
-                style={[
-                  styles.tileCard,
-                  isDesktop && styles.tileCardDesktop,
-                ]}
-                onPress={() => handleProtectedModal(tile.id)}
+                style={styles.tileCard}
+                onPress={tile.onPress}
                 activeOpacity={0.8}
               >
-                {/* Status Pill Badge at Top-Right */}
+                {/* Feature Pill Badge at Top-Right */}
                 {Boolean(tile.badge) && (
-                  <View style={styles.tileBadge}>
+                  <View
+                    style={[
+                      styles.tileBadge,
+                      { backgroundColor: tile.badgeBg || '#FEF3C7' },
+                    ]}
+                  >
                     <Text
                       style={[
                         styles.tileBadgeText,
-                        { color: tile.badgeColor || '#CBD5E1' },
+                        { color: tile.badgeColor || '#B45309' },
                       ]}
+                      numberOfLines={1}
                     >
                       {tile.badge}
                     </Text>
@@ -413,40 +520,50 @@ export const DomesticDashboardHub: React.FC = () => {
                 <View
                   style={[
                     styles.tileIconContainer,
-                    isDesktop && styles.tileIconContainerDesktop,
-                    { backgroundColor: tile.iconBg, borderColor: tile.iconColor + '40' },
+                    { backgroundColor: tile.iconBg },
                   ]}
                 >
                   <Ionicons
                     name={tile.icon}
-                    size={isDesktop ? 26 : 22}
+                    size={20}
                     color={tile.iconColor}
                   />
                 </View>
 
-                {/* Primary Title */}
+                {/* Primary English Title */}
                 <Text
-                  style={[
-                    styles.tilePrimaryTitle,
-                    isDesktop && styles.tilePrimaryTitleDesktop,
-                  ]}
+                  style={styles.tilePrimaryTitle}
                   numberOfLines={1}
                 >
                   {tile.title}
                 </Text>
 
-                {/* Urdu Subtitle */}
+                {/* Crisp Urdu Subtitle */}
                 <Text
-                  style={[
-                    styles.tileUrduSub,
-                    isDesktop && styles.tileUrduSubDesktop,
-                  ]}
+                  style={styles.tileUrduSub}
                   numberOfLines={1}
                 >
                   {tile.titleUrdu}
                 </Text>
               </TouchableOpacity>
             ))}
+
+            {/* 6th Slot: Dedicated Interactive Dashed-Border Square Card */}
+            <TouchableOpacity
+              style={[styles.tileCard, styles.tileCardMore]}
+              onPress={() => setGharanaMoreModalVisible(true)}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.tileIconContainer, { backgroundColor: '#E0F2FE', marginBottom: 6 }]}>
+                <Ionicons name="apps" size={20} color="#0284C7" />
+              </View>
+              <Text style={[styles.tilePrimaryTitle, { color: '#0284C7' }]} numberOfLines={1}>
+                {`+${Math.max(1, allGharanaTools.length - displayedPinnedTools.length)} More`}
+              </Text>
+              <Text style={styles.tileUrduSub} numberOfLines={1}>
+                تمام ٹولز
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -743,6 +860,16 @@ export const DomesticDashboardHub: React.FC = () => {
           setSubTrigger({});
         }}
       />
+
+      {/* 16. Gharana All Tools Drawer / Modal */}
+      <GharanaMoreToolsModal
+        visible={gharanaMoreModalVisible}
+        onClose={() => setGharanaMoreModalVisible(false)}
+        tools={allGharanaTools}
+        pinnedToolIds={pinnedToolIds}
+        onTogglePin={handleTogglePinTool}
+        onSelectTool={(tool) => tool.onPress()}
+      />
     </View>
   );
 };
@@ -929,114 +1056,112 @@ const styles = StyleSheet.create({
 
   // 2. Expanded 3x3 Service Grid (flex-1)
   gridSection: {
-    flex: 1,
-    justifyContent: 'space-between',
-    marginBottom: 4,
+    marginBottom: 16,
   },
   gridHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 10,
     paddingHorizontal: 2,
   },
-  gridSectionTitle: {
-    color: '#E2E8F0',
-    fontSize: 12.5,
-    fontWeight: 'bold',
+  gharanaTitleLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
-  gridCounter: {
+  mintBarStripe: {
+    width: 4,
+    height: 16,
+    backgroundColor: '#00d49f',
+    borderRadius: 2,
+  },
+  gridSectionTitle: {
+    color: '#F8FAFC',
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  allToolsHeaderPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(0, 212, 159, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 212, 159, 0.3)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  servicesCountText: {
     color: '#00d49f',
-    fontSize: 10.5,
+    fontSize: 11,
     fontWeight: '700',
   },
   gridMatrix: {
-    flex: 1,
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#17233b',
-    backgroundColor: 'rgba(9, 17, 30, 0.6)',
-    padding: 10,
-    justifyContent: 'space-between',
-    alignContent: 'stretch',
+    justifyContent: 'flex-start',
   },
   tileCard: {
-    width: '31.6%',
-    flexGrow: 1,
-    minHeight: 106,
+    width: '31.4%',
+    aspectRatio: 1,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#17233b',
-    backgroundColor: '#0d1627',
-    paddingVertical: 10,
-    paddingHorizontal: 6,
+    borderColor: '#F1F5F9',
+    backgroundColor: '#FFFFFF',
+    padding: 6,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 1,
   },
-  tileCardDesktop: {
-    minHeight: 136,
-    paddingVertical: 14,
-    borderRadius: 20,
+  tileCardMore: {
+    borderStyle: 'dashed',
+    borderWidth: 1.5,
+    borderColor: '#BAE6FD',
+    backgroundColor: 'rgba(240, 249, 255, 0.7)',
   },
   tileBadge: {
     position: 'absolute',
     top: 6,
     right: 6,
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    borderRadius: 12,
-    backgroundColor: 'rgba(30, 41, 59, 0.8)',
-    borderWidth: 1,
-    borderColor: 'rgba(71, 85, 105, 0.6)',
+    paddingHorizontal: 5,
+    paddingVertical: 1.5,
+    borderRadius: 6,
+    zIndex: 10,
   },
   tileBadgeText: {
-    fontSize: 9.5,
-    fontWeight: '700',
-    color: '#CBD5E1',
+    fontSize: 8.5,
+    fontWeight: '800',
   },
   tileIconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    borderWidth: 1,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 6,
   },
-  tileIconContainerDesktop: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
-    marginBottom: 8,
-  },
   tilePrimaryTitle: {
     fontSize: 11,
-    fontWeight: 'bold',
-    color: '#F8FAFC',
+    fontWeight: '700',
+    color: '#0F172A',
     textAlign: 'center',
+    lineHeight: 14,
     width: '100%',
-  },
-  tilePrimaryTitleDesktop: {
-    fontSize: 13,
   },
   tileUrduSub: {
     fontSize: 9.5,
-    color: '#94A3B8',
+    color: '#64748B',
     textAlign: 'center',
     marginTop: 2,
+    lineHeight: 13,
     width: '100%',
-  },
-  tileUrduSubDesktop: {
-    fontSize: 11,
   },
 
   // 4. Modal Overlays

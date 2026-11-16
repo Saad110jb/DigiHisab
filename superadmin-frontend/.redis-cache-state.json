@@ -26,7 +26,7 @@
     "auditLogRetentionDays": 180,
     "maintenanceUrduMessage": "سسٹم اپ گریڈ جاری ہے: برائے مہربانی کچھ دیر بعد دوبارہ کوشش کریں۔ آپ کا کھاتہ، بیلنس اور کسٹمر ریکارڈ محفوظ ہے۔",
     "maintenanceEnMessage": "Scheduled System Maintenance: Digi Hisab is currently upgrading database clusters. All your ledger balances and merchant records are secure. Service will resume shortly.",
-    "lastUpdated": "2026-11-15T10:35:47.680Z",
+    "lastUpdated": "2026-11-16T14:45:48.805Z",
     "updatedBy": "Root SuperAdmin Control",
     "chorNazarThreshold": 1000,
     "submeterTariff": 52,
@@ -34,84 +34,40 @@
     "platformMaintenanceMode": false
   },
   "sessions": {
-    "ADMIN_SESSION:SA_01:SESS_F0E511F867BD8D45": {
-      "sessionId": "SESS_F0E511F867BD8D45",
+    "ADMIN_SESSION:SA_01:SESS_75694AABDDBDF521": {
+      "sessionId": "SESS_75694AABDDBDF521",
       "adminId": "SA_01",
       "nodeLabel": "Root Console Gateway (Node 00)",
       "ipAddress": "::1",
       "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
       "deviceFingerprint": "DFP-FBABCD7",
-      "createdAt": "2026-11-15T10:11:25.926Z",
-      "expiresAt": 1794739285926,
+      "createdAt": "2026-11-16T14:45:33.138Z",
+      "expiresAt": 1794842133138,
       "sessionVersion": 1
     },
-    "ADMIN_SESSION:SA_01:SESS_62B12F6A397144E4": {
-      "sessionId": "SESS_62B12F6A397144E4",
+    "ADMIN_SESSION:SA_01:SESS_B7777AA029EBEF50": {
+      "sessionId": "SESS_B7777AA029EBEF50",
       "adminId": "SA_01",
       "nodeLabel": "Root Console Gateway (Node 00)",
       "ipAddress": "::1",
       "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
       "deviceFingerprint": "DFP-FBABCD7",
-      "createdAt": "2026-11-15T10:11:30.123Z",
-      "expiresAt": 1794739290123,
+      "createdAt": "2026-11-16T14:45:37.318Z",
+      "expiresAt": 1794842137318,
       "sessionVersion": 1
     },
-    "ADMIN_SESSION:SA_01:SESS_29DD4351BCE744E9": {
-      "sessionId": "SESS_29DD4351BCE744E9",
+    "ADMIN_SESSION:SA_01:SESS_63169603D477210E": {
+      "sessionId": "SESS_63169603D477210E",
       "adminId": "SA_01",
       "nodeLabel": "Root Console Gateway (Node 00)",
       "ipAddress": "::1",
       "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
       "deviceFingerprint": "DFP-FBABCD7",
-      "createdAt": "2026-11-15T10:11:36.133Z",
-      "expiresAt": 1794739296133,
-      "sessionVersion": 1
-    },
-    "ADMIN_SESSION:SA_01:SESS_D09676053C396024": {
-      "sessionId": "SESS_D09676053C396024",
-      "adminId": "SA_01",
-      "nodeLabel": "Root Console Gateway (Node 00)",
-      "ipAddress": "::1",
-      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
-      "deviceFingerprint": "DFP-FBABCD7",
-      "createdAt": "2026-11-15T10:28:07.881Z",
-      "expiresAt": 1794740287881,
-      "sessionVersion": 1
-    },
-    "ADMIN_SESSION:SA_01:SESS_BFEC5CF8BE153EC8": {
-      "sessionId": "SESS_BFEC5CF8BE153EC8",
-      "adminId": "SA_01",
-      "nodeLabel": "Root Console Gateway (Node 00)",
-      "ipAddress": "::1",
-      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
-      "deviceFingerprint": "DFP-FBABCD7",
-      "createdAt": "2026-11-15T10:35:28.229Z",
-      "expiresAt": 1794740728229,
-      "sessionVersion": 1
-    },
-    "ADMIN_SESSION:SA_01:SESS_681CD7E8072B78FB": {
-      "sessionId": "SESS_681CD7E8072B78FB",
-      "adminId": "SA_01",
-      "nodeLabel": "Root Console Gateway (Node 00)",
-      "ipAddress": "::1",
-      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
-      "deviceFingerprint": "DFP-FBABCD7",
-      "createdAt": "2026-11-15T10:35:33.816Z",
-      "expiresAt": 1794740733816,
-      "sessionVersion": 1
-    },
-    "ADMIN_SESSION:SA_01:SESS_1788B3439EAEB3A4": {
-      "sessionId": "SESS_1788B3439EAEB3A4",
-      "adminId": "SA_01",
-      "nodeLabel": "Root Console Gateway (Node 00)",
-      "ipAddress": "::1",
-      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
-      "deviceFingerprint": "DFP-FBABCD7",
-      "createdAt": "2026-11-15T10:35:41.062Z",
-      "expiresAt": 1794740741062,
+      "createdAt": "2026-11-16T14:45:43.410Z",
+      "expiresAt": 1794842143410,
       "sessionVersion": 1
     }
   },
   "globalSessionVersion": 1,
-  "timestamp": "2026-11-15T10:35:47.680Z"
+  "timestamp": "2026-11-16T14:45:48.805Z"
 }

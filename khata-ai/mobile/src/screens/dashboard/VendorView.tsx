@@ -1201,7 +1201,7 @@ export const VendorView: React.FC = () => {
           </View>
 
           <View style={styles.hubGrid3Cols}>
-            {/* First 5 Slots: Pinned Cards */}
+            {/* First 5 Slots: Pinned Square Cards */}
             {displayedPinnedTools.map((tool) => {
               const isLockedForCashier = tool.roleRequired === 'MANAGER' && isCashier;
               const isLockedForNonOwner = tool.roleRequired === 'OWNER' && !isOwner;
@@ -1213,7 +1213,6 @@ export const VendorView: React.FC = () => {
                   style={[
                     styles.hubCard,
                     tool.isHelpCard && styles.hubCardHelp,
-                    isDesktop ? { width: '31.3%' } : isTablet ? { width: '48.2%' } : { width: '100%' },
                   ]}
                   onPress={tool.onPress}
                   activeOpacity={0.8}
@@ -1244,7 +1243,7 @@ export const VendorView: React.FC = () => {
                   >
                     <Ionicons
                       name={tool.icon}
-                      size={22}
+                      size={20}
                       color={tool.isHelpCard ? '#57FBDB' : tool.iconColor}
                     />
                   </View>
@@ -1265,27 +1264,24 @@ export const VendorView: React.FC = () => {
               );
             })}
 
-            {/* 6th Slot: Dedicated Interactive '... More Tools' Card */}
+            {/* 6th Slot: Dedicated Interactive Dashed-Border Square Card */}
             <TouchableOpacity
               style={[
                 styles.hubCard,
                 styles.hubCardMoreTools,
-                isDesktop ? { width: '31.3%' } : isTablet ? { width: '48.2%' } : { width: '100%' },
               ]}
               onPress={() => setMoreToolsModalVisible(true)}
               activeOpacity={0.8}
             >
-              <View style={styles.topBadgeMoreTools}>
-                <Text style={styles.topBadgeTextMoreTools}>
-                  {allKarobarTools.length - displayedPinnedTools.length} More Available
-                </Text>
+              <View style={[styles.hubIconCircle, { backgroundColor: '#E0F2FE', marginBottom: 6 }]}>
+                <Ionicons name="apps" size={20} color="#0284C7" />
               </View>
-
-              <View style={[styles.hubIconCircle, { backgroundColor: '#E0F2FE' }]}>
-                <Ionicons name="apps" size={24} color="#0284C7" />
-              </View>
-              <Text style={[styles.hubCardTitle, { color: '#0284C7' }]}>⋯ مزید ٹولز (More)</Text>
-              <Text style={styles.hubCardSub}>View All {allKarobarTools.length} Services</Text>
+              <Text style={[styles.hubCardTitle, { color: '#0284C7' }]} numberOfLines={1}>
+                {`+${Math.max(1, allKarobarTools.length - displayedPinnedTools.length)} More`}
+              </Text>
+              <Text style={styles.hubCardSub} numberOfLines={1}>
+                تمام ٹولز
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -4380,23 +4376,25 @@ const styles = StyleSheet.create({
   hubGrid3Cols: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
+    gap: 8,
+    justifyContent: 'flex-start',
   },
   hubCard: {
-    width: '31%',
+    width: '31.4%',
+    aspectRatio: 1,
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 12,
+    padding: 6,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#F1F5F9',
     position: 'relative',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
+    elevation: 1,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
   },
   hubCardHelp: {
     backgroundColor: '#004D36',
@@ -4404,26 +4402,26 @@ const styles = StyleSheet.create({
   },
   hubCardMoreTools: {
     borderStyle: 'dashed',
-    borderColor: '#0284C7',
-    backgroundColor: '#F0F9FF',
+    borderColor: '#BAE6FD',
+    backgroundColor: 'rgba(240, 249, 255, 0.7)',
     borderWidth: 1.5,
   },
   hubIconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   helpIconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     backgroundColor: 'rgba(87, 251, 219, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   topBadgeOrange: {
     position: 'absolute',
@@ -4469,15 +4467,17 @@ const styles = StyleSheet.create({
   },
   hubCardTitle: {
     fontSize: 11,
-    fontWeight: '800',
+    fontWeight: '700',
     color: '#0F172A',
     textAlign: 'center',
+    lineHeight: 14,
   },
   hubCardSub: {
-    fontSize: 9,
+    fontSize: 9.5,
     color: '#64748B',
     marginTop: 2,
     textAlign: 'center',
+    lineHeight: 13,
   },
   helpCardTitle: {
     fontSize: 11,

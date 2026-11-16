@@ -153,15 +153,15 @@ export const KarobarMoreToolsModal: React.FC<KarobarMoreToolsModalProps> = ({
                         styles.catalogCard,
                         isPinned && styles.catalogCardPinned,
                         tool.isHelpCard && styles.catalogCardHelp,
-                        isDesktop || isTablet ? { width: '48.8%' } : { width: '100%' },
+                        isDesktop || isTablet ? { width: '31.3%' } : { width: '48.2%' },
                       ]}
-                      activeOpacity={0.8}
+                      activeOpacity={0.85}
                       onPress={() => {
                         onClose();
                         tool.onPress();
                       }}
                     >
-                      {/* Top Pin Trigger */}
+                      {/* Top-Right Floating Pin Pill */}
                       <TouchableOpacity
                         style={[styles.pinBadgeButton, isPinned ? styles.pinBadgeActive : styles.pinBadgeInactive]}
                         activeOpacity={0.7}
@@ -170,82 +170,66 @@ export const KarobarMoreToolsModal: React.FC<KarobarMoreToolsModalProps> = ({
                           onTogglePin(tool.id);
                         }}
                       >
-                        <Ionicons
-                          name={isPinned ? 'pin' : 'pin-outline'}
-                          size={13}
-                          color={isPinned ? '#059669' : '#64748B'}
-                        />
                         <Text style={[styles.pinBadgeText, isPinned && styles.pinBadgeTextActive]}>
-                          {isPinned ? 'Pinned' : 'Pin'}
+                          {isPinned ? '📌 Pinned' : '📍 Pin'}
                         </Text>
                       </TouchableOpacity>
 
-                      {/* Tool Content Row / Box */}
-                      <View style={styles.catalogCardInner}>
-                        <View
-                          style={[
-                            styles.toolIconCircle,
-                            { backgroundColor: tool.iconBg },
-                            tool.isHelpCard && { backgroundColor: 'rgba(87, 251, 219, 0.2)' },
-                          ]}
-                        >
-                          <Ionicons
-                            name={tool.icon}
-                            size={22}
-                            color={tool.isHelpCard ? '#57FBDB' : tool.iconColor}
-                          />
-                        </View>
-
-                        <View style={styles.toolMetaCol}>
-                          <View style={styles.titleWithBadgeRow}>
-                            <Text
-                              style={[styles.toolTitle, tool.isHelpCard && { color: '#FFFFFF' }]}
-                              numberOfLines={2}
-                            >
-                              {tool.title}
-                            </Text>
-
-                            {/* Role / Raast Badges */}
-                            {isLocked ? (
-                              <View style={styles.badgeLocked}>
-                                <Text style={styles.badgeLockedText}>
-                                  🔒 {isLockedForNonOwner ? 'Owner' : 'Mgr'}
-                                </Text>
-                              </View>
-                            ) : tool.badge ? (
-                              <View
-                                style={[
-                                  styles.badgeCustom,
-                                  tool.badgeType === 'orange' ? styles.badgeOrange : styles.badgeRed,
-                                ]}
-                              >
-                                <Text
-                                  style={[
-                                    styles.badgeCustomText,
-                                    tool.badgeType === 'orange' ? styles.badgeOrangeText : styles.badgeRedText,
-                                  ]}
-                                >
-                                  {tool.badge}
-                                </Text>
-                              </View>
-                            ) : null}
-                          </View>
-
-                          <Text
-                            style={[styles.toolUrduTitle, tool.isHelpCard && { color: '#8FF6CA' }]}
-                            numberOfLines={1}
-                          >
-                            {tool.titleUrdu}
+                      {/* Top-Left Locked / Feature Badge */}
+                      {isLocked ? (
+                        <View style={styles.topBadgeLeftLocked}>
+                          <Text style={styles.badgeLockedText}>
+                            🔒 {isLockedForNonOwner ? 'Owner' : 'Mgr'}
                           </Text>
                         </View>
+                      ) : tool.badge ? (
+                        <View
+                          style={[
+                            styles.topBadgeLeft,
+                            tool.badgeType === 'orange' ? styles.badgeOrange : styles.badgeRed,
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.badgeCustomText,
+                              tool.badgeType === 'orange' ? styles.badgeOrangeText : styles.badgeRedText,
+                            ]}
+                          >
+                            {tool.badge}
+                          </Text>
+                        </View>
+                      ) : null}
 
+                      {/* Center Circular Icon Badge */}
+                      <View
+                        style={[
+                          styles.toolIconCircle,
+                          { backgroundColor: tool.iconBg },
+                          tool.isHelpCard && { backgroundColor: 'rgba(87, 251, 219, 0.2)' },
+                        ]}
+                      >
                         <Ionicons
-                          name="chevron-forward"
-                          size={16}
-                          color={tool.isHelpCard ? '#57FBDB' : '#CBD5E1'}
-                          style={{ marginLeft: 4 }}
+                          name={tool.icon}
+                          size={22}
+                          color={tool.isHelpCard ? '#57FBDB' : tool.iconColor}
                         />
                       </View>
+
+                      {/* Primary English Title */}
+                      <Text
+                        style={[styles.toolTitle, tool.isHelpCard && { color: '#FFFFFF' }]}
+                        numberOfLines={1}
+                      >
+                        {tool.title}
+                      </Text>
+
+                      {/* Crisp Urdu Subtitle */}
+                      <Text
+                        style={[styles.toolUrduTitle, tool.isHelpCard && { color: '#8FF6CA' }]}
+                        numberOfLines={1}
+                      >
+                        {tool.titleUrdu}
+                      </Text>
                     </TouchableOpacity>
                   );
                 })}
@@ -384,23 +368,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
+    justifyContent: 'flex-start',
   },
   catalogCard: {
+    aspectRatio: 1,
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 12,
+    padding: 8,
     borderWidth: 1,
     borderColor: '#E2E8F0',
+    alignItems: 'center',
+    justifyContent: 'center',
     position: 'relative',
     elevation: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
+    shadowOpacity: 0.04,
     shadowRadius: 2,
   },
   catalogCardPinned: {
-    borderColor: '#86EFAC',
-    backgroundColor: '#F0FDF4',
+    borderWidth: 2,
+    borderColor: '#00d49f',
+    backgroundColor: 'rgba(0, 212, 159, 0.05)',
   },
   catalogCardHelp: {
     backgroundColor: '#004D36',
@@ -408,69 +397,69 @@ const styles = StyleSheet.create({
   },
   pinBadgeButton: {
     position: 'absolute',
-    top: 10,
-    right: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 12,
+    top: 6,
+    right: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2.5,
+    borderRadius: 8,
     zIndex: 10,
   },
   pinBadgeActive: {
-    backgroundColor: '#DCFCE7',
-    borderWidth: 1,
-    borderColor: '#86EFAC',
+    backgroundColor: '#00d49f',
   },
   pinBadgeInactive: {
     backgroundColor: '#F1F5F9',
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: '#E2E8F0',
   },
   pinBadgeText: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '700',
     color: '#64748B',
   },
   pinBadgeTextActive: {
-    color: '#059669',
+    color: '#FFFFFF',
   },
-  catalogCardInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingRight: 64, // give space for pin button on top right
+  topBadgeLeft: {
+    position: 'absolute',
+    top: 6,
+    left: 6,
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    borderRadius: 6,
+    zIndex: 10,
+  },
+  topBadgeLeftLocked: {
+    position: 'absolute',
+    top: 6,
+    left: 6,
+    backgroundColor: '#FFE4E6',
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    borderRadius: 6,
+    zIndex: 10,
   },
   toolIconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  toolMetaCol: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  titleWithBadgeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    flexWrap: 'wrap',
+    marginBottom: 6,
   },
   toolTitle: {
-    fontSize: 13,
-    fontWeight: '800',
+    fontSize: 11,
+    fontWeight: '700',
     color: '#0F172A',
-    flexShrink: 1,
-    lineHeight: 17,
+    textAlign: 'center',
+    lineHeight: 14,
   },
   toolUrduTitle: {
-    fontSize: 11,
+    fontSize: 9.5,
     color: '#64748B',
+    textAlign: 'center',
     marginTop: 2,
-    lineHeight: 15,
+    lineHeight: 13,
   },
   badgeLocked: {
     backgroundColor: '#FFE4E6',

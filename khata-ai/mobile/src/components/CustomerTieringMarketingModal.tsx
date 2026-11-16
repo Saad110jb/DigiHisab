@@ -30,6 +30,75 @@ export interface CustomerTieringMarketingModalProps {
 
 type FilterTier = 'ALL' | RfmSegment;
 
+export type StoreType = 'KARYANA' | 'PHARMACY' | 'GARMENTS' | 'ELECTRONICS' | 'CUSTOM';
+
+export const STORE_TEMPLATES: Record<StoreType, { id: string; badge: string; titleUrdu: string; message: string }[]> = {
+  KARYANA: [
+    {
+      id: 'karyana_rashan',
+      badge: 'ماہانہ راشن',
+      titleUrdu: 'ماہانہ راشن پیکج اور بچت آفر',
+      message: 'محترم {customer_name}! {shop_name} پر تازہ گروسری اور ماہانہ راشن پیکج پر خصوصی رعایت دستیاب ہے۔ تشریف لائیں اور بچت کا فائدہ اٹھائیں!',
+    },
+    {
+      id: 'karyana_udhaar',
+      badge: 'کھاتہ کلیئرنس',
+      titleUrdu: 'بقایا ادھار کلیئرنس یاد دہانی',
+      message: 'محترم {customer_name}! {shop_name} کے کھاتے میں آپ کا بقایا حساب Rs. {balance} ہے۔ برائے کرم اس محفوظ لنک کے ذریعے کلیئر کریں: {pay_link}',
+    },
+  ],
+  PHARMACY: [
+    {
+      id: 'pharma_refill',
+      badge: 'ادویات ری فل',
+      titleUrdu: 'ماہانہ ادویات کا وقت',
+      message: 'محترم {customer_name}! {shop_name} سے آپ کی ماہانہ ادویات کا وقت ہو گیا ہے۔ نسخہ بھیجیں اور گھر بیٹھے مفت ڈلیوری حاصل کریں۔',
+    },
+    {
+      id: 'pharma_health',
+      badge: 'ہیلتھ کیئر',
+      titleUrdu: 'فری شوگر اور بی پی چیک اپ',
+      message: 'محترم VIP گاہک {customer_name}! {shop_name} پر تمام ادویات پر 10% رعایت اور فری ہیلتھ چیک اپ جاری ہے۔',
+    },
+  ],
+  GARMENTS: [
+    {
+      id: 'garments_arrival',
+      badge: 'نیا سیزن',
+      titleUrdu: 'نیا سیزنل کلیکشن و ڈسکاؤنٹ',
+      message: 'محترم {customer_name}! {shop_name} پر نیا فینسی اور سیزنل اسٹاک آ گیا ہے! VIP گاہکوں کے لیے خصوصی 15% رعایت دستیاب ہے۔',
+    },
+    {
+      id: 'garments_sale',
+      badge: 'سیل الرٹ',
+      titleUrdu: 'بچت فیسٹیول سیل',
+      message: 'سیل الرٹ! {shop_name} پر شاندار بچت میلہ شروع ہو گیا ہے۔ شاپنگ کریں اور خصوصی تحائف جیتیں۔',
+    },
+  ],
+  ELECTRONICS: [
+    {
+      id: 'electronics_promo',
+      badge: 'موبائل ایکسیسریز',
+      titleUrdu: 'نئے اسمارٹ فونز و سامان',
+      message: 'محترم {customer_name}! {shop_name} پر نئے اسمارٹ فونز، اوریجنل چارجرز اور گیجٹس پر خصوصی ڈسکاؤنٹ حاصل کریں۔',
+    },
+    {
+      id: 'electronics_installment',
+      badge: 'قسط یاد دہانی',
+      titleUrdu: 'آسان ماہانہ قسط کلیئرنس',
+      message: 'محترم {customer_name}! آپ کی الیکٹرانکس قسط کا واجب الادا بیلنس Rs. {balance} ہے۔ براہ کرم اس ادائیگی لنک سے فوری ادا کریں: {pay_link}',
+    },
+  ],
+  CUSTOM: [
+    {
+      id: 'custom_msg',
+      badge: 'خود لکھیں',
+      titleUrdu: 'اپنی مرضی کا ذاتی پیغام',
+      message: 'محترم {customer_name}! {shop_name} کی طرف سے سلام۔ آپ کا بقایا حساب Rs. {balance} ہے۔ ادائیگی لنک: {pay_link}',
+    },
+  ],
+};
+
 export const CustomerTieringMarketingModal: React.FC<CustomerTieringMarketingModalProps> = ({
   visible,
   onClose,
@@ -45,9 +114,30 @@ export const CustomerTieringMarketingModal: React.FC<CustomerTieringMarketingMod
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>('FRESH_STOCK');
   const [previewData, setPreviewData] = useState<ICampaignPreviewResponse | null>(null);
 
+  const [selectedStoreType, setSelectedStoreType] = useState<StoreType>('KARYANA');
+  const [customMessageText, setCustomMessageText] = useState<string>(
+    'محترم {customer_name}! {shop_name} پر تازہ گروسری اور ماہانہ راشن پیکج پر خصوصی رعایت دستیاب ہے۔ تشریف لائیں اور بچت کا فائدہ اٹھائیں!'
+  );
+
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [dispatchedCustomerIds, setDispatchedCustomerIds] = useState<Set<string>>(new Set());
+
+  const handleInsertVariable = (variableKey: string) => {
+    setCustomMessageText((prev) => `${prev} ${variableKey}`);
+  };
+
+  const buildEvaluatedMessage = (customerName?: string, balance?: number, payLink?: string) => {
+    const sName = previewData?.storeName || 'DigiHisab Store';
+    const cName = customerName || 'معزز خریدار';
+    const bAmt = balance !== undefined ? balance.toLocaleString() : '0';
+    const pLink = payLink || 'https://digihisab.pk/pay';
+    return customMessageText
+      .replace(/{customer_name}/g, cName)
+      .replace(/{shop_name}/g, sName)
+      .replace(/{balance}/g, bAmt)
+      .replace(/{pay_link}/g, pLink);
+  };
 
   const loadData = async (isManualRefresh = false) => {
     try {
@@ -97,18 +187,27 @@ export const CustomerTieringMarketingModal: React.FC<CustomerTieringMarketingMod
     }
   }, [selectedCampaignId]);
 
-  const handleDispatchWhatsApp = async (customerId: string, whatsappUrl: string) => {
+  const handleDispatchWhatsApp = async (
+    customerId: string,
+    fallbackUrl: string,
+    customerName?: string,
+    balance?: number
+  ) => {
     try {
       // Optimistically mark as sent
       setDispatchedCustomerIds((prev) => new Set(prev).add(customerId));
       customerRfmMarketingApi.recordDispatch(customerId, selectedCampaignId).catch(() => {});
 
+      const evaluatedText = buildEvaluatedMessage(customerName, balance);
+      const targetPhone = previewData?.customers.find((c) => c.customerId === customerId)?.customerPhone || '';
+      const cleanPhone = targetPhone.replace(/[^0-9]/g, '');
+      const whatsappUrl = `whatsapp://send?phone=${cleanPhone}&text=${encodeURIComponent(evaluatedText)}`;
+
       const supported = await Linking.canOpenURL(whatsappUrl);
       if (supported) {
         await Linking.openURL(whatsappUrl);
       } else {
-        // Fallback web url
-        await Linking.openURL(whatsappUrl.replace('whatsapp://send', 'https://api.whatsapp.com/send'));
+        await Linking.openURL(`https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(evaluatedText)}`);
       }
     } catch (e: any) {
       Alert.alert('واٹس ایپ رابطہ', 'براہ کرم یقینی بنائیں کہ آپ کے فون میں واٹس ایپ انسٹال ہے۔');
@@ -116,11 +215,11 @@ export const CustomerTieringMarketingModal: React.FC<CustomerTieringMarketingMod
   };
 
   const handleShareBroadcast = async () => {
-    if (!previewData?.genericBroadcastMessage) return;
     try {
+      const evaluatedText = buildEvaluatedMessage('معزز خریدار');
       await Share.share({
-        message: previewData.genericBroadcastMessage,
-        title: previewData.template.titleUrdu,
+        message: evaluatedText,
+        title: 'DigiHisab Campaign Broadcast',
       });
     } catch (err: any) {
       Alert.alert('شیئر خرابی', err.message || 'پیغام شیئر کرنے میں مسئلہ پیش آیا۔');
@@ -193,64 +292,51 @@ export const CustomerTieringMarketingModal: React.FC<CustomerTieringMarketingMod
             </View>
           </View>
 
-          {/* Quick KPI Overview Strip */}
-          <View style={styles.kpiStrip}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.kpiScroll}>
-              <View style={[styles.kpiCard, { borderColor: '#F59E0B' }]}>
-                <View style={styles.kpiTopRow}>
-                  <Text style={styles.kpiIcon}>👑</Text>
-                  <Text style={[styles.kpiNumber, { color: '#B45309' }]}>
-                    {summaryData?.kpis.vipCount || 0}
-                  </Text>
-                </View>
-                <Text style={styles.kpiLabel}>شاہانہ VIP گاہک</Text>
-                <Text style={styles.kpiSub}>Top 10% Spenders</Text>
+          {/* Quick KPI Overview 2x2 Responsive Grid */}
+          <View style={styles.kpiGrid2x2}>
+            <View style={[styles.kpiCardSquare, { borderColor: '#F59E0B' }]}>
+              <View style={styles.kpiTopRow}>
+                <Text style={styles.kpiIcon}>👑</Text>
+                <Text style={[styles.kpiNumber, { color: '#B45309' }]}>
+                  {summaryData?.kpis.vipCount || 0}
+                </Text>
               </View>
+              <Text style={styles.kpiLabel}>شاہانہ VIP گاہک</Text>
+              <Text style={styles.kpiSub}>Top 10% Spenders</Text>
+            </View>
 
-              <View style={[styles.kpiCard, { borderColor: '#006C4E' }]}>
-                <View style={styles.kpiTopRow}>
-                  <Text style={styles.kpiIcon}>💎</Text>
-                  <Text style={[styles.kpiNumber, { color: '#006C4E' }]}>
-                    {summaryData?.kpis.loyalCount || 0}
-                  </Text>
-                </View>
-                <Text style={styles.kpiLabel}>مستقل بااعتماد</Text>
-                <Text style={styles.kpiSub}>Weekly Buyers</Text>
+            <View style={[styles.kpiCardSquare, { borderColor: '#006C4E' }]}>
+              <View style={styles.kpiTopRow}>
+                <Text style={styles.kpiIcon}>💎</Text>
+                <Text style={[styles.kpiNumber, { color: '#006C4E' }]}>
+                  {summaryData?.kpis.loyalCount || 0}
+                </Text>
               </View>
+              <Text style={styles.kpiLabel}>مستقل بااعتماد</Text>
+              <Text style={styles.kpiSub}>Weekly Buyers</Text>
+            </View>
 
-              <View style={[styles.kpiCard, { borderColor: '#EF4444' }]}>
-                <View style={styles.kpiTopRow}>
-                  <Text style={styles.kpiIcon}>⚠️</Text>
-                  <Text style={[styles.kpiNumber, { color: '#DC2626' }]}>
-                    {summaryData?.kpis.atRiskCount || 0}
-                  </Text>
-                </View>
-                <Text style={styles.kpiLabel}>چھوٹتے ہوئے</Text>
-                <Text style={styles.kpiSub}>Inactive &gt;30d</Text>
+            <View style={[styles.kpiCardSquare, { borderColor: '#EF4444' }]}>
+              <View style={styles.kpiTopRow}>
+                <Text style={styles.kpiIcon}>⚠️</Text>
+                <Text style={[styles.kpiNumber, { color: '#DC2626' }]}>
+                  {summaryData?.kpis.atRiskCount || 0}
+                </Text>
               </View>
+              <Text style={styles.kpiLabel}>چھوٹتے ہوئے</Text>
+              <Text style={styles.kpiSub}>Inactive &gt;30d</Text>
+            </View>
 
-              <View style={[styles.kpiCard, { borderColor: '#8B5CF6' }]}>
-                <View style={styles.kpiTopRow}>
-                  <Text style={styles.kpiIcon}>💳</Text>
-                  <Text style={[styles.kpiNumber, { color: '#7C3AED' }]}>
-                    {summaryData?.kpis.creditDebtorsCount || 0}
-                  </Text>
-                </View>
-                <Text style={styles.kpiLabel}>ادھار منحصر</Text>
-                <Text style={styles.kpiSub}>Heavy Debtors</Text>
+            <View style={[styles.kpiCardSquare, { borderColor: '#8B5CF6' }]}>
+              <View style={styles.kpiTopRow}>
+                <Text style={styles.kpiIcon}>🌱</Text>
+                <Text style={[styles.kpiNumber, { color: '#7C3AED' }]}>
+                  {summaryData?.kpis.creditDebtorsCount || 0}
+                </Text>
               </View>
-
-              <View style={[styles.kpiCard, { borderColor: '#0284C7' }]}>
-                <View style={styles.kpiTopRow}>
-                  <Text style={styles.kpiIcon}>💵</Text>
-                  <Text style={[styles.kpiNumber, { color: '#0369A1' }]}>
-                    Rs. {Math.round((summaryData?.kpis.totalSpend90d || 0) / 1000)}k
-                  </Text>
-                </View>
-                <Text style={styles.kpiLabel}>90 دن کا بزنس</Text>
-                <Text style={styles.kpiSub}>90-Day Turnover</Text>
-              </View>
-            </ScrollView>
+              <Text style={styles.kpiLabel}>نئے و ادھار گاہک</Text>
+              <Text style={styles.kpiSub}>New &amp; Credit</Text>
+            </View>
           </View>
 
           {/* Navigation Tabs */}
@@ -496,41 +582,67 @@ export const CustomerTieringMarketingModal: React.FC<CustomerTieringMarketingMod
               contentContainerStyle={{ paddingBottom: Math.max(30, insets.bottom + 20) }}
               showsVerticalScrollIndicator={false}
             >
-              {/* Campaign Templates Selector */}
+              {/* 1. Store Category Selector Pills */}
               <Text style={styles.sectionHeader}>
-                📢 مہم کا موضوع منتخب کریں (Select Campaign Theme):
+                🏪 دکان کی کیٹیگری اور پیغام (Store Type &amp; Theme):
               </Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={styles.templatesScroll}
-                contentContainerStyle={styles.templatesContent}
-              >
-                {templates.map((tmpl) => {
-                  const isSelected = selectedCampaignId === tmpl.id;
+              <View style={styles.storeCategoryPillsWrap}>
+                {[
+                  { key: 'KARYANA', label: '🛒 Karyana / General' },
+                  { key: 'PHARMACY', label: '💊 Pharmacy / Medical' },
+                  { key: 'GARMENTS', label: '👕 Garments / Boutique' },
+                  { key: 'ELECTRONICS', label: '📱 Mobile & Electronics' },
+                  { key: 'CUSTOM', label: '✍️ Custom Message (خود لکھیں)' },
+                ].map((cat) => (
+                  <TouchableOpacity
+                    key={cat.key}
+                    style={[
+                      styles.storeCategoryPill,
+                      selectedStoreType === cat.key && styles.storeCategoryPillActive,
+                    ]}
+                    onPress={() => {
+                      setSelectedStoreType(cat.key as StoreType);
+                      const firstTmpl = STORE_TEMPLATES[cat.key as StoreType][0];
+                      if (firstTmpl) {
+                        setCustomMessageText(firstTmpl.message);
+                      }
+                    }}
+                    activeOpacity={0.75}
+                  >
+                    <Text
+                      style={[
+                        styles.storeCategoryPillText,
+                        selectedStoreType === cat.key && styles.storeCategoryPillTextActive,
+                      ]}
+                    >
+                      {cat.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              {/* Dynamic Store-Aware Templates */}
+              <View style={styles.storeTemplatesWrap}>
+                {STORE_TEMPLATES[selectedStoreType].map((tmpl) => {
+                  const isCurrent = customMessageText === tmpl.message;
                   return (
                     <TouchableOpacity
                       key={tmpl.id}
-                      style={[styles.templateCard, isSelected && styles.templateCardActive]}
-                      onPress={() => setSelectedCampaignId(tmpl.id)}
+                      style={[styles.templateCardStore, isCurrent && styles.templateCardStoreActive]}
+                      onPress={() => setCustomMessageText(tmpl.message)}
                       activeOpacity={0.8}
                     >
                       <View style={styles.templateBadge}>
                         <Text style={styles.templateBadgeText}>{tmpl.badge}</Text>
                       </View>
-                      <Text
-                        style={[styles.templateTitle, isSelected && styles.templateTitleActive]}
-                        numberOfLines={2}
-                      >
-                        {tmpl.titleUrdu}
-                      </Text>
-                      <Text style={styles.templateSub} numberOfLines={2}>
-                        {tmpl.descriptionUrdu}
+                      <Text style={styles.templateTitleUrdu}>{tmpl.titleUrdu}</Text>
+                      <Text style={styles.templateMessagePreview} numberOfLines={2}>
+                        {tmpl.message}
                       </Text>
                     </TouchableOpacity>
                   );
                 })}
-              </ScrollView>
+              </View>
 
               {/* Target Audience Summary */}
               {previewData && (
@@ -541,25 +653,72 @@ export const CustomerTieringMarketingModal: React.FC<CustomerTieringMarketingMod
                       ہدف گاہک: {previewData.totalTargeted} خریدار
                     </Text>
                     <Text style={styles.audienceSub}>
-                      دکان: {previewData.storeName} • مہم: {previewData.template.titleEnglish}
+                      دکان: {previewData.storeName}
                     </Text>
                   </View>
                 </View>
               )}
 
-              {/* Live Preview Bubble */}
+              {/* Editable Message Composer */}
               <View style={styles.previewBox}>
                 <View style={styles.previewHeader}>
-                  <Ionicons name="chatbubble-ellipses-outline" size={16} color="#047857" />
-                  <Text style={styles.previewHeaderText}>
-                    واٹس ایپ میسج کا لائیو پیش نظارہ (Live Sample Preview)
-                  </Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 }}>
+                    <Ionicons name="chatbubble-ellipses-outline" size={16} color="#006C4E" />
+                    <Text style={styles.previewHeaderText}>
+                      واٹس ایپ پیغام میں ترمیم کریں (Custom Message Editor)
+                    </Text>
+                  </View>
+                  <View style={styles.editBadge}>
+                    <Ionicons name="pencil" size={11} color="#006C4E" />
+                    <Text style={styles.editBadgeText}>Editable</Text>
+                  </View>
                 </View>
 
-                <View style={styles.chatBubble}>
+                {/* Editable Text Area */}
+                <TextInput
+                  style={styles.messageComposerInput}
+                  multiline
+                  numberOfLines={4}
+                  value={customMessageText}
+                  onChangeText={setCustomMessageText}
+                  placeholder="یہاں واٹس ایپ پیغام ٹائپ کریں..."
+                  placeholderTextColor="#94A3B8"
+                />
+
+                {/* Clickable Variable Insertion Chips */}
+                <View style={styles.variableChipsRow}>
+                  <Text style={styles.variableLabel}>Insert Tags:</Text>
+                  <TouchableOpacity
+                    style={styles.varChip}
+                    onPress={() => handleInsertVariable('{customer_name}')}
+                  >
+                    <Text style={styles.varChipText}>+ Customer Name</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.varChip}
+                    onPress={() => handleInsertVariable('{shop_name}')}
+                  >
+                    <Text style={styles.varChipText}>+ Store Name</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.varChip}
+                    onPress={() => handleInsertVariable('{balance}')}
+                  >
+                    <Text style={styles.varChipText}>+ Udhaar Balance</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.varChip}
+                    onPress={() => handleInsertVariable('{pay_link}')}
+                  >
+                    <Text style={styles.varChipText}>+ Pay Link</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Live Sample Preview Bubble */}
+                <View style={styles.chatBubbleEvaluated}>
+                  <Text style={styles.evaluatedLabel}>Live Customer Sample (پیش نظارہ):</Text>
                   <Text style={styles.chatBubbleText}>
-                    {previewData?.genericBroadcastMessage ||
-                      'محترم گاہک! دکان پر نیا اسٹاک دستیاب ہے۔ تشریف لائیں۔'}
+                    {buildEvaluatedMessage('محمد علی', 3500, 'https://digihisab.pk/pay/u123')}
                   </Text>
                   <View style={styles.chatBubbleMeta}>
                     <Text style={styles.chatBubbleTime}>ابھی</Text>
@@ -623,7 +782,7 @@ export const CustomerTieringMarketingModal: React.FC<CustomerTieringMarketingMod
                           isSent && styles.sendWhatsAppBtnSent,
                         ]}
                         onPress={() =>
-                          handleDispatchWhatsApp(cust.customerId, cust.whatsappLink)
+                          handleDispatchWhatsApp(cust.customerId, cust.whatsappLink, cust.customerName)
                         }
                         activeOpacity={0.8}
                       >
@@ -734,6 +893,30 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#E2E8F0',
     paddingVertical: 8,
+  },
+  kpiGrid2x2: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+    justifyContent: 'space-between',
+  },
+  kpiCardSquare: {
+    width: '48.2%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    borderWidth: 1.5,
+    padding: 10,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.03,
+    shadowOffset: { width: 0, height: 1 },
+    shadowRadius: 2,
+    elevation: 1,
   },
   kpiScroll: {
     paddingHorizontal: 14,
@@ -984,6 +1167,125 @@ const styles = StyleSheet.create({
   templatesContent: {
     gap: 10,
     paddingVertical: 2,
+  },
+  storeCategoryPillsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 12,
+  },
+  storeCategoryPill: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: '#F1F5F9',
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+  },
+  storeCategoryPillActive: {
+    backgroundColor: '#E8F5EE',
+    borderColor: '#006C4E',
+  },
+  storeCategoryPillText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#475569',
+  },
+  storeCategoryPillTextActive: {
+    color: '#006C4E',
+    fontWeight: '800',
+  },
+  storeTemplatesWrap: {
+    gap: 8,
+    marginBottom: 12,
+  },
+  templateCardStore: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    padding: 10,
+  },
+  templateCardStoreActive: {
+    borderColor: '#006C4E',
+    backgroundColor: '#F0FDF4',
+  },
+  templateTitleUrdu: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#0F172A',
+    marginBottom: 2,
+  },
+  templateMessagePreview: {
+    fontSize: 11,
+    color: '#64748B',
+    lineHeight: 16,
+  },
+  editBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: '#E8F5EE',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  editBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#006C4E',
+  },
+  messageComposerInput: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    borderRadius: 10,
+    padding: 10,
+    fontSize: 13,
+    color: '#0F172A',
+    minHeight: 90,
+    textAlignVertical: 'top',
+    marginTop: 8,
+  },
+  variableChipsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 8,
+    alignItems: 'center',
+  },
+  variableLabel: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    color: '#64748B',
+  },
+  varChip: {
+    backgroundColor: '#F1F5F9',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  varChipText: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    color: '#0284C7',
+  },
+  chatBubbleEvaluated: {
+    backgroundColor: '#ECFDF5',
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+    borderRadius: 12,
+    padding: 10,
+    marginTop: 10,
+    marginBottom: 10,
+  },
+  evaluatedLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#065F46',
+    marginBottom: 4,
   },
   templateCard: {
     width: 175,

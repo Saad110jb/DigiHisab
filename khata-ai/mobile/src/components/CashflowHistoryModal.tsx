@@ -507,47 +507,45 @@ export const CashflowHistoryModal: React.FC<CashflowHistoryModalProps> = ({
               ) : null}
             </View>
 
-            {/* Account Source Filters */}
-            <View style={styles.filterLabelRow}>
-              <Text style={styles.filterLabel}>Account Source Filter (حساب کا ذریعہ):</Text>
-            </View>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll}>
-              {[
-                { key: 'ALL', label: 'All Accounts' },
-                { key: 'PHYSICAL_CASH', label: '💵 Cash Galla' },
-                { key: 'DIGITAL_WALLET', label: '📱 Digital Wallet' },
-                { key: 'BANK_ACCOUNT', label: '🏦 Bank Account' },
-              ].map((f) => (
-                <TouchableOpacity
-                  key={f.key}
-                  style={[styles.filterChip, sourceFilter === f.key && styles.filterChipActive]}
-                  onPress={() => setSourceFilter(f.key as any)}
-                >
-                  <Text style={[styles.filterChipText, sourceFilter === f.key && styles.filterChipTextActive]}>
-                    {f.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+            {/* Account Source & Type Filters Wrapping Section */}
+            <View style={styles.filterWrapSection}>
+              <View style={styles.filterChipRow}>
+                {[
+                  { key: 'ALL', label: 'All Accounts' },
+                  { key: 'PHYSICAL_CASH', label: '💵 Cash Galla' },
+                  { key: 'DIGITAL_WALLET', label: '📱 Digital Wallet' },
+                  { key: 'BANK_ACCOUNT', label: '🏦 Bank Account' },
+                ].map((f) => (
+                  <TouchableOpacity
+                    key={f.key}
+                    style={[styles.filterChip, sourceFilter === f.key && styles.filterChipActive]}
+                    onPress={() => setSourceFilter(f.key as any)}
+                  >
+                    <Text style={[styles.filterChipText, sourceFilter === f.key && styles.filterChipTextActive]}>
+                      {f.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
 
-            {/* Type Filter Row */}
-            <View style={styles.typeFilterRow}>
-              {[
-                { key: 'ALL', label: 'All Types' },
-                { key: 'INFLOW', label: '🟢 Inflows (+)' },
-                { key: 'OUTFLOW', label: '🔴 Outflows (-)' },
-                { key: 'PENDING_BILL', label: '⚪ Pending Bills' },
-              ].map((t) => (
-                <TouchableOpacity
-                  key={t.key}
-                  style={[styles.typeChip, typeFilter === t.key && styles.typeChipActive]}
-                  onPress={() => setTypeFilter(t.key as any)}
-                >
-                  <Text style={[styles.typeChipText, typeFilter === t.key && styles.typeChipTextActive]}>
-                    {t.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+              <View style={styles.typeChipRow}>
+                {[
+                  { key: 'ALL', label: 'All Types' },
+                  { key: 'INFLOW', label: '🟢 Inflows (+)' },
+                  { key: 'OUTFLOW', label: '🔴 Outflows (-)' },
+                  { key: 'PENDING_BILL', label: '⚪ Pending Bills' },
+                ].map((t) => (
+                  <TouchableOpacity
+                    key={t.key}
+                    style={[styles.typeChip, typeFilter === t.key && styles.typeChipActive]}
+                    onPress={() => setTypeFilter(t.key as any)}
+                  >
+                    <Text style={[styles.typeChipText, typeFilter === t.key && styles.typeChipTextActive]}>
+                      {t.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
           </View>
 
@@ -708,28 +706,29 @@ export const CashflowHistoryModal: React.FC<CashflowHistoryModalProps> = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(8, 18, 30, 0.85)',
-    justifyContent: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 20,
+    backgroundColor: 'rgba(15, 23, 42, 0.65)',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
   },
   modalCard: {
-    backgroundColor: '#0B192C',
-    borderRadius: 22,
-    maxHeight: '92%',
+    width: '100%',
+    maxWidth: 480,
+    maxHeight: '90%',
+    height: '88%',
+    backgroundColor: '#F8FAFC',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#1E3A5F',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#08121E',
+    backgroundColor: '#FFFFFF',
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#1E293B',
+    borderBottomColor: '#E2E8F0',
   },
   headerTitleRow: {
     flexDirection: 'row',
@@ -741,28 +740,30 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    backgroundColor: '#E8F5EE',
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerTitle: {
     fontSize: 14,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: '#0F172A',
   },
   headerSubtitle: {
     fontSize: 11,
-    color: '#94A3B8',
+    color: '#64748B',
     marginTop: 1,
   },
   closeBtn: {
-    padding: 4,
+    padding: 6,
+    borderRadius: 18,
+    backgroundColor: '#F1F5F9',
   },
   summaryBar: {
     flexDirection: 'row',
-    backgroundColor: '#112238',
+    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#1E293B',
+    borderBottomColor: '#E2E8F0',
     paddingVertical: 10,
     paddingHorizontal: 16,
     alignItems: 'center',
@@ -774,46 +775,47 @@ const styles = StyleSheet.create({
   summaryDivider: {
     width: 1,
     height: 24,
-    backgroundColor: '#1E293B',
+    backgroundColor: '#E2E8F0',
   },
   summaryLabel: {
     fontSize: 10,
-    color: '#94A3B8',
-    fontWeight: '600',
+    color: '#64748B',
+    fontWeight: '700',
   },
   summaryInflow: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: '#10B981',
+    fontSize: 14,
+    fontWeight: '900',
+    color: '#006C4E',
     marginTop: 2,
   },
   summaryOutflow: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: '#F43F5E',
+    fontSize: 14,
+    fontWeight: '900',
+    color: '#DC2626',
     marginTop: 2,
   },
   filterSection: {
-    backgroundColor: '#0E1E34',
-    padding: 12,
+    backgroundColor: '#F8FAFC',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#1E293B',
+    borderBottomColor: '#E2E8F0',
   },
   searchBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#162C46',
+    backgroundColor: '#FFFFFF',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#1E3A5F',
+    borderColor: '#CBD5E1',
     paddingHorizontal: 10,
-    height: 38,
-    marginBottom: 10,
+    height: 40,
+    marginBottom: 8,
   },
   searchInput: {
     flex: 1,
     fontSize: 12,
-    color: '#FFFFFF',
+    color: '#0F172A',
   },
   filterLabelRow: {
     marginBottom: 6,
@@ -821,57 +823,71 @@ const styles = StyleSheet.create({
   filterLabel: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#CBD5E1',
+    color: '#334155',
+  },
+  filterWrapSection: {
+    gap: 6,
+  },
+  filterChipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  filterChip: {
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+  },
+  filterChipActive: {
+    backgroundColor: '#E8F5EE',
+    borderColor: '#006C4E',
+  },
+  filterChipText: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    color: '#475569',
+  },
+  filterChipTextActive: {
+    color: '#006C4E',
+    fontWeight: '800',
+  },
+  typeChipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  typeChip: {
+    flexGrow: 1,
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    alignItems: 'center',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+  },
+  typeChipActive: {
+    backgroundColor: '#F0FDF4',
+    borderColor: '#006C4E',
+  },
+  typeChipText: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    color: '#475569',
+  },
+  typeChipTextActive: {
+    color: '#006C4E',
+    fontWeight: '800',
   },
   filterScroll: {
     marginBottom: 10,
   },
-  filterChip: {
-    backgroundColor: '#162C46',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#1E3A5F',
-    marginRight: 6,
-  },
-  filterChipActive: {
-    backgroundColor: '#10B981',
-    borderColor: '#10B981',
-  },
-  filterChipText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#94A3B8',
-  },
-  filterChipTextActive: {
-    color: '#FFFFFF',
-  },
   typeFilterRow: {
     flexDirection: 'row',
     gap: 6,
-  },
-  typeChip: {
-    flex: 1,
-    backgroundColor: '#162C46',
-    paddingVertical: 7,
-    alignItems: 'center',
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#1E3A5F',
-  },
-  typeChipActive: {
-    backgroundColor: '#38BDF8',
-    borderColor: '#38BDF8',
-  },
-  typeChipText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#94A3B8',
-  },
-  typeChipTextActive: {
-    color: '#0F172A',
-    fontWeight: '800',
   },
   body: {
     padding: 12,
@@ -883,19 +899,24 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 12,
-    color: '#94A3B8',
+    color: '#64748B',
     marginTop: 8,
   },
   txCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#112238',
+    backgroundColor: '#FFFFFF',
     borderRadius: 14,
     padding: 12,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#E2E8F0',
     gap: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.02,
+    shadowOffset: { width: 0, height: 1 },
+    shadowRadius: 2,
+    elevation: 1,
   },
   txIconCircle: {
     width: 38,
@@ -910,11 +931,11 @@ const styles = StyleSheet.create({
   txTitle: {
     fontSize: 13,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: '#0F172A',
   },
   txSub: {
     fontSize: 11,
-    color: '#94A3B8',
+    color: '#64748B',
     marginTop: 2,
   },
   rowBadgesLine: {
@@ -924,24 +945,24 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   sourceBadge: {
-    backgroundColor: '#162C46',
+    backgroundColor: '#F1F5F9',
     alignSelf: 'flex-start',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#1E3A5F',
+    borderColor: '#E2E8F0',
   },
   sourceBadgeText: {
     fontSize: 9,
     fontWeight: '700',
-    color: '#CBD5E1',
+    color: '#475569',
   },
   attachmentBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 3,
-    backgroundColor: 'rgba(56, 189, 248, 0.15)',
+    backgroundColor: '#E0F2FE',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 6,
@@ -949,7 +970,7 @@ const styles = StyleSheet.create({
   attachmentText: {
     fontSize: 9,
     fontWeight: '700',
-    color: '#38BDF8',
+    color: '#0284C7',
   },
   txNoteText: {
     fontSize: 10,
@@ -971,19 +992,19 @@ const styles = StyleSheet.create({
   },
   imagePreviewOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(8, 18, 30, 0.9)',
+    backgroundColor: 'rgba(15, 23, 42, 0.75)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
   },
   imagePreviewCard: {
-    backgroundColor: '#0B192C',
+    backgroundColor: '#FFFFFF',
     borderRadius: 18,
     width: '100%',
     maxHeight: '80%',
     padding: 14,
     borderWidth: 1,
-    borderColor: '#1E3A5F',
+    borderColor: '#E2E8F0',
   },
   imagePreviewHeader: {
     flexDirection: 'row',
@@ -992,7 +1013,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   imagePreviewTitle: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 14,
     fontWeight: '800',
   },
@@ -1005,20 +1026,20 @@ const styles = StyleSheet.create({
     padding: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(16, 185, 129, 0.08)',
+    backgroundColor: '#ECFDF5',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.25)',
+    borderColor: '#A7F3D0',
     marginVertical: 12,
   },
   imageErrorTitle: {
-    color: '#10B981',
+    color: '#006C4E',
     fontSize: 14,
     fontWeight: '700',
     marginTop: 8,
   },
   imageErrorSub: {
-    color: '#94A3B8',
+    color: '#64748B',
     fontSize: 11,
     textAlign: 'center',
     marginTop: 4,
@@ -1032,8 +1053,8 @@ const styles = StyleSheet.create({
   itemPillBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0F172A',
-    borderColor: '#334155',
+    backgroundColor: '#F1F5F9',
+    borderColor: '#CBD5E1',
     borderWidth: 1,
     paddingHorizontal: 8,
     paddingVertical: 3,
@@ -1041,17 +1062,23 @@ const styles = StyleSheet.create({
   },
   itemPillBadgeText: {
     fontSize: 11,
-    color: '#38BDF8',
+    color: '#0284C7',
     fontWeight: '600',
   },
   pdfToolbarCard: {
-    backgroundColor: '#0B192C',
+    backgroundColor: '#FFFFFF',
     borderRadius: 14,
     padding: 12,
-    marginHorizontal: 16,
-    marginBottom: 10,
+    marginHorizontal: 14,
+    marginTop: 10,
+    marginBottom: 8,
     borderWidth: 1,
-    borderColor: '#1E3A5F',
+    borderColor: '#E2E8F0',
+    shadowColor: '#000',
+    shadowOpacity: 0.03,
+    shadowOffset: { width: 0, height: 1 },
+    shadowRadius: 2,
+    elevation: 1,
   },
   pdfToolbarTopRow: {
     flexDirection: 'row',
@@ -1067,20 +1094,20 @@ const styles = StyleSheet.create({
   pdfSectionTitle: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#38BDF8',
+    color: '#0284C7',
   },
   channelSyncBadge: {
-    backgroundColor: '#162C46',
+    backgroundColor: '#F1F5F9',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#1E3A5F',
+    borderColor: '#E2E8F0',
   },
   channelSyncText: {
     fontSize: 9,
     fontWeight: '700',
-    color: '#94A3B8',
+    color: '#475569',
   },
   pdfModeTabsRow: {
     flexDirection: 'row',
@@ -1091,24 +1118,24 @@ const styles = StyleSheet.create({
   pdfModeBtn: {
     flexGrow: 1,
     minWidth: 95,
-    minHeight: 36,
-    backgroundColor: '#0F1E33',
+    minHeight: 34,
+    backgroundColor: '#F1F5F9',
     paddingVertical: 7,
     paddingHorizontal: 8,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#1E3A5F',
+    borderColor: '#E2E8F0',
   },
   pdfModeBtnActive: {
-    backgroundColor: '#0284C7',
-    borderColor: '#38BDF8',
+    backgroundColor: '#006C4E',
+    borderColor: '#006C4E',
   },
   pdfModeBtnText: {
     fontSize: 10,
-    fontWeight: '600',
-    color: '#94A3B8',
+    fontWeight: '700',
+    color: '#64748B',
     textAlign: 'center',
   },
   pdfModeBtnTextActive: {
@@ -1120,11 +1147,11 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 8,
     marginBottom: 10,
-    backgroundColor: '#071220',
+    backgroundColor: '#F8FAFC',
     padding: 8,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#E2E8F0',
   },
   customDateBox: {
     flex: 1,
@@ -1132,19 +1159,19 @@ const styles = StyleSheet.create({
   },
   customDateInputLabel: {
     fontSize: 9,
-    color: '#94A3B8',
+    color: '#64748B',
     marginBottom: 3,
     fontWeight: '600',
   },
   customDateInputField: {
-    backgroundColor: '#0B192C',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: '#CBD5E1',
     borderRadius: 6,
     paddingHorizontal: 8,
     paddingVertical: 6,
     fontSize: 11,
-    color: '#F8FAFC',
+    color: '#0F172A',
   },
   pdfButtonsRow: {
     flexDirection: 'row',
@@ -1153,8 +1180,8 @@ const styles = StyleSheet.create({
   },
   pdfActionButton: {
     flexGrow: 1,
-    minWidth: 140,
-    minHeight: 44,
+    minWidth: 130,
+    minHeight: 42,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -1163,9 +1190,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   pdfDailyActionBtn: {
-    backgroundColor: '#059669',
+    backgroundColor: '#006C4E',
     borderWidth: 1,
-    borderColor: '#10B981',
+    borderColor: '#006C4E',
   },
   pdfMonthlyActionBtn: {
     backgroundColor: '#4F46E5',
@@ -1186,7 +1213,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   pdfActionUrduText: {
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: 'rgba(255, 255, 255, 0.85)',
     fontSize: 9,
     fontWeight: '600',
   },

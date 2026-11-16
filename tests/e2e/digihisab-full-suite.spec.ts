@@ -113,9 +113,8 @@ async function loginAdmin(page: any) {
   }
 
   const submitBtn = page.locator('button[type="submit"]');
-  if (await submitBtn.isEnabled()) {
-    await submitBtn.click();
-  }
+  await expect(submitBtn).toBeEnabled({ timeout: 8000 });
+  await submitBtn.click();
   await expect(page).not.toHaveURL(new RegExp('/admin/login'), { timeout: 15000 });
 }
 

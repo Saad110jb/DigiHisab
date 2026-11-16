@@ -138,115 +138,117 @@ export const ChorNazarSentinelModal: React.FC<ChorNazarSentinelModalProps> = ({
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent={false} onRequestClose={onClose}>
-      <View style={styles.container}>
-        {/* Header Bar */}
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <View style={styles.headerIconCircle}>
-              <Ionicons name="shield-half-outline" size={22} color="#F59E0B" />
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+      <View style={styles.modalBackdrop}>
+        <View style={[styles.modalSheet, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+          {/* Header Bar */}
+          <View style={styles.header}>
+            <View style={styles.headerLeft}>
+              <View style={styles.headerIconCircle}>
+                <Ionicons name="shield-half-outline" size={22} color="#D97706" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.headerTitle}>Chor Nazar (چور نظر) Sentinel</Text>
+                <Text style={styles.headerSubtitle}>خفیہ ملازمین نگرانی و گلہ لیکج سینٹینل • دکان مالک کے لیے</Text>
+              </View>
             </View>
-            <View>
-              <Text style={styles.headerTitle}>Chor Nazar (چور نظر) Sentinel</Text>
-              <Text style={styles.headerSubtitle}>خفیہ ملازمین نگرانی و گلہ لیکج سینٹینل • دکان مالک کے لیے</Text>
-            </View>
-          </View>
-          <TouchableOpacity style={styles.closeBtn} onPress={onClose} activeOpacity={0.8}>
-            <Ionicons name="close" size={24} color="#94A3B8" />
-          </TouchableOpacity>
-        </View>
-
-        {/* Monthly Till Shrinkage Protection Counter Card */}
-        <View style={styles.savingsHeroCard}>
-          <View style={styles.savingsTopRow}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.savingsHeroLabel}>ESTIMATED TILL THEFT PROTECTION (اس ماہ بچائے گئے)</Text>
-              <Text style={styles.savingsHeroValue}>
-                Rs. {dashboardData.monthlySavingsEstimatedPkr.toLocaleString()}
-              </Text>
-            </View>
-            <View style={styles.shieldBadgeLarge}>
-              <Ionicons name="lock-closed" size={24} color="#10B981" />
-            </View>
+            <TouchableOpacity style={styles.closeBtn} onPress={onClose} activeOpacity={0.8}>
+              <Ionicons name="close" size={22} color="#64748B" />
+            </TouchableOpacity>
           </View>
 
-          <Text style={styles.savingsHeroSub}>
-            چور نظر الگورتھم نے کاؤنٹر چوری، بغیر بل گلہ اوپن اور بعد از وقت منسوخی کو روک کر یہ رقم محفوظ کی ہے۔
-          </Text>
-
-          <View style={styles.metricsPillsRow}>
-            <View style={styles.metricPill}>
-              <Ionicons name="people" size={14} color="#94A3B8" />
-              <Text style={styles.metricPillText}>{dashboardData.totalCashiersMonitored} کیشیئرز</Text>
-            </View>
-            <View
-              style={[
-                styles.metricPill,
-                dashboardData.criticalAlertCount > 0 && { backgroundColor: 'rgba(239, 68, 68, 0.2)' },
-              ]}
-            >
-              <Ionicons
-                name="alert-circle"
-                size={14}
-                color={dashboardData.criticalAlertCount > 0 ? '#EF4444' : '#10B981'}
-              />
-              <Text
-                style={[
-                  styles.metricPillText,
-                  dashboardData.criticalAlertCount > 0 && { color: '#EF4444', fontWeight: '800' },
-                ]}
-              >
-                {dashboardData.criticalAlertCount} شدید خطرہ الرٹ
-              </Text>
-            </View>
-            <View style={styles.metricPill}>
-              <Ionicons name="speedometer" size={14} color="#F59E0B" />
-              <Text style={styles.metricPillText}>صحت: {dashboardData.overallTillHealthScore}%</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Tab Switcher */}
-        <View style={styles.tabBar}>
-          <TouchableOpacity
-            style={[styles.tabButton, activeTab === 'RADAR' && styles.tabButtonActive]}
-            onPress={() => setActiveTab('RADAR')}
-            activeOpacity={0.8}
-          >
-            <Ionicons
-              name="analytics-outline"
-              size={18}
-              color={activeTab === 'RADAR' ? '#F59E0B' : '#94A3B8'}
-              style={{ marginRight: 6 }}
-            />
-            <Text style={[styles.tabText, activeTab === 'RADAR' && styles.tabTextActive]}>
-              Cashier Trust Radar (کیشیئر رڈار)
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.tabButton, activeTab === 'TIMELINE' && styles.tabButtonActive]}
-            onPress={() => setActiveTab('TIMELINE')}
-            activeOpacity={0.8}
-          >
-            <Ionicons
-              name="time-outline"
-              size={18}
-              color={activeTab === 'TIMELINE' ? '#EF4444' : '#94A3B8'}
-              style={{ marginRight: 6 }}
-            />
-            <Text style={[styles.tabText, activeTab === 'TIMELINE' && styles.tabTextAlertActive]}>
-              Suspicious Events (مشکوک واقعات)
-            </Text>
-            {dashboardData.recentSuspiciousEvents.length > 0 && (
-              <View style={styles.alertBadgeCount}>
-                <Text style={styles.alertBadgeCountText}>
-                  {dashboardData.recentSuspiciousEvents.length}
+          {/* Monthly Till Shrinkage Protection Counter Card */}
+          <View style={styles.savingsHeroCard}>
+            <View style={styles.savingsTopRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.savingsHeroLabel}>ESTIMATED TILL THEFT PROTECTION (اس ماہ بچائے گئے)</Text>
+                <Text style={styles.savingsHeroValue}>
+                  Rs. {dashboardData.monthlySavingsEstimatedPkr.toLocaleString()}
                 </Text>
               </View>
-            )}
-          </TouchableOpacity>
-        </View>
+              <View style={styles.shieldBadgeLarge}>
+                <Ionicons name="lock-closed" size={24} color="#006C4E" />
+              </View>
+            </View>
+
+            <Text style={styles.savingsHeroSub}>
+              چور نظر الگورتھم نے کاؤنٹر چوری، بغیر بل گلہ اوپن اور بعد از وقت منسوخی کو روک کر یہ رقم محفوظ کی ہے۔
+            </Text>
+
+            <View style={styles.metricsPillsRow}>
+              <View style={styles.metricPill}>
+                <Ionicons name="people" size={14} color="#64748B" />
+                <Text style={styles.metricPillText}>{dashboardData.totalCashiersMonitored} کیشیئرز</Text>
+              </View>
+              <View
+                style={[
+                  styles.metricPill,
+                  dashboardData.criticalAlertCount > 0 && { backgroundColor: '#FEE2E2', borderColor: '#FCA5A5' },
+                ]}
+              >
+                <Ionicons
+                  name="alert-circle"
+                  size={14}
+                  color={dashboardData.criticalAlertCount > 0 ? '#DC2626' : '#006C4E'}
+                />
+                <Text
+                  style={[
+                    styles.metricPillText,
+                    dashboardData.criticalAlertCount > 0 && { color: '#DC2626', fontWeight: '800' },
+                  ]}
+                >
+                  {dashboardData.criticalAlertCount} شدید خطرہ الرٹ
+                </Text>
+              </View>
+              <View style={styles.metricPill}>
+                <Ionicons name="speedometer" size={14} color="#D97706" />
+                <Text style={styles.metricPillText}>صحت: {dashboardData.overallTillHealthScore}%</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* 2-Column Segmented Tab Control */}
+          <View style={styles.tabBar}>
+            <TouchableOpacity
+              style={[styles.tabButton, activeTab === 'RADAR' && styles.tabButtonActive]}
+              onPress={() => setActiveTab('RADAR')}
+              activeOpacity={0.8}
+            >
+              <Ionicons
+                name="analytics-outline"
+                size={16}
+                color={activeTab === 'RADAR' ? '#D97706' : '#64748B'}
+                style={{ marginRight: 4 }}
+              />
+              <Text
+                style={[styles.tabText, activeTab === 'RADAR' && styles.tabTextActive]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                Cashier Trust Radar
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.tabButton, activeTab === 'TIMELINE' && styles.tabButtonActive]}
+              onPress={() => setActiveTab('TIMELINE')}
+              activeOpacity={0.8}
+            >
+              <Ionicons
+                name="time-outline"
+                size={16}
+                color={activeTab === 'TIMELINE' ? '#DC2626' : '#64748B'}
+                style={{ marginRight: 4 }}
+              />
+              <Text
+                style={[styles.tabText, activeTab === 'TIMELINE' && styles.tabTextAlertActive]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                Suspicious Events ({dashboardData.recentSuspiciousEvents.length})
+              </Text>
+            </TouchableOpacity>
+          </View>
 
         {loading ? (
           <View style={styles.loadingBox}>
@@ -521,65 +523,83 @@ export const ChorNazarSentinelModal: React.FC<ChorNazarSentinelModalProps> = ({
             onPress={fetchDashboardData}
             activeOpacity={0.8}
           >
-            <Ionicons name="refresh" size={20} color="#CBD5E1" />
+            <Ionicons name="refresh" size={20} color="#64748B" />
           </TouchableOpacity>
         </View>
       </View>
-    </Modal>
+    </View>
+  </Modal>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  modalBackdrop: {
     flex: 1,
-    backgroundColor: '#0F172A',
+    backgroundColor: 'rgba(15, 23, 42, 0.65)',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+  },
+  modalSheet: {
+    width: '100%',
+    maxWidth: 480,
+    height: '92%',
+    backgroundColor: '#F8FAFC',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    overflow: 'hidden',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'ios' ? 50 : 20,
-    paddingBottom: 16,
-    backgroundColor: '#1E293B',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#334155',
+    borderBottomColor: '#E2E8F0',
   },
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
     flex: 1,
   },
   headerIconCircle: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#FEF3C7',
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '800',
-    color: '#F8FAFC',
+    color: '#0F172A',
   },
   headerSubtitle: {
     fontSize: 11,
-    color: '#94A3B8',
-    marginTop: 2,
+    color: '#64748B',
+    marginTop: 1,
   },
   closeBtn: {
     padding: 6,
+    borderRadius: 18,
+    backgroundColor: '#F1F5F9',
   },
   savingsHeroCard: {
-    backgroundColor: '#1E293B',
-    margin: 16,
-    marginBottom: 10,
+    backgroundColor: '#FFFFFF',
+    margin: 14,
+    marginBottom: 8,
     borderRadius: 16,
-    padding: 16,
+    padding: 14,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: '#E2E8F0',
+    shadowColor: '#000',
+    shadowOpacity: 0.03,
+    shadowOffset: { width: 0, height: 1 },
+    shadowRadius: 2,
+    elevation: 1,
   },
   savingsTopRow: {
     flexDirection: 'row',
@@ -588,83 +608,94 @@ const styles = StyleSheet.create({
   },
   savingsHeroLabel: {
     fontSize: 10,
-    color: '#10B981',
+    color: '#006C4E',
     fontWeight: '800',
     letterSpacing: 0.5,
   },
   savingsHeroValue: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: '900',
-    color: '#F8FAFC',
+    color: '#0F172A',
     marginTop: 2,
   },
   shieldBadgeLarge: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#E8F5EE',
     alignItems: 'center',
     justifyContent: 'center',
   },
   savingsHeroSub: {
     fontSize: 11,
-    color: '#94A3B8',
+    color: '#475569',
     lineHeight: 16,
     marginTop: 8,
   },
   metricsPillsRow: {
     flexDirection: 'row',
-    gap: 8,
-    marginTop: 12,
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 10,
   },
   metricPill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    backgroundColor: '#0F172A',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    backgroundColor: '#F1F5F9',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
     borderRadius: 8,
   },
   metricPillText: {
-    fontSize: 11,
-    color: '#CBD5E1',
-    fontWeight: '600',
+    fontSize: 10.5,
+    color: '#475569',
+    fontWeight: '700',
   },
   tabBar: {
     flexDirection: 'row',
-    backgroundColor: '#1E293B',
-    marginHorizontal: 16,
-    marginBottom: 12,
-    borderRadius: 10,
-    padding: 4,
+    backgroundColor: '#F1F5F9',
+    marginHorizontal: 14,
+    marginBottom: 10,
+    borderRadius: 12,
+    padding: 3,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   tabButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 9,
-    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 6,
+    borderRadius: 9,
   },
   tabButtonActive: {
-    backgroundColor: '#0F172A',
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 1 },
+    shadowRadius: 2,
+    elevation: 1,
   },
   tabText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#94A3B8',
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#64748B',
   },
   tabTextActive: {
-    color: '#F59E0B',
-    fontWeight: '700',
+    color: '#D97706',
+    fontWeight: '800',
   },
   tabTextAlertActive: {
-    color: '#EF4444',
-    fontWeight: '700',
+    color: '#DC2626',
+    fontWeight: '800',
   },
   alertBadgeCount: {
-    backgroundColor: '#EF4444',
+    backgroundColor: '#DC2626',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 10,
@@ -681,148 +712,157 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   loadingText: {
-    color: '#94A3B8',
+    color: '#64748B',
     fontSize: 12,
     marginTop: 12,
   },
   scrollArea: {
     flex: 1,
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
   },
   cashierCard: {
-    backgroundColor: '#1E293B',
+    backgroundColor: '#FFFFFF',
     borderRadius: 14,
-    padding: 16,
-    marginBottom: 14,
+    padding: 14,
+    marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: '#E2E8F0',
+    shadowColor: '#000',
+    shadowOpacity: 0.02,
+    shadowOffset: { width: 0, height: 1 },
+    shadowRadius: 2,
+    elevation: 1,
   },
   cashierCardCritical: {
-    borderColor: '#EF4444',
+    borderColor: '#F87171',
     borderWidth: 1.5,
+    backgroundColor: '#FEF2F2',
   },
   cashierTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 14,
+    marginBottom: 10,
   },
   cashierInfoGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
+    flex: 1,
   },
   avatarCircle: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: '#334155',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#E8F5EE',
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarCritical: {
-    backgroundColor: 'rgba(239, 68, 68, 0.25)',
+    backgroundColor: '#FEE2E2',
   },
   avatarLetter: {
-    color: '#F8FAFC',
-    fontSize: 17,
+    color: '#006C4E',
+    fontSize: 16,
     fontWeight: '800',
   },
   cashierNameText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#F8FAFC',
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#0F172A',
   },
   cashierPhoneText: {
     fontSize: 11,
-    color: '#94A3B8',
-    marginTop: 2,
+    color: '#64748B',
+    marginTop: 1,
   },
   trustScoreBadge: {
     alignItems: 'flex-end',
     paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
   },
   trustBadgeHigh: {
-    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    backgroundColor: '#E8F5EE',
   },
   trustBadgeWarning: {
-    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    backgroundColor: '#FEF3C7',
   },
   trustBadgeCritical: {
-    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+    backgroundColor: '#FEE2E2',
   },
   trustScoreText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '800',
   },
   trustTextHigh: {
-    color: '#10B981',
+    color: '#006C4E',
   },
   trustTextWarning: {
-    color: '#F59E0B',
+    color: '#D97706',
   },
   trustTextCritical: {
-    color: '#EF4444',
+    color: '#DC2626',
   },
   trustScoreSub: {
-    fontSize: 10,
-    color: '#CBD5E1',
-    marginTop: 2,
-    fontWeight: '600',
+    fontSize: 9.5,
+    color: '#64748B',
+    marginTop: 1,
+    fontWeight: '700',
   },
   statChipsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    marginBottom: 14,
+    marginBottom: 12,
   },
   statChip: {
     flex: 1,
     minWidth: '45%',
-    backgroundColor: '#0F172A',
-    borderRadius: 10,
-    padding: 10,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    padding: 8,
   },
   statChipLabel: {
-    fontSize: 10,
+    fontSize: 9.5,
     color: '#64748B',
     textTransform: 'uppercase',
     fontWeight: '700',
   },
   statChipVal: {
     fontSize: 12,
-    color: '#CBD5E1',
-    fontWeight: '700',
-    marginTop: 3,
+    color: '#0F172A',
+    fontWeight: '800',
+    marginTop: 2,
   },
   anomaliesBox: {
-    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    backgroundColor: '#FEF3C7',
     borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.3)',
+    borderColor: '#FCD34D',
     borderRadius: 10,
-    padding: 12,
-    marginBottom: 14,
+    padding: 10,
+    marginBottom: 12,
   },
   anomaliesHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: 8,
+    marginBottom: 6,
   },
   anomaliesHeaderTitle: {
     fontSize: 11,
-    fontWeight: '700',
-    color: '#FDE68A',
+    fontWeight: '800',
+    color: '#92400E',
   },
   anomalyItemRow: {
-    backgroundColor: 'rgba(245, 158, 11, 0.08)',
+    backgroundColor: '#FFFFFF',
     borderRadius: 8,
     padding: 8,
     marginTop: 6,
     borderLeftWidth: 3,
-    borderLeftColor: '#F59E0B',
+    borderLeftColor: '#D97706',
   },
   anomalyHeaderRow: {
     flexDirection: 'row',
@@ -831,7 +871,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   anomalyBadge: {
-    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+    backgroundColor: '#FEF3C7',
     paddingHorizontal: 6,
     paddingVertical: 1,
     borderRadius: 4,
@@ -839,97 +879,104 @@ const styles = StyleSheet.create({
   anomalyBadgeText: {
     fontSize: 9,
     fontWeight: '700',
-    color: '#FDE68A',
+    color: '#92400E',
   },
   anomalyTimeTag: {
     fontSize: 10,
     fontWeight: '800',
-    color: '#F59E0B',
+    color: '#D97706',
   },
   anomalyDescText: {
     fontSize: 11,
-    color: '#E2E8F0',
+    color: '#334155',
     lineHeight: 16,
   },
   cardActionRow: {
     flexDirection: 'row',
     gap: 8,
-    marginTop: 10,
+    marginTop: 8,
   },
   surpriseAuditBtn: {
     flex: 1,
-    minHeight: 44,
+    minHeight: 40,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#D97706',
-    paddingVertical: 10,
+    paddingVertical: 8,
     paddingHorizontal: 6,
     borderRadius: 8,
   },
   surpriseAuditBtnText: {
     fontSize: 11,
     color: '#FFF',
-    fontWeight: '700',
+    fontWeight: '800',
   },
   revokeVoidBtn: {
     flex: 1,
-    minHeight: 44,
+    minHeight: 40,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#DC2626',
-    paddingVertical: 10,
+    paddingVertical: 8,
     paddingHorizontal: 6,
     borderRadius: 8,
   },
   revokeVoidBtnDisabled: {
-    backgroundColor: '#475569',
+    backgroundColor: '#94A3B8',
   },
   revokeVoidBtnText: {
     fontSize: 11,
     color: '#FFF',
-    fontWeight: '700',
+    fontWeight: '800',
   },
   timelineBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#1E293B',
+    backgroundColor: '#F1F5F9',
     padding: 10,
     borderRadius: 8,
-    marginBottom: 12,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   timelineBannerText: {
     fontSize: 11,
-    color: '#94A3B8',
+    color: '#475569',
     flex: 1,
   },
   timelineCard: {
-    backgroundColor: '#1E293B',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
-    padding: 14,
-    marginBottom: 10,
+    padding: 12,
+    marginBottom: 8,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: '#E2E8F0',
+    shadowColor: '#000',
+    shadowOpacity: 0.02,
+    shadowOffset: { width: 0, height: 1 },
+    shadowRadius: 2,
+    elevation: 1,
   },
   timelineCardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   timelineCashierInfo: {
     flex: 1,
   },
   timelineCashierName: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#F8FAFC',
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#0F172A',
   },
   timelineEventType: {
     fontSize: 11,
-    color: '#94A3B8',
+    color: '#64748B',
     marginTop: 1,
   },
   severityBadge: {
@@ -938,62 +985,62 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   sevCrit: {
-    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+    backgroundColor: '#FEE2E2',
   },
   sevHigh: {
-    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+    backgroundColor: '#FEF3C7',
   },
   sevLow: {
-    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+    backgroundColor: '#DBEAFE',
   },
   severityText: {
-    fontSize: 10,
+    fontSize: 9.5,
     fontWeight: '800',
   },
   sevTextCrit: {
-    color: '#EF4444',
+    color: '#DC2626',
   },
   sevTextHigh: {
-    color: '#F59E0B',
+    color: '#D97706',
   },
   sevTextLow: {
-    color: '#3B82F6',
+    color: '#2563EB',
   },
   timelineTimeRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    marginBottom: 6,
+    marginBottom: 4,
   },
   timelineTimeText: {
-    fontSize: 11,
+    fontSize: 10.5,
     color: '#64748B',
   },
   timelineDetailsUr: {
-    fontSize: 12,
-    color: '#E2E8F0',
+    fontSize: 11.5,
+    color: '#334155',
     lineHeight: 17,
   },
   amountFlagBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    backgroundColor: '#FEE2E2',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
-    marginTop: 8,
+    marginTop: 6,
   },
   amountFlagText: {
     fontSize: 10,
-    color: '#EF4444',
-    fontWeight: '700',
+    color: '#DC2626',
+    fontWeight: '800',
   },
   footerBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 14,
-    backgroundColor: '#1E293B',
+    padding: 12,
+    backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
-    borderTopColor: '#334155',
+    borderTopColor: '#E2E8F0',
     gap: 10,
   },
   dossierBtn: {
@@ -1001,18 +1048,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#059669',
-    paddingVertical: 12,
+    backgroundColor: '#006C4E',
+    paddingVertical: 10,
     borderRadius: 10,
   },
   dossierBtnText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '800',
     color: '#FFF',
   },
   refreshIconBtn: {
     padding: 10,
-    backgroundColor: '#334155',
+    backgroundColor: '#F1F5F9',
     borderRadius: 10,
   },
   emptyContainer: {
@@ -1022,17 +1069,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   emptyTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#F8FAFC',
-    marginTop: 14,
-    marginBottom: 6,
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#334155',
+    marginTop: 12,
+    marginBottom: 4,
     textAlign: 'center',
   },
   emptySubtitle: {
-    fontSize: 13,
-    color: '#94A3B8',
+    fontSize: 12,
+    color: '#64748B',
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: 18,
   },
 });

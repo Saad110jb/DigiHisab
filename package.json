@@ -8,6 +8,8 @@
     "test": "tests"
   },
   "scripts": {
+    "build": "npm --prefix khata-ai/server-node install && npm --prefix khata-ai/server-node run build",
+    "start": "npm --prefix khata-ai/server-node start",
     "test": "playwright test",
     "test:ui": "playwright test --ui"
   },

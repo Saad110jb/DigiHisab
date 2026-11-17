@@ -180,6 +180,11 @@ export const FinancialMetricsProvider: React.FC<{ children: React.ReactNode }> =
   // Fetch full state from backend API
   const refreshMetricsFromServer = useCallback(async () => {
     try {
+      const token = await AsyncStorage.getItem('user_token');
+      if (!token || token === 'null' || token === 'undefined') {
+        return;
+      }
+
       const [summaryRes, radarRes] = await Promise.allSettled([
         apiClient.get('/ledger/summary'),
         jevRunwayApi.getLiquidityRadar(),

@@ -40,9 +40,9 @@ export const requireJevLedgerValidation = (options?: JevMiddlewareOptions) => {
       }
 
       const availableChannels = profile.paymentChannels || {
-        cashDrawer: 45000,
-        bankAccount: 125000,
-        digitalWallet: 32000,
+        cashDrawer: 0,
+        bankAccount: 0,
+        digitalWallet: 0,
       };
 
       const transactionType = options?.transactionTypeExtractor

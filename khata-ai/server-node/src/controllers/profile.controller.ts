@@ -62,9 +62,9 @@ export const getProfile = async (req: Request, res: Response): Promise<Response>
     }
 
     const defaultPaymentChannels = {
-      cashDrawer: 45000,
-      bankAccount: 125000,
-      digitalWallet: 32000,
+      cashDrawer: 0,
+      bankAccount: 0,
+      digitalWallet: 0,
     };
 
     // Filter master owner profile out from sub-accounts list

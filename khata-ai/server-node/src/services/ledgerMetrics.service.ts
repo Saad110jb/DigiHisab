@@ -1,6 +1,7 @@
 import { Types } from 'mongoose';
 import { Counterparty } from '../models/Counterparty';
 import { Profile } from '../models/Profile';
+import { LedgerEntry } from '../models/LedgerEntry';
 
 export interface IAggregatedStoreMetrics {
   totalNetPosition: number;
@@ -94,9 +95,23 @@ export const getAggregatedStoreMetrics = async (
   ]);
 
   const profile = await Profile.findById(pId).select('paymentChannels');
-  const cash = profile?.paymentChannels?.cashDrawer ?? 0;
-  const bank = profile?.paymentChannels?.bankAccount ?? 0;
-  const wallet = profile?.paymentChannels?.digitalWallet ?? 0;
+  let cash = profile?.paymentChannels?.cashDrawer ?? 0;
+  let bank = profile?.paymentChannels?.bankAccount ?? 0;
+  let wallet = profile?.paymentChannels?.digitalWallet ?? 0;
+
+  // Auto-sanitize legacy dummy values (45k/47k, 125k, 32k) if account has no real transactions
+  if ((cash === 45000 || cash === 47000) && bank === 125000 && wallet === 32000) {
+    const entryCount = await LedgerEntry.countDocuments({ profileId: pId });
+    if (entryCount === 0) {
+      cash = 0;
+      bank = 0;
+      wallet = 0;
+      if (profile) {
+        profile.paymentChannels = { cashDrawer: 0, bankAccount: 0, digitalWallet: 0 };
+        await profile.save();
+      }
+    }
+  }
 
   const totalReceivable = customerStats[0]?.totalReceivable ?? 0;
   const debtorCount = customerStats[0]?.debtorCount ?? 0;

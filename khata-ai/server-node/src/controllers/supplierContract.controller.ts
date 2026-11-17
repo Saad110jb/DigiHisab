@@ -256,9 +256,9 @@ export const createSupplierBillFromPo = async (req: Request, res: Response): Pro
 
     const profile = await Profile.findById(profileId);
     const availableChannels = profile?.paymentChannels || {
-      cashDrawer: 45000,
-      bankAccount: 125000,
-      digitalWallet: 32000,
+      cashDrawer: 0,
+      bankAccount: 0,
+      digitalWallet: 0,
     };
 
     // Jev Double-Entry & Channel Solvency Gatekeeper

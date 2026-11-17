@@ -624,7 +624,7 @@ export const recordCustomerWasooli = async (req: Request, res: Response): Promis
     const profile = await Profile.findById(profileId);
     if (profile) {
       if (!profile.paymentChannels) {
-        profile.paymentChannels = { cashDrawer: 45000, bankAccount: 125000, digitalWallet: 32000 };
+        profile.paymentChannels = { cashDrawer: 0, bankAccount: 0, digitalWallet: 0 };
       }
       let channelKey: 'cashDrawer' | 'bankAccount' | 'digitalWallet' = 'cashDrawer';
       const dest = String(paymentDestination).toUpperCase();

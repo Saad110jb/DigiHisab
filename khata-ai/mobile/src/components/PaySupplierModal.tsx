@@ -61,9 +61,9 @@ export const PaySupplierModal: React.FC<PaySupplierModalProps> = ({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const [paymentChannels, setPaymentChannels] = useState<IPaymentChannels>({
-    cashDrawer: tillBalances?.physicalCash || 45000,
-    bankAccount: tillBalances?.bankAccount || 125000,
-    digitalWallet: tillBalances?.digitalWallet || 32000,
+    cashDrawer: tillBalances?.physicalCash || 0,
+    bankAccount: tillBalances?.bankAccount || 0,
+    digitalWallet: tillBalances?.digitalWallet || 0,
   });
 
   const fetchProfileChannels = async () => {

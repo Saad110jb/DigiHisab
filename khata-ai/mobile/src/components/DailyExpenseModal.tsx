@@ -123,9 +123,9 @@ export const DailyExpenseModal: React.FC<DailyExpenseModalProps> = ({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const [paymentChannels, setPaymentChannels] = useState<IPaymentChannels>({
-    cashDrawer: 45000,
-    bankAccount: 125000,
-    digitalWallet: 32000,
+    cashDrawer: 0,
+    bankAccount: 0,
+    digitalWallet: 0,
   });
 
   // Sub-panel Monthly History State

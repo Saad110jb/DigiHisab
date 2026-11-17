@@ -48,9 +48,9 @@ export const DukanStaffPayrollModal: React.FC<DukanStaffPayrollModalProps> = ({
   const [loading, setLoading] = useState<boolean>(false);
 
   const [paymentChannels, setPaymentChannels] = useState<IPaymentChannels>({
-    cashDrawer: tillBalances?.physicalCash || 45000,
-    bankAccount: tillBalances?.bankAccount || 125000,
-    digitalWallet: tillBalances?.digitalWallet || 32000,
+    cashDrawer: tillBalances?.physicalCash || 0,
+    bankAccount: tillBalances?.bankAccount || 0,
+    digitalWallet: tillBalances?.digitalWallet || 0,
   });
 
   const fetchChannels = async () => {

@@ -104,9 +104,9 @@ export const recordOutflow = async (req: Request, res: Response): Promise<Respon
 
     if (!profile.paymentChannels) {
       profile.paymentChannels = {
-        cashDrawer: 45000,
-        bankAccount: 125000,
-        digitalWallet: 32000,
+        cashDrawer: 0,
+        bankAccount: 0,
+        digitalWallet: 0,
       };
     }
 

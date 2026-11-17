@@ -89,9 +89,9 @@ export const AddSupplierBillModal: React.FC<AddSupplierBillModalProps> = ({
 
   // Payment Channels & Jev Double-Entry Solvency State
   const [paymentChannels, setPaymentChannels] = useState<IPaymentChannels>({
-    cashDrawer: 45000,
-    bankAccount: 125000,
-    digitalWallet: 32000,
+    cashDrawer: 0,
+    bankAccount: 0,
+    digitalWallet: 0,
   });
   const [payCashNow, setPayCashNow] = useState(false);
   const [immediateCashAmount, setImmediateCashAmount] = useState('');

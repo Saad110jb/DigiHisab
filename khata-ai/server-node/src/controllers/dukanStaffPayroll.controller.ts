@@ -438,7 +438,7 @@ export const addAdvanceKharcha = async (req: Request, res: Response): Promise<Re
       return res.status(404).json({ success: false, message: 'Profile not found.' });
     }
     if (!profile.paymentChannels) {
-      profile.paymentChannels = { cashDrawer: 45000, bankAccount: 125000, digitalWallet: 32000 };
+      profile.paymentChannels = { cashDrawer: 0, bankAccount: 0, digitalWallet: 0 };
     }
 
     let modeKey: 'cashDrawer' | 'bankAccount' | 'digitalWallet' = 'cashDrawer';
@@ -564,7 +564,7 @@ export const settleMonthlyPayout = async (req: Request, res: Response): Promise<
       return res.status(404).json({ success: false, message: 'Profile not found.' });
     }
     if (!profile.paymentChannels) {
-      profile.paymentChannels = { cashDrawer: 45000, bankAccount: 125000, digitalWallet: 32000 };
+      profile.paymentChannels = { cashDrawer: 0, bankAccount: 0, digitalWallet: 0 };
     }
 
     let modeKey: 'cashDrawer' | 'bankAccount' | 'digitalWallet' = 'cashDrawer';

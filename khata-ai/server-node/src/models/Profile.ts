@@ -212,9 +212,9 @@ const ProfileSchema = new Schema<IProfile>(
       raastQrUrl: { type: String, trim: true },
     },
     paymentChannels: {
-      cashDrawer: { type: Number, default: 45000 },
-      bankAccount: { type: Number, default: 125000 },
-      digitalWallet: { type: Number, default: 32000 },
+      cashDrawer: { type: Number, default: 0 },
+      bankAccount: { type: Number, default: 0 },
+      digitalWallet: { type: Number, default: 0 },
     },
     resetOtpCode: { type: String },
     resetOtpExpiresAt: { type: Date },

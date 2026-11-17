@@ -217,6 +217,11 @@ export const verifyAndCreateAccount = async (req: Request, res: Response): Promi
       registeredAccountType: targetPersona,
       businessName: businessName ? businessName.trim() : undefined,
       baseCurrency: 'PKR',
+      paymentChannels: {
+        cashDrawer: 0,
+        bankAccount: 0,
+        digitalWallet: 0,
+      },
       subscription: {
         tier: 'FREE',
         personaScope: targetPersona === 'VENDOR' ? 'DUKANDAR_ONLY' : 'HOUSEHOLD_ONLY',
@@ -328,6 +333,11 @@ export const register = async (req: Request, res: Response): Promise<Response> =
       registeredAccountType: targetPersona,
       businessName: businessName ? businessName.trim() : undefined,
       baseCurrency: 'PKR',
+      paymentChannels: {
+        cashDrawer: 0,
+        bankAccount: 0,
+        digitalWallet: 0,
+      },
       subscription: {
         tier: 'FREE',
         personaScope: targetPersona === 'VENDOR' ? 'DUKANDAR_ONLY' : 'HOUSEHOLD_ONLY',

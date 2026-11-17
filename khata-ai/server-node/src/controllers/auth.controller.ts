@@ -126,8 +126,9 @@ export const requestRegisterEmailOtp = async (req: Request, res: Response): Prom
         subject,
         html,
       });
-    } catch (mailError) {
-      console.warn('[Registration Email Gateway] Could not send live email:', mailError);
+      console.log(`[Registration Email Gateway] Verification OTP email successfully sent to ${cleanEmail}`);
+    } catch (mailError: any) {
+      console.error(`[Registration Email Gateway] Could not send live email to ${cleanEmail}:`, mailError?.message || mailError);
     }
 
     return res.status(200).json({

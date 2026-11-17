@@ -173,6 +173,26 @@ export const counterpartyApi = {
     return res.data;
   },
 
+  bulkDeleteCustomers: async (): Promise<{ success: boolean; message: string; deletedCount?: number }> => {
+    try {
+      const res = await apiClient.delete('/khata/customers/bulk-delete');
+      return res.data;
+    } catch {
+      const res = await apiClient.delete('/counterparties/bulk-delete');
+      return res.data;
+    }
+  },
+
+  deleteCustomer: async (id: string): Promise<{ success: boolean; message: string }> => {
+    try {
+      const res = await apiClient.delete('/khata/customers/' + id);
+      return res.data;
+    } catch {
+      const res = await apiClient.delete('/counterparties/' + id + '?force=true');
+      return res.data;
+    }
+  },
+
   delete: async (id: string): Promise<{ success: boolean; message: string }> => {
     const res = await apiClient.delete(`/counterparties/${id}`);
     return res.data;

@@ -572,13 +572,9 @@ export const ZakatSadqahCalculatorModal: React.FC<ZakatSadqahCalculatorModalProp
               </View>
             )}
 
-            {/* ================= 3. SCROLLABLE CALCULATOR TABS ================= */}
-            <View style={styles.tabScrollWrap}>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.touchScrollStrip}
-              >
+            {/* ================= 3. SEGMENTED 3-COLUMN CALCULATOR TABS ================= */}
+            <View style={styles.tabGridContainer}>
+              <View style={styles.tabGridRow}>
                 <TouchableOpacity
                   style={[styles.touchTab, activeTab === 'METALS' && styles.touchTabActive]}
                   onPress={() => setActiveTab('METALS')}
@@ -586,7 +582,7 @@ export const ZakatSadqahCalculatorModal: React.FC<ZakatSadqahCalculatorModalProp
                 >
                   <Ionicons
                     name="sparkles-outline"
-                    size={15}
+                    size={13}
                     color={activeTab === 'METALS' ? '#f59e0b' : '#94a3b8'}
                   />
                   <Text
@@ -594,6 +590,7 @@ export const ZakatSadqahCalculatorModal: React.FC<ZakatSadqahCalculatorModalProp
                       styles.touchTabText,
                       activeTab === 'METALS' && styles.touchTabTextActive,
                     ]}
+                    numberOfLines={1}
                   >
                     🥇 سونا و چاندی
                   </Text>
@@ -606,14 +603,15 @@ export const ZakatSadqahCalculatorModal: React.FC<ZakatSadqahCalculatorModalProp
                 >
                   <Ionicons
                     name="cash-outline"
-                    size={15}
-                    color={activeTab === 'CASH' ? '#2dd4bf' : '#94a3b8'}
+                    size={13}
+                    color={activeTab === 'CASH' ? '#00d49f' : '#94a3b8'}
                   />
                   <Text
                     style={[
                       styles.touchTabText,
                       activeTab === 'CASH' && styles.touchTabTextActive,
                     ]}
+                    numberOfLines={1}
                   >
                     💰 نقد و والٹس
                   </Text>
@@ -626,7 +624,7 @@ export const ZakatSadqahCalculatorModal: React.FC<ZakatSadqahCalculatorModalProp
                 >
                   <Ionicons
                     name="people-outline"
-                    size={15}
+                    size={13}
                     color={activeTab === 'RECEIVABLES' ? '#38bdf8' : '#94a3b8'}
                   />
                   <Text
@@ -634,11 +632,14 @@ export const ZakatSadqahCalculatorModal: React.FC<ZakatSadqahCalculatorModalProp
                       styles.touchTabText,
                       activeTab === 'RECEIVABLES' && styles.touchTabTextActive,
                     ]}
+                    numberOfLines={1}
                   >
                     🤝 کمیٹی و قرضے
                   </Text>
                 </TouchableOpacity>
+              </View>
 
+              <View style={styles.tabGridRow}>
                 <TouchableOpacity
                   style={[styles.touchTab, activeTab === 'DEBTS' && styles.touchTabActive]}
                   onPress={() => setActiveTab('DEBTS')}
@@ -646,14 +647,15 @@ export const ZakatSadqahCalculatorModal: React.FC<ZakatSadqahCalculatorModalProp
                 >
                   <Ionicons
                     name="trending-down-outline"
-                    size={15}
-                    color={activeTab === 'DEBTS' ? '#ef4444' : '#94a3b8'}
+                    size={13}
+                    color={activeTab === 'DEBTS' ? '#f43f5e' : '#94a3b8'}
                   />
                   <Text
                     style={[
                       styles.touchTabText,
                       activeTab === 'DEBTS' && styles.touchTabTextActive,
                     ]}
+                    numberOfLines={1}
                   >
                     📉 منفی واجبات
                   </Text>
@@ -666,7 +668,7 @@ export const ZakatSadqahCalculatorModal: React.FC<ZakatSadqahCalculatorModalProp
                 >
                   <Ionicons
                     name="nutrition-outline"
-                    size={15}
+                    size={13}
                     color={activeTab === 'FITRANA' ? '#00d49f' : '#94a3b8'}
                   />
                   <Text
@@ -674,6 +676,7 @@ export const ZakatSadqahCalculatorModal: React.FC<ZakatSadqahCalculatorModalProp
                       styles.touchTabText,
                       activeTab === 'FITRANA' && styles.touchTabTextActive,
                     ]}
+                    numberOfLines={1}
                   >
                     🎁 فطرانہ و صدقات
                   </Text>
@@ -686,7 +689,7 @@ export const ZakatSadqahCalculatorModal: React.FC<ZakatSadqahCalculatorModalProp
                 >
                   <Ionicons
                     name="document-text-outline"
-                    size={15}
+                    size={13}
                     color={activeTab === 'LOG' ? '#a855f7' : '#94a3b8'}
                   />
                   <Text
@@ -694,11 +697,12 @@ export const ZakatSadqahCalculatorModal: React.FC<ZakatSadqahCalculatorModalProp
                       styles.touchTabText,
                       activeTab === 'LOG' && styles.touchTabTextActive,
                     ]}
+                    numberOfLines={1}
                   >
-                    📜 تقسیم کا لاگ ({assessment?.disbursements?.length || 0})
+                    📜 تقسیم لاگ
                   </Text>
                 </TouchableOpacity>
-              </ScrollView>
+              </View>
             </View>
 
             {/* ================= TAB 1: GOLD & SILVER (سونا و چاندی) ================= */}
@@ -766,25 +770,18 @@ export const ZakatSadqahCalculatorModal: React.FC<ZakatSadqahCalculatorModalProp
                     </View>
                   </View>
 
-                  {/* Dual Nisab Thresholds */}
-                  <View style={styles.dualNisabBox}>
-                    <View style={styles.dualNisabItem}>
-                      <Text style={styles.dualNisabTitle}>⚖️ چاندی نصاب (52.5 تولہ / 612.36g):</Text>
-                      <Text style={styles.dualNisabValue}>
+                  {/* Compact 2-Row Nisab Summary */}
+                  <View style={styles.compactNisabSummary}>
+                    <View style={styles.compactNisabRow}>
+                      <Text style={styles.compactNisabLabel}>⚖️ Silver Nisab (52.5 Tola):</Text>
+                      <Text style={styles.compactNisabVal}>
                         Rs. {(bullionRates?.silverNisabThreshold || Math.round(52.5 * (parseInt(silverRate) || 3350))).toLocaleString()}
                       </Text>
-                      <Text style={styles.dualNisabSub}>
-                        ★ عمومی شرعی معیار (نقد، بینک، اسٹاک و زیورات)
-                      </Text>
                     </View>
-                    <View style={styles.dualNisabDivider} />
-                    <View style={styles.dualNisabItem}>
-                      <Text style={styles.dualNisabTitle}>👑 سونا نصاب (7.5 تولہ / 87.48g):</Text>
-                      <Text style={[styles.dualNisabValue, { color: '#f59e0b' }]}>
+                    <View style={styles.compactNisabRow}>
+                      <Text style={styles.compactNisabLabel}>👑 Gold Nisab (7.5 Tola):</Text>
+                      <Text style={[styles.compactNisabVal, { color: '#f59e0b' }]}>
                         Rs. {(bullionRates?.goldNisabThreshold || Math.round(7.5 * (parseInt(goldRate) || 285400))).toLocaleString()}
-                      </Text>
-                      <Text style={styles.dualNisabSub}>
-                        صرف خالص سونے کے اثاثوں کی صورت میں
                       </Text>
                     </View>
                   </View>
@@ -1749,6 +1746,40 @@ const styles = StyleSheet.create({
   },
 
   /* Tab Navigation */
+  tabGridContainer: {
+    gap: 6,
+    marginBottom: 14,
+  },
+  tabGridRow: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  touchTab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    backgroundColor: '#0d1627',
+    borderWidth: 1,
+    borderColor: '#17233b',
+    paddingHorizontal: 4,
+    paddingVertical: 8,
+    borderRadius: 10,
+  },
+  touchTabActive: {
+    backgroundColor: 'rgba(0, 212, 159, 0.12)',
+    borderColor: '#00d49f',
+  },
+  touchTabText: {
+    fontSize: 10.5,
+    color: '#94a3b8',
+    fontWeight: '700',
+  },
+  touchTabTextActive: {
+    color: '#00d49f',
+    fontWeight: '800',
+  },
   tabScrollWrap: {
     marginBottom: 14,
   },
@@ -1756,30 +1787,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
     paddingVertical: 2,
-  },
-  touchTab: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: '#0d1627',
-    borderWidth: 1,
-    borderColor: '#17233b',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 10,
-  },
-  touchTabActive: {
-    backgroundColor: 'rgba(45, 212, 191, 0.12)',
-    borderColor: '#2dd4bf',
-  },
-  touchTabText: {
-    fontSize: 12.5,
-    color: '#94a3b8',
-    fontWeight: '500',
-  },
-  touchTabTextActive: {
-    color: '#2dd4bf',
-    fontWeight: 'bold',
   },
 
   /* Cards & Forms */
@@ -1889,6 +1896,31 @@ const styles = StyleSheet.create({
   sarafaRateCardSub: {
     fontSize: 9.5,
     color: '#94a3b8',
+  },
+  compactNisabSummary: {
+    backgroundColor: '#070d18',
+    borderRadius: 8,
+    padding: 8,
+    borderWidth: 1,
+    borderColor: '#17233b',
+    marginBottom: 10,
+    gap: 4,
+  },
+  compactNisabRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  compactNisabLabel: {
+    fontSize: 11,
+    color: '#94a3b8',
+    fontWeight: '600',
+  },
+  compactNisabVal: {
+    fontSize: 12.5,
+    color: '#00d49f',
+    fontWeight: '800',
+    fontFamily: 'monospace',
   },
   dualNisabBox: {
     backgroundColor: '#070d18',

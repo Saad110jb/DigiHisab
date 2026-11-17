@@ -9,7 +9,7 @@
 
 import { io, Socket } from 'socket.io-client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getBaseUrl } from '../api/client';
+import { getSocketBaseUrl } from '../config/env';
 
 export interface ISaleCompletedEvent {
   saleId?: string;
@@ -67,8 +67,7 @@ class SocketService {
    * Derives root WebSocket URL from REST API base URL (stripping /api/v1)
    */
   private getSocketUrl(): string {
-    const apiBase = getBaseUrl();
-    return apiBase.replace(/\/api\/v1\/?$/, '');
+    return getSocketBaseUrl();
   }
 
   /**

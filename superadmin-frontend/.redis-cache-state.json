@@ -26,7 +26,7 @@
     "auditLogRetentionDays": 180,
     "maintenanceUrduMessage": "سسٹم اپ گریڈ جاری ہے: برائے مہربانی کچھ دیر بعد دوبارہ کوشش کریں۔ آپ کا کھاتہ، بیلنس اور کسٹمر ریکارڈ محفوظ ہے۔",
     "maintenanceEnMessage": "Scheduled System Maintenance: Digi Hisab is currently upgrading database clusters. All your ledger balances and merchant records are secure. Service will resume shortly.",
-    "lastUpdated": "2026-11-16T14:45:48.805Z",
+    "lastUpdated": "2026-11-16T17:59:52.021Z",
     "updatedBy": "Root SuperAdmin Control",
     "chorNazarThreshold": 1000,
     "submeterTariff": 52,
@@ -34,40 +34,18 @@
     "platformMaintenanceMode": false
   },
   "sessions": {
-    "ADMIN_SESSION:SA_01:SESS_75694AABDDBDF521": {
-      "sessionId": "SESS_75694AABDDBDF521",
-      "adminId": "SA_01",
-      "nodeLabel": "Root Console Gateway (Node 00)",
+    "ADMIN_SESSION:ADM-101:SESS_81BE09621FDCF6F5": {
+      "sessionId": "SESS_81BE09621FDCF6F5",
+      "adminId": "ADM-101",
+      "nodeLabel": "SuperAdmin Master Node",
       "ipAddress": "::1",
-      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
       "deviceFingerprint": "DFP-FBABCD7",
-      "createdAt": "2026-11-16T14:45:33.138Z",
-      "expiresAt": 1794842133138,
-      "sessionVersion": 1
-    },
-    "ADMIN_SESSION:SA_01:SESS_B7777AA029EBEF50": {
-      "sessionId": "SESS_B7777AA029EBEF50",
-      "adminId": "SA_01",
-      "nodeLabel": "Root Console Gateway (Node 00)",
-      "ipAddress": "::1",
-      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
-      "deviceFingerprint": "DFP-FBABCD7",
-      "createdAt": "2026-11-16T14:45:37.318Z",
-      "expiresAt": 1794842137318,
-      "sessionVersion": 1
-    },
-    "ADMIN_SESSION:SA_01:SESS_63169603D477210E": {
-      "sessionId": "SESS_63169603D477210E",
-      "adminId": "SA_01",
-      "nodeLabel": "Root Console Gateway (Node 00)",
-      "ipAddress": "::1",
-      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
-      "deviceFingerprint": "DFP-FBABCD7",
-      "createdAt": "2026-11-16T14:45:43.410Z",
-      "expiresAt": 1794842143410,
+      "createdAt": "2026-11-17T12:01:04.769Z",
+      "expiresAt": 1794918664769,
       "sessionVersion": 1
     }
   },
   "globalSessionVersion": 1,
-  "timestamp": "2026-11-16T14:45:48.805Z"
+  "timestamp": "2026-11-17T12:01:04.769Z"
 }

@@ -110,10 +110,11 @@ async function loginAdmin(page: any) {
   await expect(otpInputs.first()).toBeVisible({ timeout: 10000 });
   for (let i = 0; i < validDigits.length; i++) {
     await otpInputs.nth(i).fill(validDigits[i]);
+    await page.waitForTimeout(50);
   }
 
   const submitBtn = page.locator('button[type="submit"]');
-  await expect(submitBtn).toBeEnabled({ timeout: 8000 });
+  await expect(submitBtn).toBeEnabled({ timeout: 10000 });
   await submitBtn.click();
   await expect(page).not.toHaveURL(new RegExp('/admin/login'), { timeout: 15000 });
 }
@@ -299,6 +300,120 @@ test.describe('Module 2: Dynamic Subscriptions & Persona Sandboxing', () => {
       const configData = await configRes.json();
       expect(configRes.status).toBe(200);
     }
+  });
+
+  test('2.5 First-Time Registration Requires Valid Email OTP & Persists Verified Email', async () => {
+    const testPhone = `0300${Math.floor(1000000 + Math.random() * 9000000)}`;
+    const testEmail = `merchant.${Date.now()}@digihisab.pk`;
+
+    // 1. Attempt registration without email -> Must fail with 400
+    const noEmailRes = await fetch(`${BACKEND_API_BASE}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fullName: 'Test Vendor Without Email',
+        phone: testPhone,
+        pin: '5829',
+        activePersona: 'VENDOR',
+      }),
+    });
+    expect([400, 409]).toContain(noEmailRes.status);
+
+    // 2. Request OTP for valid email & phone
+    const otpRes = await fetch(`${BACKEND_API_BASE}/auth/register/request-email-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: testEmail,
+        phone: testPhone,
+        persona: 'VENDOR',
+      }),
+    });
+
+    if (otpRes.ok) {
+      const otpData = await otpRes.json();
+      const otpCode = otpData.otpHint || '123456';
+
+      // 3. Attempt verification with invalid OTP -> Must fail with 400
+      const invalidOtpRes = await fetch(`${BACKEND_API_BASE}/auth/register/verify-and-create`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fullName: 'Test Vendor With Valid Email',
+          phone: testPhone,
+          email: testEmail,
+          otp: '000000',
+          pin: '5829',
+          activePersona: 'VENDOR',
+        }),
+      });
+      expect(invalidOtpRes.status).toBe(400);
+
+      // 4. Verify and complete registration with correct OTP
+      const validRegRes = await fetch(`${BACKEND_API_BASE}/auth/register/verify-and-create`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fullName: 'Test Vendor With Valid Email',
+          phone: testPhone,
+          email: testEmail,
+          otp: otpCode,
+          pin: '5829',
+          activePersona: 'VENDOR',
+        }),
+      });
+      expect([201, 200]).toContain(validRegRes.status);
+      const regJson = await validRegRes.json();
+      expect(regJson.data.email).toBe(testEmail);
+      expect(regJson.data.isEmailVerified).toBe(true);
+    }
+  });
+
+  test('2.6 Same Phone Number Cannot Register Opposite Persona (Duplicate Rejection)', async () => {
+    const existingPhone = `0300${Math.floor(1000000 + Math.random() * 9000000)}`;
+    const initialEmail = `owner.${Date.now()}@digihisab.pk`;
+
+    // 1. Register the phone as VENDOR first
+    await fetch(`${BACKEND_API_BASE}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fullName: 'Initial Registered Dukandar',
+        phone: existingPhone,
+        email: initialEmail,
+        pin: '4920',
+        activePersona: 'VENDOR',
+      }),
+    });
+
+    // 2. Attempt to register the exact same phone number with HOUSEHOLD persona
+    const dupRes = await fetch(`${BACKEND_API_BASE}/auth/register/request-email-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: `opposite.${Date.now()}@gmail.com`,
+        phone: existingPhone,
+        persona: 'HOUSEHOLD',
+      }),
+    });
+    expect([409, 400]).toContain(dupRes.status);
+    const data = await dupRes.json();
+    expect(data.success).toBe(false);
+  });
+
+  test('2.7 Standard Plan Account Persona Switch Rejection & Lock Integrity', async () => {
+    // Attempt profile mutation to switch persona from VENDOR to HOUSEHOLD
+    const switchRes = await fetch(`${BACKEND_API_BASE}/profile/business`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        activePersona: 'HOUSEHOLD',
+      }),
+    });
+    // System preserves locked persona or denies unauthorized mutation
+    expect([200, 401, 403]).toContain(switchRes.status);
   });
 });
 

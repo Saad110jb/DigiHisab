@@ -22,16 +22,22 @@ import {
   ITillSentinelEvent,
 } from '../services/chorNazar.service';
 
-interface ChorNazarSentinelModalProps {
+export interface ChorNazarSentinelModalProps {
   visible: boolean;
   onClose: () => void;
   onOpenGallaBandi?: () => void;
+  segmentedAuditMode?: boolean;
+  currentAuditSegment?: 'CASHFLOW' | 'SENTINEL';
+  onSwitchAuditSegment?: (segment: 'CASHFLOW' | 'SENTINEL') => void;
 }
 
 export const ChorNazarSentinelModal: React.FC<ChorNazarSentinelModalProps> = ({
   visible,
   onClose,
   onOpenGallaBandi,
+  segmentedAuditMode = false,
+  currentAuditSegment = 'SENTINEL',
+  onSwitchAuditSegment,
 }) => {
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<'RADAR' | 'TIMELINE'>('RADAR');
@@ -156,6 +162,56 @@ export const ChorNazarSentinelModal: React.FC<ChorNazarSentinelModalProps> = ({
               <Ionicons name="close" size={22} color="#64748B" />
             </TouchableOpacity>
           </View>
+
+          {/* Segmented Switch for Combined Galla Audit Mode */}
+          {segmentedAuditMode && (
+            <View style={styles.auditSegmentContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.auditSegmentTab,
+                  currentAuditSegment === 'CASHFLOW' && styles.auditSegmentTabActive,
+                ]}
+                onPress={() => onSwitchAuditSegment?.('CASHFLOW')}
+                activeOpacity={0.8}
+              >
+                <Ionicons
+                  name="book"
+                  size={14}
+                  color={currentAuditSegment === 'CASHFLOW' ? '#FFF' : '#64748B'}
+                />
+                <Text
+                  style={[
+                    styles.auditSegmentTabText,
+                    currentAuditSegment === 'CASHFLOW' && styles.auditSegmentTabTextActive,
+                  ]}
+                >
+                  Cashflow Ledger (روزنامچہ)
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.auditSegmentTab,
+                  currentAuditSegment === 'SENTINEL' && styles.auditSegmentTabActive,
+                ]}
+                onPress={() => onSwitchAuditSegment?.('SENTINEL')}
+                activeOpacity={0.8}
+              >
+                <Ionicons
+                  name="shield-checkmark"
+                  size={14}
+                  color={currentAuditSegment === 'SENTINEL' ? '#FFF' : '#64748B'}
+                />
+                <Text
+                  style={[
+                    styles.auditSegmentTabText,
+                    currentAuditSegment === 'SENTINEL' && styles.auditSegmentTabTextActive,
+                  ]}
+                >
+                  Chor Nazar (چور نظر)
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
           {/* Monthly Till Shrinkage Protection Counter Card */}
           <View style={styles.savingsHeroCard}>
@@ -1081,5 +1137,33 @@ const styles = StyleSheet.create({
     color: '#64748B',
     textAlign: 'center',
     lineHeight: 18,
+  },
+  auditSegmentContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#F1F5F9',
+    borderRadius: 12,
+    padding: 3,
+    marginBottom: 10,
+    gap: 4,
+  },
+  auditSegmentTab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 7,
+    borderRadius: 9,
+    gap: 6,
+  },
+  auditSegmentTabActive: {
+    backgroundColor: '#0F172A',
+  },
+  auditSegmentTabText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#64748B',
+  },
+  auditSegmentTabTextActive: {
+    color: '#FFFFFF',
   },
 });

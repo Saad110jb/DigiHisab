@@ -10,6 +10,7 @@ import React, {
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
+import { getBackendBaseUrl } from '../config/env';
 import { useAuth } from '../store/auth.store';
 import { useNotifications } from './NotificationContext';
 import { IPushNotification } from '../types/notification';
@@ -82,7 +83,9 @@ const getCandidateUrls = (): string[] => {
       ? window.location.hostname
       : null;
 
-  const candidates: string[] = [];
+  const candidates: string[] = [
+    `${getBackendBaseUrl()}/api/v1/config/app-version`,
+  ];
 
   // 1. If physical device connected via Expo Go (e.g. 192.168.x.x)
   if (hostIp) {

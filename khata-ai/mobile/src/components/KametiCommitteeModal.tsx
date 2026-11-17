@@ -34,10 +34,13 @@ import {
 } from '../api/domesticKameti.api';
 import { thermalPrinterService } from '../services/thermalPrinter.service';
 
-interface KametiCommitteeModalProps {
+export interface KametiCommitteeModalProps {
   visible: boolean;
   onClose: () => void;
   onShowToast?: (message: string) => void;
+  segmentedHubMode?: boolean;
+  currentHubSegment?: 'KAMETI' | 'SUB_METER';
+  onSwitchHubSegment?: (seg: 'KAMETI' | 'SUB_METER') => void;
 }
 
 export interface ICreationSlot {
@@ -54,6 +57,9 @@ export const KametiCommitteeModal: React.FC<KametiCommitteeModalProps> = ({
   visible,
   onClose,
   onShowToast,
+  segmentedHubMode = false,
+  currentHubSegment = 'KAMETI',
+  onSwitchHubSegment,
 }) => {
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
@@ -1046,6 +1052,56 @@ export const KametiCommitteeModal: React.FC<KametiCommitteeModalProps> = ({
             <Ionicons name="refresh" size={20} color="#C084FC" />
           </TouchableOpacity>
         </View>
+
+        {/* Segmented Switch for Combined Kameti & Bills Hub */}
+        {segmentedHubMode && (
+          <View style={styles.hubSegmentContainer}>
+            <TouchableOpacity
+              style={[
+                styles.hubSegmentTab,
+                currentHubSegment === 'KAMETI' && styles.hubSegmentTabActive,
+              ]}
+              onPress={() => onSwitchHubSegment?.('KAMETI')}
+              activeOpacity={0.8}
+            >
+              <Ionicons
+                name="wallet"
+                size={14}
+                color={currentHubSegment === 'KAMETI' ? '#38BDF8' : '#94A3B8'}
+              />
+              <Text
+                style={[
+                  styles.hubSegmentTabText,
+                  currentHubSegment === 'KAMETI' && styles.hubSegmentTabTextActive,
+                ]}
+              >
+                کمیٹی (Kameti Savings)
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.hubSegmentTab,
+                currentHubSegment === 'SUB_METER' && styles.hubSegmentTabActive,
+              ]}
+              onPress={() => onSwitchHubSegment?.('SUB_METER')}
+              activeOpacity={0.8}
+            >
+              <Ionicons
+                name="flash"
+                size={14}
+                color={currentHubSegment === 'SUB_METER' ? '#38BDF8' : '#94A3B8'}
+              />
+              <Text
+                style={[
+                  styles.hubSegmentTabText,
+                  currentHubSegment === 'SUB_METER' && styles.hubSegmentTabTextActive,
+                ]}
+              >
+                سب میٹر و بجلی (Sub-Meter)
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Main Content */}
         {loading ? (
@@ -5247,5 +5303,36 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: 'bold',
     color: '#ffffff',
+  },
+  hubSegmentContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#0d1627',
+    borderWidth: 1,
+    borderColor: '#1e293b',
+    borderRadius: 12,
+    marginHorizontal: 16,
+    marginBottom: 8,
+    padding: 3,
+    gap: 4,
+  },
+  hubSegmentTab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 7,
+    borderRadius: 9,
+    gap: 6,
+  },
+  hubSegmentTabActive: {
+    backgroundColor: '#1e293b',
+  },
+  hubSegmentTabText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#94A3B8',
+  },
+  hubSegmentTabTextActive: {
+    color: '#38BDF8',
   },
 });

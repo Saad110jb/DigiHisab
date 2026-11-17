@@ -9,6 +9,8 @@ import {
   updateRiskMetrics,
   generateSettlementOffer,
   deleteCounterparty,
+  bulkDeleteCustomers,
+  deleteCustomerById,
   paySupplier,
   recordCustomerWasooli,
   getSupplierDueReminders,
@@ -39,6 +41,7 @@ router.patch('/:id/credit-limit', authorizeRole('MANAGER', 'OWNER'), updateCredi
 router.patch('/:id/toggle-block', authorizeRole('MANAGER', 'OWNER'), toggleCreditBlock);
 router.patch('/:id/risk-metrics', authorizeRole('MANAGER', 'OWNER'), updateRiskMetrics);
 router.post('/:id/settlement-offer', authorizeRole('MANAGER', 'OWNER'), generateSettlementOffer);
+router.delete('/bulk-delete', authorizeRole('MANAGER', 'OWNER'), bulkDeleteCustomers);
 router.delete('/:id', authorizeRole('MANAGER', 'OWNER'), deleteCounterparty);
 
 export default router;

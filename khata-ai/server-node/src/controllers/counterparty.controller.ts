@@ -549,11 +549,12 @@ export const deleteCounterparty = async (req: Request, res: Response): Promise<R
       return res.status(404).json({ success: false, message: 'Counterparty not found.' });
     }
 
-    // Safety Gate: Prevent deleting contact with active balance
-    if (Math.abs(counterparty.currentBalance) > 0 || Math.abs(counterparty.advanceDeposit || 0) > 0) {
+    // Safety Gate: Prevent deleting contact with active balance unless force flag is specified
+    const force = req.query.force === 'true';
+    if (!force && (Math.abs(counterparty.currentBalance) > 0 || Math.abs(counterparty.advanceDeposit || 0) > 0)) {
       return res.status(400).json({
         success: false,
-        message: 'Cannot delete an account with an active outstanding balance.',
+        message: 'Cannot delete an account with an active outstanding balance. Use force=true to override.',
       });
     }
 
@@ -1058,4 +1059,66 @@ export const getCounterpartyTaqazaPolicy = async (req: Request, res: Response): 
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+
+/**
+ * 15. Bulk Delete All Customers & Clear Local Ledger History
+ * DELETE /api/v1/khata/customers/bulk-delete
+ * DELETE /api/v1/counterparties/bulk-delete
+ */
+export const bulkDeleteCustomers = async (req: Request, res: Response): Promise<Response> => {
+  try {
+    const profileId = req.user?.id || req.user?.profileId;
+    if (!profileId) {
+      return res.status(401).json({ success: false, message: 'Authentication required.' });
+    }
+
+    const result = await Counterparty.deleteMany({
+      profileId,
+      relationType: 'CUSTOMER',
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: `تمام گاہک اور ان کا کھاتہ کامیابی سے حذف ہو گیا۔ (${result.deletedCount || 0} customers deleted)`,
+      deletedCount: result.deletedCount || 0,
+    });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * 16. Single Customer Deletion
+ * DELETE /api/v1/khata/customers/:id
+ * DELETE /api/v1/counterparties/:id (with force deletion option)
+ */
+export const deleteCustomerById = async (req: Request, res: Response): Promise<Response> => {
+  try {
+    const profileId = req.user?.id || req.user?.profileId;
+    const { id } = req.params;
+
+    if (!profileId) {
+      return res.status(401).json({ success: false, message: 'Authentication required.' });
+    }
+
+    const customer = await Counterparty.findOneAndDelete({
+      _id: id,
+      profileId,
+      relationType: 'CUSTOMER',
+    });
+
+    if (!customer) {
+      return res.status(404).json({ success: false, message: 'Customer record not found.' });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `گاہک ${customer.name} کا کھاتہ کامیابی سے حذف کر دیا گیا ہے۔`,
+      data: { id: customer._id, name: customer.name },
+    });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 

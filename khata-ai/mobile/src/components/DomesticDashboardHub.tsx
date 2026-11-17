@@ -30,6 +30,8 @@ import { DomesticAuditAndCorrectionModal } from './DomesticAuditAndCorrectionMod
 import { SubscriptionModal } from './SubscriptionModal';
 import { GharanaMoreToolsModal, GharanaToolItem } from './GharanaMoreToolsModal';
 import { subscriptionService } from '../services/subscription.service';
+import { KametiBillsHubModal } from './KametiBillsHubModal';
+import { FooterTabId } from './DualPersonaFooter';
 
 export type DomesticCategory = 'HOUSEHOLD';
 
@@ -42,13 +44,38 @@ const DEFAULT_GHARANA_PINNED_IDS = [
   'maid_staff',
 ];
 
-export const DomesticDashboardHub: React.FC = () => {
+export interface DomesticDashboardHubProps {
+  footerTab?: FooterTabId;
+  onSelectFooterTab?: (tab: FooterTabId) => void;
+}
+
+export const DomesticDashboardHub: React.FC<DomesticDashboardHubProps> = ({
+  footerTab,
+  onSelectFooterTab,
+}) => {
   const insets = useSafeAreaInsets();
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const isDesktop = screenWidth >= 768;
 
+  const mainScrollRef = React.useRef<any>(null);
   const [balanceVisible, setBalanceVisible] = useState<boolean>(true);
   const [activeModal, setActiveModal] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (footerTab === 'HOME') {
+      setActiveModal(null);
+      mainScrollRef.current?.scrollTo({ y: 0, animated: true });
+    } else if (footerTab === 'KHARCHA') {
+      setActiveModal('milk_bread');
+    } else if (footerTab === 'KAMETI_BILLS') {
+      setActiveModal('kameti_bills_hub');
+    }
+  }, [footerTab]);
+
+  const handleCloseModal = () => {
+    setActiveModal(null);
+    onSelectFooterTab?.('HOME');
+  };
   const [subModalVisible, setSubModalVisible] = useState<boolean>(false);
   const [subTrigger, setSubTrigger] = useState<{ key?: string; title?: string }>({});
 
@@ -304,7 +331,12 @@ export const DomesticDashboardHub: React.FC = () => {
         },
       ]}
     >
-      <View style={styles.mainWrapper}>
+      <ScrollView
+        ref={mainScrollRef as any}
+        contentContainerStyle={[styles.mainScrollContent, { paddingBottom: 95 }]}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.mainWrapper}>
         {/* ================= 1. TOP IDENTITY & BALANCE BANNER ================= */}
         <View style={styles.identityBanner}>
           <View style={styles.identityRow}>
@@ -328,144 +360,48 @@ export const DomesticDashboardHub: React.FC = () => {
           </View>
 
           {/* Liquid Reserve Pool Card */}
-          <TouchableOpacity
-            style={styles.balanceDeck}
-            onPress={() => setActiveModal('income_vault')}
-            activeOpacity={0.85}
-          >
-            <View style={{ flex: 1 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+          <View style={styles.balanceDeck}>
+            <View style={styles.balanceHeaderRow}>
+              <View style={styles.balanceLabelRow}>
+                <Ionicons name="wallet-outline" size={14} color="#00d49f" />
                 <Text style={styles.balanceLabel}>Reserve Pool (گھریلو محفوظ فنڈ)</Text>
-                <View
-                  style={{
-                    backgroundColor: 'rgba(0, 212, 159, 0.15)',
-                    paddingHorizontal: 6,
-                    paddingVertical: 1,
-                    borderRadius: 6,
-                    borderWidth: 1,
-                    borderColor: 'rgba(0, 212, 159, 0.3)',
-                  }}
-                >
-                  <Text style={{ fontSize: 9.5, color: '#00d49f', fontWeight: 'bold' }}>
-                    والٹ و بجٹ ➔
-                  </Text>
-                </View>
-                <TouchableOpacity
-                  style={{
-                    backgroundColor: 'rgba(56, 189, 248, 0.15)',
-                    paddingHorizontal: 6,
-                    paddingVertical: 1,
-                    borderRadius: 6,
-                    borderWidth: 1,
-                    borderColor: 'rgba(56, 189, 248, 0.3)',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 3,
-                  }}
-                  onPress={(e) => {
-                    e.stopPropagation?.();
-                    setActiveModal('jev_guardian');
-                  }}
-                  activeOpacity={0.8}
-                >
-                  <Ionicons name="shield-checkmark" size={10} color="#38BDF8" />
-                  <Text style={{ fontSize: 9.5, color: '#38BDF8', fontWeight: 'bold' }}>
-                    JEV گارڈین
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={{
-                    backgroundColor: 'rgba(245, 158, 11, 0.15)',
-                    paddingHorizontal: 6,
-                    paddingVertical: 1,
-                    borderRadius: 6,
-                    borderWidth: 1,
-                    borderColor: 'rgba(245, 158, 11, 0.3)',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 3,
-                  }}
-                  onPress={(e) => {
-                    e.stopPropagation?.();
-                    setActiveModal('kitchen_runway');
-                  }}
-                  activeOpacity={0.8}
-                >
-                  <Ionicons name="speedometer-outline" size={10} color="#F59E0B" />
-                  <Text style={{ fontSize: 9.5, color: '#F59E0B', fontWeight: 'bold' }}>
-                    کچن رن وے
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={{
-                    backgroundColor: 'rgba(0, 212, 159, 0.15)',
-                    paddingHorizontal: 6,
-                    paddingVertical: 1,
-                    borderRadius: 6,
-                    borderWidth: 1,
-                    borderColor: 'rgba(0, 212, 159, 0.3)',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 3,
-                  }}
-                  onPress={(e) => {
-                    e.stopPropagation?.();
-                    handleProtectedModal('voice_assistant');
-                  }}
-                  activeOpacity={0.8}
-                >
-                  <Ionicons name="mic" size={10} color="#00d49f" />
-                  <Text style={{ fontSize: 9.5, color: '#00d49f', fontWeight: 'bold' }}>
-                    بولیں 🎙️
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={{
-                    backgroundColor: 'rgba(56, 189, 248, 0.15)',
-                    paddingHorizontal: 6,
-                    paddingVertical: 1,
-                    borderRadius: 6,
-                    borderWidth: 1,
-                    borderColor: 'rgba(56, 189, 248, 0.3)',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 3,
-                  }}
-                  onPress={(e) => {
-                    e.stopPropagation?.();
-                    setActiveModal('domestic_audit');
-                  }}
-                  activeOpacity={0.8}
-                >
-                  <Ionicons name="shield-checkmark" size={10} color="#38BDF8" />
-                  <Text style={{ fontSize: 9.5, color: '#38BDF8', fontWeight: 'bold' }}>
-                    آڈٹ و تصحیح 🛡️
-                  </Text>
-                </TouchableOpacity>
               </View>
-              <Text style={styles.balanceAmount}>
-                {balanceVisible ? 'Rs. 84,500' : '••••••••'}
-              </Text>
+              <View style={styles.solvencyPill}>
+                <Ionicons name="shield-checkmark" size={11} color="#38BDF8" />
+                <Text style={styles.solvencyPillText}>JEV محفوظ</Text>
+              </View>
             </View>
 
-            <TouchableOpacity
-              style={styles.balanceToggleBtn}
-              onPress={(e) => {
-                e.stopPropagation?.();
-                setBalanceVisible((prev) => !prev);
-              }}
-              activeOpacity={0.8}
-            >
-              <Ionicons
-                name={balanceVisible ? 'eye-outline' : 'eye-off-outline'}
-                size={15}
-                color="#CBD5E1"
-              />
-              <Text style={styles.balanceToggleText}>
-                {balanceVisible ? 'چھپائیں' : 'دیکھیں'}
-              </Text>
-            </TouchableOpacity>
-          </TouchableOpacity>
+            <Text style={styles.balanceAmount}>
+              {balanceVisible ? 'Rs. 84,500' : '••••••••'}
+            </Text>
+
+            {/* Clean 2-column sub-row below Rs. 84,500 */}
+            <View style={styles.balanceSubRow}>
+              <TouchableOpacity
+                style={styles.vaultActionBtn}
+                onPress={() => setActiveModal('income_vault')}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.vaultActionBtnText}>والٹ و بجٹ →</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.balanceToggleBtn}
+                onPress={() => setBalanceVisible((prev) => !prev)}
+                activeOpacity={0.8}
+              >
+                <Ionicons
+                  name={balanceVisible ? 'eye-outline' : 'eye-off-outline'}
+                  size={14}
+                  color="#94A3B8"
+                />
+                <Text style={styles.balanceToggleText}>
+                  {balanceVisible ? 'چھپائیں' : 'دیکھیں'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
 
         {/* ================= 2. GHARANA HUB (PINNED 5 ACTIONS + 6TH MORE TOOLS TILE) ================= */}
@@ -567,25 +503,22 @@ export const DomesticDashboardHub: React.FC = () => {
           </View>
         </View>
       </View>
-
-      {/* Floating Urdu Household Voice Assistant Action Button */}
-      <TouchableOpacity
-        style={styles.floatingVoiceFab}
-        onPress={() => handleProtectedModal('voice_assistant')}
-        activeOpacity={0.85}
-      >
-        <View style={styles.fabPulseGlow}>
-          <Ionicons name="mic" size={20} color="#070d18" />
-        </View>
-        <Text style={styles.fabText}>بولیں 🎙️</Text>
-      </TouchableOpacity>
+      </ScrollView>
 
       {/* ================= 4. MODAL ROUTER (PURE OVERLAYS ONLY) ================= */}
-      {/* 1. Milk & Bread Register */}
+      {/* 1. Milk & Bread Register (Daily Provision Expense & Income Register) */}
       {activeModal === 'milk_bread' && (
         <DailyProvisionRegisterModal
           visible={true}
-          onClose={() => setActiveModal(null)}
+          onClose={handleCloseModal}
+        />
+      )}
+
+      {/* 1b. Combined Kameti & Bills Hub */}
+      {activeModal === 'kameti_bills_hub' && (
+        <KametiBillsHubModal
+          visible={true}
+          onClose={handleCloseModal}
         />
       )}
 
@@ -930,10 +863,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#070d18', // Deep dark slate-navy
     paddingHorizontal: 12,
   },
+  mainScrollContent: {
+    flexGrow: 1,
+    alignItems: 'center',
+  },
   mainWrapper: {
     flex: 1,
     width: '100%',
-    maxWidth: 1200,
+    maxWidth: 480,
     alignSelf: 'center',
     justifyContent: 'space-between',
   },
@@ -1016,40 +953,83 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   balanceDeck: {
-    backgroundColor: 'rgba(15, 29, 54, 0.6)',
-    borderRadius: 14,
+    backgroundColor: '#0d1627',
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: '#17233b',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+    padding: 14,
+  },
+  balanceHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  balanceLabelRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: 6,
   },
   balanceLabel: {
-    color: '#00d49f',
+    color: '#94A3B8',
     fontSize: 11,
     fontWeight: '700',
   },
+  solvencyPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(56, 189, 248, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(56, 189, 248, 0.25)',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  solvencyPillText: {
+    fontSize: 9.5,
+    color: '#38BDF8',
+    fontWeight: '800',
+  },
   balanceAmount: {
     color: '#FFFFFF',
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: '900',
-    marginTop: 1,
+    marginVertical: 4,
+  },
+  balanceSubRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#17233b',
+  },
+  vaultActionBtn: {
+    backgroundColor: '#00d49f',
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 10,
+  },
+  vaultActionBtnText: {
+    color: '#070d18',
+    fontSize: 11,
+    fontWeight: '800',
   },
   balanceToggleBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    backgroundColor: 'rgba(30, 41, 59, 0.6)',
+    gap: 5,
+    backgroundColor: '#17233b',
     paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 20,
+    paddingVertical: 7,
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: 'rgba(71, 85, 105, 0.6)',
+    borderColor: '#223252',
   },
   balanceToggleText: {
-    color: '#CBD5E1',
+    color: '#94A3B8',
     fontSize: 11,
     fontWeight: '700',
   },
@@ -1057,6 +1037,7 @@ const styles = StyleSheet.create({
   // 2. Expanded 3x3 Service Grid (flex-1)
   gridSection: {
     marginBottom: 16,
+    paddingBottom: 96,
   },
   gridHeaderRow: {
     flexDirection: 'row',
@@ -1108,23 +1089,23 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
-    backgroundColor: '#FFFFFF',
+    borderColor: '#17233b',
+    backgroundColor: '#0d1627',
     padding: 6,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 1,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 2,
   },
   tileCardMore: {
     borderStyle: 'dashed',
     borderWidth: 1.5,
-    borderColor: '#BAE6FD',
-    backgroundColor: 'rgba(240, 249, 255, 0.7)',
+    borderColor: '#0284c7',
+    backgroundColor: 'rgba(2, 132, 199, 0.08)',
   },
   tileBadge: {
     position: 'absolute',
@@ -1150,17 +1131,17 @@ const styles = StyleSheet.create({
   tilePrimaryTitle: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#0F172A',
+    color: '#F8FAFC',
     textAlign: 'center',
     lineHeight: 14,
     width: '100%',
   },
   tileUrduSub: {
     fontSize: 9.5,
-    color: '#64748B',
+    color: '#94A3B8',
     textAlign: 'center',
     marginTop: 2,
-    lineHeight: 13,
+    lineHeight: 14,
     width: '100%',
   },
 

@@ -81,6 +81,7 @@ export interface IProfile extends Document {
   fullName: string;
   phone: string; // Normalized E.164: +923001234567
   email?: string;
+  isEmailVerified?: boolean;
   passwordHash?: string;
   pinHash: string; // Master 4-6 digit security PIN
   managerPinHash?: string; // 4-digit override PIN
@@ -150,6 +151,7 @@ const ProfileSchema = new Schema<IProfile>(
       trim: true,
     },
     email: { type: String, trim: true, lowercase: true },
+    isEmailVerified: { type: Boolean, default: false },
     passwordHash: { type: String },
     pinHash: { type: String, required: true },
     managerPinHash: { type: String },

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -44,6 +44,8 @@ import { WholesalePoModal } from '../../components/WholesalePoModal';
 import { BusinessLogsHubModal } from '../../components/BusinessLogsHubModal';
 import { HelpGuideModal } from '../../components/HelpGuideModal';
 import { ChorNazarSentinelModal } from '../../components/ChorNazarSentinelModal';
+import { GallaAuditModal } from '../../components/GallaAuditModal';
+import { FooterTabId } from '../../components/DualPersonaFooter';
 import { KarobarMoreToolsModal, KarobarToolItem } from '../../components/KarobarMoreToolsModal';
 import { counterpartyApi, ICounterparty } from '../../api/counterparty.api';
 import { ledgerApi, ILedgerEntry } from '../../api/ledger.api';
@@ -176,13 +178,80 @@ const DEFAULT_PINNED_TOOL_IDS = [
   'naya_udhaar',
 ];
 
-export const VendorView: React.FC = () => {
+export interface VendorViewProps {
+  footerTab?: FooterTabId;
+  onSelectFooterTab?: (tab: FooterTabId) => void;
+}
+
+export const VendorView: React.FC<VendorViewProps> = ({
+  footerTab,
+  onSelectFooterTab,
+}) => {
   const { width: screenWidth } = useWindowDimensions();
   const isDesktop = screenWidth >= 1024;
   const isTablet = screenWidth >= 640 && screenWidth < 1024;
 
+  const mainScrollViewRef = React.useRef<any>(null);
   const [pinnedToolIds, setPinnedToolIds] = useState<string[]>(DEFAULT_PINNED_TOOL_IDS);
   const [moreToolsModalVisible, setMoreToolsModalVisible] = useState(false);
+  const [gallaAuditModalVisible, setGallaAuditModalVisible] = useState(false);
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+  const [singleDeletingCustomer, setSingleDeletingCustomer] = useState<CustomerCardItem | null>(null);
+  const [isDeletingCustomer, setIsDeletingCustomer] = useState(false);
+
+  useEffect(() => {
+    if (footerTab === 'HOME') {
+      setGallaAuditModalVisible(false);
+      mainScrollViewRef.current?.scrollTo({ y: 0, animated: true });
+    } else if (footerTab === 'KHATA') {
+      setActiveTab('khata');
+      mainScrollViewRef.current?.scrollTo({ y: 0, animated: true });
+    } else if (footerTab === 'GALLA_AUDIT') {
+      setGallaAuditModalVisible(true);
+    }
+  }, [footerTab]);
+
+  const handleCloseGallaAudit = () => {
+    setGallaAuditModalVisible(false);
+    onSelectFooterTab?.('HOME');
+  };
+
+  const handleExecuteBulkDelete = async () => {
+    setIsDeletingCustomer(true);
+    try {
+      const res = await counterpartyApi.bulkDeleteCustomers();
+      if (res.success) {
+        setCustomerList([]);
+        setApiCounterparties([]);
+        setShowBulkDeleteModal(false);
+      } else {
+        Alert.alert('خطا', res.message || 'Bulk delete failed.');
+      }
+    } catch (err: any) {
+      Alert.alert('خطا', err.message || 'Bulk delete failed.');
+    } finally {
+      setIsDeletingCustomer(false);
+    }
+  };
+
+  const handleExecuteSingleDelete = async () => {
+    if (!singleDeletingCustomer) return;
+    setIsDeletingCustomer(true);
+    try {
+      const res = await counterpartyApi.deleteCustomer(singleDeletingCustomer.id);
+      if (res.success) {
+        setCustomerList((prev) => prev.filter((c) => c.id !== singleDeletingCustomer.id));
+        setApiCounterparties((prev) => prev.filter((c) => c._id !== singleDeletingCustomer.id));
+        setSingleDeletingCustomer(null);
+      } else {
+        Alert.alert('خطا', res.message || 'Could not delete customer.');
+      }
+    } catch (err: any) {
+      Alert.alert('خطا', err.message || 'Could not delete customer.');
+    } finally {
+      setIsDeletingCustomer(false);
+    }
+  };
 
   const { user } = useAuth();
   const {
@@ -1140,10 +1209,37 @@ export const VendorView: React.FC = () => {
         </View>
       )}
 
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        ref={mainScrollViewRef}
+        style={styles.container}
+        contentContainerStyle={{ paddingBottom: 95 }}
+        showsVerticalScrollIndicator={false}
+      >
 
 
-        {/* Cashier Scoping Notice Banner if logged in as Cashier */}
+{/* When KHATA tab is selected, render dedicated Khata Header at top */}
+        {footerTab === 'KHATA' && (
+          <View style={styles.khataDirectHeader}>
+            <View style={styles.khataDirectStatBox}>
+              <Text style={styles.khataDirectStatLabel}>روپیہ لینا ہے (KUL LENA)</Text>
+              <Text style={styles.khataDirectStatValLena}>
+                Rs. {summaryData.kulLena.toLocaleString()}
+              </Text>
+            </View>
+            <View style={styles.khataDirectDivider} />
+            <View style={styles.khataDirectStatBox}>
+              <Text style={styles.khataDirectStatLabel}>روپیہ دینا ہے (KUL DENA)</Text>
+              <Text style={styles.khataDirectStatValDena}>
+                Rs. {summaryData.kulDena.toLocaleString()}
+              </Text>
+            </View>
+          </View>
+        )}
+
+        {/* When NOT on KHATA tab, show full Retail POS Dashboard cards (Banners, 3x2 Karobar Hub, Taza Tareen) */}
+        {footerTab !== 'KHATA' && (
+          <>
+                    {/* Cashier Scoping Notice Banner if logged in as Cashier */}
         {isCashier && (
           <View style={styles.cashierNoticeBanner}>
             <Ionicons name="shield-half-outline" size={18} color="#0369A1" />
@@ -1301,6 +1397,8 @@ export const VendorView: React.FC = () => {
             </Text>
           </View>
         </View>
+          </>
+        )}
 
         {/* 4. Tabbed Operational Deck */}
         <View style={styles.tabDeck}>
@@ -1358,25 +1456,16 @@ export const VendorView: React.FC = () => {
                     {customerList.length} Mehfooz Khatay • حدِ ادھار اور وعدے کی تاریخ
                   </Text>
                 </View>
-                <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap' }}>
+                {customerList.length > 0 && (
                   <TouchableOpacity
-                    style={styles.addNayaGahakBtn}
-                    onPress={() => setAddCustomerModalVisible(true)}
+                    style={styles.bulkDeleteCustomerBtn}
+                    onPress={() => setShowBulkDeleteModal(true)}
                     activeOpacity={0.85}
                   >
-                    <Ionicons name="person-add" size={14} color="#00201A" />
-                    <Text style={styles.addNayaGahakBtnText}>+ Gahak</Text>
+                    <Ionicons name="trash-outline" size={14} color="#E11D48" />
+                    <Text style={styles.bulkDeleteCustomerBtnText}>🗑️ Delete All (تمام حذف کریں)</Text>
                   </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[styles.addNayaGahakBtn, { backgroundColor: '#006C4E' }]}
-                    onPress={() => handleOpenAddUdhaar()}
-                    activeOpacity={0.85}
-                  >
-                    <Ionicons name="receipt-outline" size={14} color="#FFF" />
-                    <Text style={[styles.addNayaGahakBtnText, { color: '#FFF' }]}>+ Udhaar / بل</Text>
-                  </TouchableOpacity>
-                </View>
+                )}
               </View>
 
               {/* Search Bar & Status Filter */}
@@ -1455,7 +1544,16 @@ export const VendorView: React.FC = () => {
                           </View>
 
                           <View style={styles.custBalanceCol}>
-                            <Text style={styles.custBalanceLabel}>BAQI UDHAAR</Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>
+                              <Text style={styles.custBalanceLabel}>BAQI UDHAAR</Text>
+                              <TouchableOpacity
+                                onPress={() => setSingleDeletingCustomer(cust)}
+                                style={styles.singleCustomerDeleteBtn}
+                                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                              >
+                                <Ionicons name="trash-outline" size={15} color="#E11D48" />
+                              </TouchableOpacity>
+                            </View>
                             <Text
                               style={[
                                 styles.custBalanceValue,
@@ -2271,6 +2369,105 @@ export const VendorView: React.FC = () => {
         onClose={() => setChorNazarModalVisible(false)}
         onOpenGallaBandi={() => setGallaBandiModalVisible(true)}
       />
+
+      {/* Combined Galla Audit & Chor Nazar Sentinel Modal */}
+      <GallaAuditModal
+        visible={gallaAuditModalVisible}
+        onClose={handleCloseGallaAudit}
+        onOpenGallaBandi={() => setGallaBandiModalVisible(true)}
+      />
+
+      {/* Bilingual Bulk Delete All Customers Confirmation Modal */}
+      <Modal
+        visible={showBulkDeleteModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowBulkDeleteModal(false)}
+      >
+        <View style={styles.deleteModalOverlay}>
+          <View style={styles.deleteModalCard}>
+            <View style={styles.deleteModalIconCircle}>
+              <Ionicons name="trash-bin-outline" size={32} color="#E11D48" />
+            </View>
+            <Text style={styles.deleteModalTitle}>تمام گاہک حذف کریں؟</Text>
+            <Text style={styles.deleteModalTitleEn}>Delete All Customers & Ledger History?</Text>
+            <Text style={styles.deleteModalDesc}>
+              کیا آپ واقعی تمام {customerList.length} گاہک اور ان کا کھاتہ حذف کرنا چاہتے ہیں؟ یہ عمل واپس نہیں کیا جا سکتا۔
+            </Text>
+            <Text style={styles.deleteModalDescEn}>
+              Are you sure you want to delete all {customerList.length} customers and their ledger history? This cannot be undone.
+            </Text>
+
+            <View style={styles.deleteModalActionsRow}>
+              <TouchableOpacity
+                style={styles.deleteModalCancelBtn}
+                onPress={() => setShowBulkDeleteModal(false)}
+                disabled={isDeletingCustomer}
+              >
+                <Text style={styles.deleteModalCancelText}>منسوخ کریں (Cancel)</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.deleteModalConfirmBtn}
+                onPress={handleExecuteBulkDelete}
+                disabled={isDeletingCustomer}
+              >
+                {isDeletingCustomer ? (
+                  <ActivityIndicator color="#FFF" size="small" />
+                ) : (
+                  <Text style={styles.deleteModalConfirmText}>تمام حذف کریں (Confirm Delete All)</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Bilingual Single Customer Delete Confirmation Modal */}
+      <Modal
+        visible={!!singleDeletingCustomer}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setSingleDeletingCustomer(null)}
+      >
+        <View style={styles.deleteModalOverlay}>
+          <View style={styles.deleteModalCard}>
+            <View style={styles.deleteModalIconCircle}>
+              <Ionicons name="person-remove-outline" size={30} color="#E11D48" />
+            </View>
+            <Text style={styles.deleteModalTitle}>گاہک کا کھاتہ حذف کریں</Text>
+            <Text style={styles.deleteModalTitleEn}>Delete Customer Khata?</Text>
+            <Text style={styles.deleteModalDesc}>
+              کیا آپ واقعی گاہک &quot;{singleDeletingCustomer?.name}&quot; کو فہرست سے حذف کرنا چاہتے ہیں؟
+            </Text>
+            <Text style={styles.deleteModalDescEn}>
+              Delete customer &quot;{singleDeletingCustomer?.name}&quot; and remove from your khata ledger?
+            </Text>
+
+            <View style={styles.deleteModalActionsRow}>
+              <TouchableOpacity
+                style={styles.deleteModalCancelBtn}
+                onPress={() => setSingleDeletingCustomer(null)}
+                disabled={isDeletingCustomer}
+              >
+                <Text style={styles.deleteModalCancelText}>منسوخ کریں (Cancel)</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.deleteModalConfirmBtn}
+                onPress={handleExecuteSingleDelete}
+                disabled={isDeletingCustomer}
+              >
+                {isDeletingCustomer ? (
+                  <ActivityIndicator color="#FFF" size="small" />
+                ) : (
+                  <Text style={styles.deleteModalConfirmText}>حذف کریں (Delete)</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* Help & Operational Workflow Guide Modal */}
       <HelpGuideModal
@@ -4728,5 +4925,160 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     color: '#FFFFFF',
+  },
+  bulkDeleteCustomerBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#F43F5E',
+    backgroundColor: '#FFF1F2',
+  },
+  bulkDeleteCustomerBtnText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#E11D48',
+  },
+  singleCustomerDeleteBtn: {
+    padding: 3,
+    borderRadius: 6,
+    backgroundColor: '#FFF1F2',
+  },
+  deleteModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.75)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  deleteModalCard: {
+    width: '100%',
+    maxWidth: 380,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 24,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  deleteModalIconCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#FFE4E6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  deleteModalTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#0F172A',
+    textAlign: 'center',
+    marginBottom: 2,
+  },
+  deleteModalTitleEn: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#64748B',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  deleteModalDesc: {
+    fontSize: 13,
+    color: '#334155',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 6,
+  },
+  deleteModalDescEn: {
+    fontSize: 11,
+    color: '#64748B',
+    textAlign: 'center',
+    lineHeight: 16,
+    marginBottom: 20,
+  },
+  deleteModalActionsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    width: '100%',
+  },
+  deleteModalCancelBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    backgroundColor: '#F8FAFC',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  deleteModalCancelText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#475569',
+  },
+  deleteModalConfirmBtn: {
+    flex: 1.3,
+    paddingVertical: 12,
+    borderRadius: 10,
+    backgroundColor: '#E11D48',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  deleteModalConfirmText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    textAlign: 'center',
+  },
+  khataDirectHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 16,
+    marginTop: 12,
+    marginBottom: 8,
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  khataDirectStatBox: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  khataDirectStatLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#64748B',
+    marginBottom: 2,
+  },
+  khataDirectStatValLena: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#006C4E',
+  },
+  khataDirectStatValDena: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#E11D48',
+  },
+  khataDirectDivider: {
+    width: 1,
+    height: 32,
+    backgroundColor: '#E2E8F0',
   },
 });

@@ -37,9 +37,12 @@ interface AuthContextType {
     };
   }>;
   login: (phone: string, pin: string) => Promise<{ success: boolean; message?: string }>;
+  requestRegisterEmailOtp: (email: string, phone: string, persona: PersonaType) => Promise<{ success: boolean; message?: string; otpHint?: string }>;
   register: (data: {
     fullName: string;
     phone: string;
+    email?: string;
+    otp?: string;
     pin: string;
     activePersona: PersonaType;
     businessName?: string;
@@ -156,15 +159,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const requestRegisterEmailOtp = async (email: string, phone: string, persona: PersonaType) => {
+    try {
+      const res = await apiClient.post('/auth/register/request-email-otp', {
+        email: email.trim().toLowerCase(),
+        phone,
+        persona,
+      });
+      return {
+        success: res.data.success,
+        message: res.data.message,
+        otpHint: res.data.otpHint,
+      };
+    } catch (err: any) {
+      return {
+        success: false,
+        message: err.response?.data?.message || 'Could not send verification OTP to email.',
+      };
+    }
+  };
+
   const register = async (data: {
     fullName: string;
     phone: string;
+    email?: string;
+    otp?: string;
     pin: string;
     activePersona: PersonaType;
     businessName?: string;
   }) => {
     try {
-      const res = await apiClient.post('/auth/register', data);
+      const res = await apiClient.post(data.otp ? '/auth/register/verify-and-create' : '/auth/register', data);
       if (res.data.success) {
         const authToken = res.data.token;
         const profileData = res.data.data;
@@ -281,6 +306,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isLoading,
         checkPhoneExists,
         login,
+        requestRegisterEmailOtp,
         register,
         requestPinResetOtp,
         resetPinWithOtp,

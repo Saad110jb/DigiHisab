@@ -13,6 +13,10 @@ import { subscriptionService, ISubscriptionRecord, PlanIdentifier } from '../../
 import { useAuth } from '../../store/auth.store';
 import { useAppVersion } from '../../context/AppVersionContext';
 import { COLORS } from '../../theme/colors';
+import { getBackendBaseUrl } from '../../config/env';
+import { DualPersonaFooter, FooterTabId } from '../../components/DualPersonaFooter';
+import { VoiceAssistantModal } from '../../components/VoiceAssistantModal';
+import { DomesticVoiceAssistantModal } from '../../components/DomesticVoiceAssistantModal';
 
 interface Props {
   navigation: any;
@@ -36,6 +40,18 @@ export const UnifiedDashboard: React.FC<Props> = ({ navigation }) => {
   const [subExpiringSoon, setSubExpiringSoon] = useState<boolean>(false);
   const [subDaysRemaining, setSubDaysRemaining] = useState<number>(0);
   const [subBannerDismissed, setSubBannerDismissed] = useState<boolean>(false);
+
+  // 5-Slot Bottom Navigation & Voice Assistant States
+  const [footerActiveTab, setFooterActiveTab] = useState<FooterTabId>('HOME');
+  const [voiceModalVisible, setVoiceModalVisible] = useState<boolean>(false);
+  const [isVoiceListening, setIsVoiceListening] = useState<boolean>(false);
+  const [overdueUdhaarCount, setOverdueUdhaarCount] = useState<number>(3);
+  const [householdDueAlert, setHouseholdDueAlert] = useState<boolean>(true);
+
+  useEffect(() => {
+    // Persona Switch Reset Rule: automatically reset activeTab to HOME
+    setFooterActiveTab('HOME');
+  }, [activePersona]);
 
   useEffect(() => {
     checkCnicKycStatus();
@@ -131,7 +147,7 @@ export const UnifiedDashboard: React.FC<Props> = ({ navigation }) => {
 
       // 4. Query SuperAdmin KYC approval desk live
       try {
-        const superadminUrl = 'http://localhost:3000/api/v1/admin/documents';
+        const superadminUrl = `${getBackendBaseUrl()}/api/v1/admin/documents`;
         const res = await fetch(superadminUrl);
         if (res.ok) {
           const json = await res.json();
@@ -179,7 +195,7 @@ export const UnifiedDashboard: React.FC<Props> = ({ navigation }) => {
   };
 
   return (
-    <View style={[styles.container, { paddingBottom: insets.bottom }]}>
+    <View style={[styles.container, { backgroundColor: isHousehold ? '#070d18' : '#f8fafc' }]}>
       {/* Shared Global Top Header with Logo & Persona Switcher */}
       <Header
         activeMode={activePersona === 'HOUSEHOLD' ? 'GHAR' : 'DUKAN'}
@@ -377,8 +393,52 @@ export const UnifiedDashboard: React.FC<Props> = ({ navigation }) => {
 
       {/* Swappable Dedicated Views */}
       <View style={styles.contentArea}>
-        {activePersona === 'HOUSEHOLD' ? <HouseholdView /> : <VendorView />}
+        {activePersona === 'HOUSEHOLD' ? (
+          <HouseholdView
+            footerTab={footerActiveTab}
+            onSelectFooterTab={setFooterActiveTab}
+          />
+        ) : (
+          <VendorView
+            footerTab={footerActiveTab}
+            onSelectFooterTab={setFooterActiveTab}
+          />
+        )}
       </View>
+
+      {/* 5-Slot Sticky Bottom Navigation Footer */}
+      <DualPersonaFooter
+        persona={isHousehold ? 'HOUSEHOLD' : 'DUKANDAR'}
+        activeTab={footerActiveTab}
+        onTabPress={(tabId) => {
+          setFooterActiveTab(tabId);
+          if (tabId === 'SETTINGS') {
+            setDrawerVisible(true);
+          }
+        }}
+        onVoicePress={() => {
+          setVoiceModalVisible(true);
+        }}
+        isListening={isVoiceListening}
+        overdueCount={overdueUdhaarCount}
+        hasDueAlert={householdDueAlert}
+      />
+
+      {/* Voice AI Assistant Modals */}
+      {isHousehold ? (
+        <DomesticVoiceAssistantModal
+          visible={voiceModalVisible}
+          onClose={() => setVoiceModalVisible(false)}
+        />
+      ) : (
+        <VoiceAssistantModal
+          visible={voiceModalVisible}
+          onClose={() => setVoiceModalVisible(false)}
+          onExecuteCommand={() => {
+            setVoiceModalVisible(false);
+          }}
+        />
+      )}
 
       {/* Interactive CNIC Scanner Modal */}
       <CnicScannerModal

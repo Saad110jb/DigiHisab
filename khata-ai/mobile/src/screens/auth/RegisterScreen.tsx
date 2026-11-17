@@ -10,6 +10,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Modal,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,9 +21,13 @@ import { CnicScannerModal } from '../../components/CnicScannerModal';
 
 export const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const insets = useSafeAreaInsets();
-  const { register } = useAuth();
+  const { register, requestRegisterEmailOtp } = useAuth();
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [otp, setOtp] = useState('');
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [otpCooldown, setOtpCooldown] = useState(0);
   const [pin, setPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
   const [showPin, setShowPin] = useState(false);
@@ -32,7 +38,9 @@ export const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
   const [cnicScanned, setCnicScanned] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [otpErrorMessage, setOtpErrorMessage] = useState<string | null>(null);
 
   /**
    * Security Check: Weak PIN Detector
@@ -84,6 +92,21 @@ export const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
     return { isValid: true, normalized: cleaned };
   };
 
+  /**
+   * Security Check: Email Format Validation
+   */
+  const validateEmail = (raw: string): { isValid: boolean; normalized: string; error?: string } => {
+    const clean = raw.trim().toLowerCase();
+    if (!clean) {
+      return { isValid: false, normalized: '', error: 'Email address is required for OTP verification.' };
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(clean)) {
+      return { isValid: false, normalized: clean, error: 'Please enter a valid email address (e.g. name@gmail.com).' };
+    }
+    return { isValid: true, normalized: clean };
+  };
+
   const handleRegister = async () => {
     setErrorMessage(null);
 
@@ -105,20 +128,27 @@ export const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
       return;
     }
 
-    // 3. PIN Security & Strength
+    // 3. Email Validation
+    const emailCheck = validateEmail(email);
+    if (!emailCheck.isValid) {
+      setErrorMessage(emailCheck.error || 'Invalid email format.');
+      return;
+    }
+
+    // 4. PIN Security & Strength
     const pinCheck = checkPinStrength(pin);
     if (!pinCheck.isSecure) {
       setErrorMessage(pinCheck.reason || 'Weak PIN provided.');
       return;
     }
 
-    // 4. Confirm PIN Check
+    // 5. Confirm PIN Check
     if (pin !== confirmPin) {
       setErrorMessage('Security PIN and Confirm PIN do not match.');
       return;
     }
 
-    // 5. Terms Agreement
+    // 6. Terms Agreement
     if (!agreeTerms) {
       setErrorMessage('Please accept the encrypted ledger security terms to continue.');
       return;
@@ -126,18 +156,76 @@ export const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
 
     setIsLoading(true);
 
+    // Request Registration Email OTP
+    const otpRes = await requestRegisterEmailOtp(
+      emailCheck.normalized,
+      phoneCheck.normalized,
+      activePersona
+    );
+
+    setIsLoading(false);
+
+    if (otpRes.success) {
+      setOtp('');
+      setOtpErrorMessage(null);
+      setShowOtpModal(true);
+      setOtpCooldown(60);
+    } else {
+      setErrorMessage(otpRes.message || 'Failed to dispatch verification OTP to your email.');
+    }
+  };
+
+  const handleVerifyOtpAndComplete = async () => {
+    setOtpErrorMessage(null);
+    const cleanOtp = otp.trim();
+
+    if (!cleanOtp || cleanOtp.length !== 6 || !/^\d{6}$/.test(cleanOtp)) {
+      setOtpErrorMessage('Baraye meherbani 6 hinson ka durust OTP code darj karein.');
+      return;
+    }
+
+    const phoneCheck = validatePhone(phone);
+    const emailCheck = validateEmail(email);
+
+    setIsVerifyingOtp(true);
+
     const res = await register({
       fullName: fullName.trim(),
       phone: phoneCheck.normalized,
+      email: emailCheck.normalized,
+      otp: cleanOtp,
       pin,
       activePersona,
       businessName: businessName ? businessName.trim() : undefined,
     });
 
+    setIsVerifyingOtp(false);
+
+    if (res.success) {
+      setShowOtpModal(false);
+    } else {
+      setOtpErrorMessage(res.message || 'OTP verification failed. Please check code or try again.');
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (otpCooldown > 0) return;
+    const phoneCheck = validatePhone(phone);
+    const emailCheck = validateEmail(email);
+
+    setIsLoading(true);
+    const res = await requestRegisterEmailOtp(
+      emailCheck.normalized,
+      phoneCheck.normalized,
+      activePersona
+    );
     setIsLoading(false);
 
-    if (!res.success) {
-      setErrorMessage(res.message || 'Registration failed. An account may already exist with this number.');
+    if (res.success) {
+      setOtpCooldown(60);
+      Alert.alert('کامیابی', `نیا OTP کوڈ آپ کے ای میل ${emailCheck.normalized} پر بھیج دیا گیا ہے۔`);
+    } else {
+      setOtpErrorMessage(res.message || 'Failed to resend OTP.');
     }
   };
 
@@ -267,6 +355,31 @@ export const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
               />
             </View>
             <Text style={styles.microHint}>Format: 03001234567</Text>
+          </View>
+
+          {/* Email Address with OTP Notice */}
+          <View style={styles.inputGroup}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+              <Text style={styles.label}>Email Address / ای میل پتہ *</Text>
+              <Text style={{ fontSize: 10, color: '#00d49f', fontWeight: '700' }}>🔒 OTP تصدیق لازمی ہے</Text>
+            </View>
+            <View style={styles.inputWrapper}>
+              <Ionicons name="mail-outline" size={20} color={COLORS.textSecondary} style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="muhammad.ali@example.com"
+                placeholderTextColor="#94A3B8"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                value={email}
+                onChangeText={(val) => {
+                  setEmail(val);
+                  if (errorMessage) setErrorMessage(null);
+                }}
+              />
+            </View>
+            <Text style={styles.microHint}>اکاؤنٹ کی تصدیق کے لیے اس ای میل پر 6 ہندسوں کا OTP کوڈ بھیجا جائے گا۔</Text>
           </View>
 
           {/* Business Name (Shown especially for Dukandar) */}
@@ -431,6 +544,95 @@ export const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
         onScanComplete={() => setCnicScanned(true)}
         userName={fullName || 'Merchant'}
       />
+
+      {/* Email OTP Verification Bottom Sheet Modal */}
+      <Modal
+        visible={showOtpModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowOtpModal(false)}
+      >
+        <KeyboardAvoidingView
+          style={styles.otpModalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
+          <View style={styles.otpModalCard}>
+            <View style={styles.otpHeaderRow}>
+              <View style={styles.otpIconCircle}>
+                <Ionicons name="shield-checkmark" size={24} color="#00d49f" />
+              </View>
+              <TouchableOpacity
+                onPress={() => setShowOtpModal(false)}
+                style={styles.otpCloseBtn}
+              >
+                <Ionicons name="close" size={22} color="#94A3B8" />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.otpTitle}>Email Verification</Text>
+            <Text style={styles.otpSubtitle}>ای میل تصدیقی کوڈ (OTP)</Text>
+            <Text style={styles.otpDesc}>
+              ہم نے آپ کے ای میل{' '}
+              <Text style={{ fontWeight: '700', color: '#00d49f' }}>{email}</Text>{' '}
+              پر 6 ہندسوں کا کوڈ بھیجا ہے۔ تصدیق مکمل کرنے کے لیے کوڈ نیچے درج کریں:
+            </Text>
+
+            {otpErrorMessage && (
+              <View style={[styles.errorBox, { marginTop: 12 }]}>
+                <Ionicons name="alert-circle" size={16} color={COLORS.danger} />
+                <Text style={styles.errorText}>{otpErrorMessage}</Text>
+              </View>
+            )}
+
+            <View style={styles.otpInputBox}>
+              <TextInput
+                style={styles.otpInputField}
+                placeholder="••••••"
+                placeholderTextColor="#64748B"
+                keyboardType="numeric"
+                maxLength={6}
+                value={otp}
+                onChangeText={(val) => {
+                  const cleaned = val.replace(/[^0-9]/g, '').slice(0, 6);
+                  setOtp(cleaned);
+                  if (otpErrorMessage) setOtpErrorMessage(null);
+                }}
+                autoFocus={true}
+              />
+            </View>
+
+            <TouchableOpacity
+              style={[
+                styles.otpSubmitBtn,
+                (otp.length !== 6 || isVerifyingOtp) && styles.disabledBtn,
+              ]}
+              onPress={handleVerifyOtpAndComplete}
+              disabled={otp.length !== 6 || isVerifyingOtp}
+              activeOpacity={0.85}
+            >
+              {isVerifyingOtp ? (
+                <ActivityIndicator color="#070d18" />
+              ) : (
+                <Text style={styles.otpSubmitBtnText}>Verify & Create Account (اکاؤنٹ بنائیں)</Text>
+              )}
+            </TouchableOpacity>
+
+            <View style={styles.otpResendRow}>
+              <Text style={styles.otpResendPrompt}>کوڈ موصول نہیں ہوا؟ </Text>
+              <TouchableOpacity onPress={handleResendOtp} disabled={otpCooldown > 0}>
+                <Text
+                  style={[
+                    styles.otpResendBtnText,
+                    otpCooldown > 0 && { color: '#64748B' },
+                  ]}
+                >
+                  {otpCooldown > 0 ? `دوبارہ بھیجیں (${otpCooldown}s)` : 'کوڈ دوبارہ بھیجیں'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </KeyboardAvoidingView>
   );
 };
@@ -682,6 +884,100 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 12,
     fontWeight: '700',
+  },
+  otpModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(7, 13, 24, 0.75)',
+    justifyContent: 'flex-end',
+  },
+  otpModalCard: {
+    backgroundColor: '#0d1627',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: '#17233b',
+    borderBottomWidth: 0,
+  },
+  otpHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  otpIconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(0, 212, 159, 0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 212, 159, 0.3)',
+  },
+  otpCloseBtn: {
+    padding: 8,
+  },
+  otpTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#F8FAFC',
+  },
+  otpSubtitle: {
+    fontSize: 13,
+    color: '#94A3B8',
+    marginTop: 2,
+  },
+  otpDesc: {
+    fontSize: 13,
+    color: '#CBD5E1',
+    lineHeight: 20,
+    marginTop: 10,
+    writingDirection: 'rtl',
+    textAlign: 'right',
+  },
+  otpInputBox: {
+    backgroundColor: '#070d18',
+    borderWidth: 1.5,
+    borderColor: '#00d49f',
+    borderRadius: 14,
+    marginVertical: 18,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  otpInputField: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#00d49f',
+    textAlign: 'center',
+    letterSpacing: 12,
+  },
+  otpSubmitBtn: {
+    backgroundColor: '#00d49f',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  otpSubmitBtnText: {
+    color: '#070d18',
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  otpResendRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  otpResendPrompt: {
+    fontSize: 12,
+    color: '#94A3B8',
+  },
+  otpResendBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#00d49f',
   },
 });
 

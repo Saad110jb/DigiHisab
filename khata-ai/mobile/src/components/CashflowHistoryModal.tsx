@@ -37,10 +37,13 @@ export interface CashflowItem {
   items?: { name: string; quantity: number; unitPrice: number; total: number }[];
 }
 
-interface CashflowHistoryModalProps {
+export interface CashflowHistoryModalProps {
   visible: boolean;
   onClose: () => void;
   onRefreshBalances?: () => void;
+  segmentedAuditMode?: boolean;
+  currentAuditSegment?: 'CASHFLOW' | 'SENTINEL';
+  onSwitchAuditSegment?: (segment: 'CASHFLOW' | 'SENTINEL') => void;
 }
 
 
@@ -49,6 +52,9 @@ export const CashflowHistoryModal: React.FC<CashflowHistoryModalProps> = ({
   visible,
   onClose,
   onRefreshBalances,
+  segmentedAuditMode = false,
+  currentAuditSegment = 'CASHFLOW',
+  onSwitchAuditSegment,
 }) => {
   const insets = useSafeAreaInsets();
   const [sourceFilter, setSourceFilter] = useState<'ALL' | 'PHYSICAL_CASH' | 'DIGITAL_WALLET' | 'BANK_ACCOUNT'>('ALL');
@@ -338,6 +344,56 @@ export const CashflowHistoryModal: React.FC<CashflowHistoryModalProps> = ({
               <Ionicons name="close" size={22} color="#94A3B8" />
             </TouchableOpacity>
           </View>
+
+          {/* Segmented Switch for Combined Galla Audit Mode */}
+          {segmentedAuditMode && (
+            <View style={styles.auditSegmentContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.auditSegmentTab,
+                  currentAuditSegment === 'CASHFLOW' && styles.auditSegmentTabActive,
+                ]}
+                onPress={() => onSwitchAuditSegment?.('CASHFLOW')}
+                activeOpacity={0.8}
+              >
+                <Ionicons
+                  name="book"
+                  size={14}
+                  color={currentAuditSegment === 'CASHFLOW' ? '#FFF' : '#64748B'}
+                />
+                <Text
+                  style={[
+                    styles.auditSegmentTabText,
+                    currentAuditSegment === 'CASHFLOW' && styles.auditSegmentTabTextActive,
+                  ]}
+                >
+                  Cashflow Ledger (روزنامچہ)
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.auditSegmentTab,
+                  currentAuditSegment === 'SENTINEL' && styles.auditSegmentTabActive,
+                ]}
+                onPress={() => onSwitchAuditSegment?.('SENTINEL')}
+                activeOpacity={0.8}
+              >
+                <Ionicons
+                  name="shield-checkmark"
+                  size={14}
+                  color={currentAuditSegment === 'SENTINEL' ? '#FFF' : '#64748B'}
+                />
+                <Text
+                  style={[
+                    styles.auditSegmentTabText,
+                    currentAuditSegment === 'SENTINEL' && styles.auditSegmentTabTextActive,
+                  ]}
+                >
+                  Chor Nazar (چور نظر)
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
           {/* Quick Summary Bar */}
           <View style={styles.summaryBar}>
@@ -1216,5 +1272,33 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.85)',
     fontSize: 9,
     fontWeight: '600',
+  },
+  auditSegmentContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#F1F5F9',
+    borderRadius: 12,
+    padding: 3,
+    marginBottom: 10,
+    gap: 4,
+  },
+  auditSegmentTab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 7,
+    borderRadius: 9,
+    gap: 6,
+  },
+  auditSegmentTabActive: {
+    backgroundColor: '#0F172A',
+  },
+  auditSegmentTabText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#64748B',
+  },
+  auditSegmentTabTextActive: {
+    color: '#FFFFFF',
   },
 });
